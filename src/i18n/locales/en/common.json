@@ -57,5 +57,22 @@
     "description": "Discover items with more to give and find something that fits your everyday life.",
     "explore": "Explore now",
     "browseCategories": "Browse categories"
+  },
+  "products": {
+    "newestTitle": "New arrivals",
+    "newestDescription": "Recently listed finds, ready for a new home.",
+    "viewAll": "View all products",
+    "loading": "Loading products",
+    "noImage": "Product image unavailable",
+    "conditions": {
+      "new": "New",
+      "likeNew": "Like new",
+      "used": "Used",
+      "damaged": "Damaged",
+      "unknown": "Condition not specified"
+    },
+    "errorTitle": "Unable to load new arrivals",
+    "errorMessage": "Please try loading the products again in a few minutes.",
+    "detailTitle": "Product details"
   }
 }

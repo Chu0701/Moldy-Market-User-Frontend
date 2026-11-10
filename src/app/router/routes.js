@@ -28,6 +28,13 @@ export const routes = [
             }),
           },
           {
+            path: 'products/:productId',
+            lazy: async () => ({
+              Component: (await import('@/features/products/pages/ProductDetailPage'))
+                .ProductDetailPage,
+            }),
+          },
+          {
             path: 'categories/:categoryId',
             lazy: async () => ({
               Component: (await import('@/features/marketplace/pages/CategoryPage')).CategoryPage,

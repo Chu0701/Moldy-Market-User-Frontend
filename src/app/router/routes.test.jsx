@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
@@ -8,14 +8,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routes } from '@/app/router/routes'
 import i18n from '@/i18n'
 import { getCategoryTree } from '@/services/categories/categoryService'
+import { searchProducts } from '@/services/products/productService'
 
 vi.mock('@/services/categories/categoryService', () => ({ getCategoryTree: vi.fn() }))
+vi.mock('@/services/products/productService', () => ({ searchProducts: vi.fn() }))
 
 let router
 let queryClient
 
 beforeEach(() => {
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
+  vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
 })
 
 function renderRoute(path, routeConfig = routes) {
@@ -37,6 +40,90 @@ afterEach(async () => {
 })
 
 describe('user app routing', () => {
+  const product = {
+    id: 'a8098c1a-f86e-11da-bd1a-00112444be1e',
+    title: 'Test product',
+    price: 250000,
+    condition: 'LIKE_NEW',
+    images: [],
+  }
+
+  test('displays the newest product and navigates to its detail placeholder', async () => {
+    vi.mocked(searchProducts).mockResolvedValue({ items: [product] })
+    const user = renderRoute('/')
+
+    expect(await screen.findByRole('link', { name: /Test product/ })).toHaveAttribute(
+      'href',
+      `/products/${product.id}`,
+    )
+    expect(screen.getByText('Như mới')).toBeInTheDocument()
+    expect(screen.getByText(/250\.000/)).toHaveTextContent(/250\.000\s*₫/)
+    expect(screen.getByText('Chưa có ảnh sản phẩm')).toBeInTheDocument()
+    const header = screen.getByRole('banner')
+    await user.click(screen.getByRole('link', { name: /Test product/ }))
+
+    expect(await screen.findByRole('heading', { name: 'Chi tiết sản phẩm' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(`/products/${product.id}`)
+    expect(screen.getByRole('banner')).toBe(header)
+  })
+
+  test('hides the product section when search succeeds without products', async () => {
+    renderRoute('/')
+    await screen.findByRole('heading', { name: 'Chưa có danh mục' })
+    await waitFor(() => expect(searchProducts).toHaveBeenCalled())
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
+    expect(screen.queryByRole('heading', { name: 'Sản phẩm mới' })).not.toBeInTheDocument()
+  })
+
+  test('keeps categories usable while products are loading independently', async () => {
+    vi.mocked(getCategoryTree).mockResolvedValue([{ id: 'test-category', name: 'Test category' }])
+    vi.mocked(searchProducts).mockImplementation(() => new Promise(() => {}))
+    renderRoute('/')
+
+    expect(await screen.findByRole('link', { name: 'Test category' })).toBeInTheDocument()
+    expect(await screen.findByText('Đang tải sản phẩm')).toBeInTheDocument()
+  })
+
+  test('retries a product failure without replacing the category section', async () => {
+    vi.mocked(getCategoryTree).mockResolvedValue([{ id: 'test-category', name: 'Test category' }])
+    vi.mocked(searchProducts)
+      .mockRejectedValueOnce(Object.assign(new Error('Unavailable'), { status: 503 }))
+      .mockResolvedValueOnce({ items: [product] })
+    const user = renderRoute('/')
+
+    await screen.findByRole('heading', { name: 'Chưa tải được sản phẩm mới' })
+    expect(screen.getByRole('link', { name: 'Test category' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+    expect(await screen.findByRole('link', { name: /Test product/ })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Chưa tải được sản phẩm mới' }),
+    ).not.toBeInTheDocument()
+  })
+
+  test('shows forbidden product feedback without redirecting the page', async () => {
+    vi.mocked(searchProducts).mockRejectedValue(
+      Object.assign(new Error('Forbidden'), { status: 403 }),
+    )
+    renderRoute('/')
+
+    expect(
+      await screen.findByRole('heading', { name: 'Không có quyền xem nội dung' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Món đồ cũ, khởi đầu mới.' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+  })
+
+  test('uses a translated fallback for an unrecognized product condition', async () => {
+    vi.mocked(searchProducts).mockResolvedValue({
+      items: [{ ...product, condition: 'UNRECOGNIZED' }],
+    })
+    renderRoute('/')
+
+    expect(await screen.findByText('Chưa rõ tình trạng')).toBeInTheDocument()
+    expect(screen.queryByText('UNRECOGNIZED')).not.toBeInTheDocument()
+  })
+
   test('navigates from a category card to its page inside the shared layout', async () => {
     const id = 'a8098c1a-f86e-11da-bd1a-00112444be1e'
     vi.mocked(getCategoryTree).mockResolvedValue([{ id, name: 'Test category', children: [] }])

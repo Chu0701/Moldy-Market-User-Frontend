@@ -57,5 +57,22 @@
     "description": "Khám phá những món đồ còn nhiều giá trị và tìm lựa chọn phù hợp cho cuộc sống của bạn.",
     "explore": "Khám phá ngay",
     "browseCategories": "Xem danh mục"
+  },
+  "products": {
+    "newestTitle": "Sản phẩm mới",
+    "newestDescription": "Những món đồ vừa được đăng, chờ một chủ nhân mới.",
+    "viewAll": "Xem tất cả sản phẩm",
+    "loading": "Đang tải sản phẩm",
+    "noImage": "Chưa có ảnh sản phẩm",
+    "conditions": {
+      "new": "Mới",
+      "likeNew": "Như mới",
+      "used": "Đã sử dụng",
+      "damaged": "Hư hỏng",
+      "unknown": "Chưa rõ tình trạng"
+    },
+    "errorTitle": "Chưa tải được sản phẩm mới",
+    "errorMessage": "Bạn có thể thử tải lại sản phẩm sau ít phút.",
+    "detailTitle": "Chi tiết sản phẩm"
   }
 }

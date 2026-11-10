@@ -93,6 +93,15 @@ Các ngoại lệ đã thấy trong controller:
 - Comment DTO xác nhận `children` là `null` cho detail và có giá trị cho tree. DTO không có trường ảnh; lưới trang chủ dùng `id` và `name` của các node cấp gốc.
 - Xác nhận tích hợp ngày 2026-11-10: sau khi khởi động Backend local, Chu xác nhận danh mục thật đã hiển thị trên trang chủ User. Luồng cây danh mục đã tích hợp; endpoint chi tiết chưa được nối, `CategoryPage` vẫn là placeholder. Loading, empty, error, retry, 403 và điều hướng thẻ được kiểm tra bằng tests mock tại service boundary.
 
+### 2.1.2 Product search: đối chiếu source và HTTP local ngày 2026-11-10
+
+- Nguồn: `product/controller/ProductController.java`, `product/dto/ProductSearchResponse.java`, `product/dto/ProductResponse.java` dưới `src/main/java/com/moldy/moldymarket/` của Backend local; không sửa Backend.
+- `GET /api/v1/products/search?page=1&size=8&sort=newest` đã trả `success: true` với 4 items trong lần kiểm tra local. Đây là số lượng tại thời điểm kiểm tra, không phải số cố định cho UI.
+- Payload là `{ items, page, size, totalElements, totalPages, totalCapped, facets }`; `items` là danh sách `ProductResponse`, `facets` có thể null khi không yêu cầu facets.
+- `ProductResponse`: `id`, `sellerId`, `storeId`, `categoryId` (UUID); `title`, `description`, `removalReason` (String); `price` (BigDecimal); `condition`, `status`, `pricingStrategy` (enum); `images` (`List<String>`); `attributes` (`Map<String,Object>`); `createdAt` (Instant).
+- HTTP xác nhận `price` là số JSON và phần tử `images` là chuỗi URL. UI có thể lấy `images[0]` làm ảnh đầu tiên; nếu thiếu hoặc tải lỗi thì dùng placeholder. DTO không có trường tên gian hàng; chưa hiển thị tên giả hoặc tự gọi thêm API gian hàng trên từng thẻ.
+- Định dạng VND theo doc 03; định dạng locale chỉ đổi cách hiển thị, không quy đổi tiền tệ. Hook đã nối vào khối sản phẩm mới của trang chủ; loading, empty (ẩn khối), error, retry và 403 được kiểm tra bằng tests tại service boundary. Chưa đánh dấu UI search `INTEGRATED` trước khi Chu xác nhận hiển thị dữ liệu thật trong trình duyệt; trang chi tiết vẫn là placeholder.
+
 ### 2.2 Các kiểu phân trang khác nhau
 
 | Ở đâu | Tham số request | Dạng response | Ghi chú |

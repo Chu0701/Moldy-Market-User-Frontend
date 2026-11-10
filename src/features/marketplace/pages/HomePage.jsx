@@ -7,6 +7,7 @@ import { CategoryCard } from '@/features/marketplace/components/CategoryCard'
 import { CategoryGrid } from '@/features/marketplace/components/CategoryGrid'
 import { CategorySkeleton } from '@/features/marketplace/components/CategorySkeleton'
 import { HeroSection } from '@/features/marketplace/components/HeroSection'
+import { NewestProductsSection } from '@/features/marketplace/components/NewestProductsSection'
 import { useCategories } from '@/features/marketplace/hooks/useCategories'
 
 export function HomePage() {
@@ -45,6 +46,7 @@ export function HomePage() {
     <>
       <HeroSection />
       <CategoryGrid>{content}</CategoryGrid>
+      <NewestProductsSection />
     </>
   )
 }
