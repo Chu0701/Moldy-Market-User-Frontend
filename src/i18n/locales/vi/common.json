@@ -50,5 +50,12 @@
     "title": "Khám phá danh mục",
     "emptyTitle": "Chưa có danh mục",
     "emptyMessage": "Danh mục sẽ xuất hiện tại đây khi được cập nhật."
+  },
+  "hero": {
+    "eyebrow": "Mua bán đồ đã qua sử dụng",
+    "title": "Món đồ cũ, khởi đầu mới.",
+    "description": "Khám phá những món đồ còn nhiều giá trị và tìm lựa chọn phù hợp cho cuộc sống của bạn.",
+    "explore": "Khám phá ngay",
+    "browseCategories": "Xem danh mục"
   }
 }

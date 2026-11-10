@@ -50,5 +50,12 @@
     "title": "Explore categories",
     "emptyTitle": "No categories yet",
     "emptyMessage": "Categories will appear here when they are available."
+  },
+  "hero": {
+    "eyebrow": "A marketplace for second-hand finds",
+    "title": "Pre-loved finds, new beginnings.",
+    "description": "Discover items with more to give and find something that fits your everyday life.",
+    "explore": "Explore now",
+    "browseCategories": "Browse categories"
   }
 }

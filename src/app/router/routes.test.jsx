@@ -99,7 +99,7 @@ describe('user app routing', () => {
 
   test('navigates between pages while keeping the shared layout mounted', async () => {
     const user = renderRoute('/')
-    await screen.findByRole('heading', { name: 'Trang chủ' })
+    await screen.findByRole('heading', { name: 'Món đồ cũ, khởi đầu mới.' })
     const header = screen.getByRole('banner')
 
     await user.click(screen.getByRole('link', { name: 'Khám phá sản phẩm' }))
@@ -131,7 +131,9 @@ describe('user app routing', () => {
 
     await user.click(screen.getByRole('link', { name: 'Về trang chủ' }))
 
-    expect(await screen.findByRole('heading', { name: 'Trang chủ' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Món đồ cũ, khởi đầu mới.' }),
+    ).toBeInTheDocument()
   })
 
   test('navigates from the 404 search form with the term in the URL', async () => {
@@ -148,15 +150,19 @@ describe('user app routing', () => {
 
   test('switches translated content and the document language together', async () => {
     const user = renderRoute('/')
-    await screen.findByRole('heading', { name: 'Trang chủ' })
+    await screen.findByRole('heading', { name: 'Món đồ cũ, khởi đầu mới.' })
 
     await user.click(screen.getByRole('button', { name: 'Ngôn ngữ: English' }))
 
-    expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Pre-loved finds, new beginnings.' }),
+    ).toBeInTheDocument()
     expect(document.documentElement).toHaveAttribute('lang', 'en')
 
     await user.click(screen.getByRole('button', { name: 'Language: Tiếng Việt' }))
-    expect(await screen.findByRole('heading', { name: 'Trang chủ' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Món đồ cũ, khởi đầu mới.' }),
+    ).toBeInTheDocument()
     expect(document.documentElement).toHaveAttribute('lang', 'vi')
   })
 

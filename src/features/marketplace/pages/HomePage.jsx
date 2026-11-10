@@ -6,6 +6,7 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { CategoryCard } from '@/features/marketplace/components/CategoryCard'
 import { CategoryGrid } from '@/features/marketplace/components/CategoryGrid'
 import { CategorySkeleton } from '@/features/marketplace/components/CategorySkeleton'
+import { HeroSection } from '@/features/marketplace/components/HeroSection'
 import { useCategories } from '@/features/marketplace/hooks/useCategories'
 
 export function HomePage() {
@@ -42,7 +43,7 @@ export function HomePage() {
 
   return (
     <>
-      <h1 className="sr-only">{t('navigation.home')}</h1>
+      <HeroSection />
       <CategoryGrid>{content}</CategoryGrid>
     </>
   )
