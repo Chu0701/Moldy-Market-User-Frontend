@@ -8,7 +8,8 @@
     "save": "Lưu",
     "cancel": "Hủy",
     "backHome": "Về trang chủ",
-    "reload": "Tải lại trang"
+    "reload": "Tải lại trang",
+    "retry": "Thử lại"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -18,7 +19,10 @@
   "feedback": {
     "loading": "Đang tải trang…",
     "errorMessage": "Đã xảy ra lỗi khi mở trang. Vui lòng tải lại hoặc trở về trang chủ.",
-    "errorTitle": "Không thể hiển thị trang"
+    "errorTitle": "Không thể hiển thị trang",
+    "forbiddenTitle": "Không có quyền xem nội dung",
+    "forbiddenMessage": "Bạn chưa được cấp quyền truy cập nội dung này.",
+    "checkBack": "Bạn có thể quay lại sau."
   },
   "shell": {
     "phase": "Moldy Market đang được xây dựng",
@@ -36,5 +40,15 @@
     "main": "Điều hướng chính",
     "login": "Đăng nhập",
     "search": "Tìm kiếm sản phẩm"
+  },
+  "categories": {
+    "loading": "Đang tải danh mục",
+    "pageTitle": "Sản phẩm theo danh mục",
+    "description": "Tìm món đồ bạn cần theo từng danh mục.",
+    "errorTitle": "Chưa tải được danh mục",
+    "errorMessage": "Vui lòng thử lại sau ít phút.",
+    "title": "Khám phá danh mục",
+    "emptyTitle": "Chưa có danh mục",
+    "emptyMessage": "Danh mục sẽ xuất hiện tại đây khi được cập nhật."
   }
 }

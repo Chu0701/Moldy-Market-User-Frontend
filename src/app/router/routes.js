@@ -27,6 +27,12 @@ export const routes = [
                 .ProductListPage,
             }),
           },
+          {
+            path: 'categories/:categoryId',
+            lazy: async () => ({
+              Component: (await import('@/features/marketplace/pages/CategoryPage')).CategoryPage,
+            }),
+          },
         ],
       },
       {

@@ -85,6 +85,14 @@ Các ngoại lệ đã thấy trong controller:
 - Payload WebSocket của chat **không** bọc trong `ApiResponse` (xem mục 5.2).
 - Webhook SePay trả `{ "success": true }`, cũng không bọc trong `ApiResponse` (xem mục 5.8). Endpoint này chỉ để SePay gọi, Frontend không bao giờ gọi.
 
+### 2.1.1 Category response: đối chiếu source local ngày 2026-11-10
+
+- Nguồn: `category/controller/CategoryController.java#getTree` và `category/dto/CategoryResponse.java` dưới `src/main/java/com/moldy/moldymarket/` của Backend local; không sửa Backend.
+- `GET /api/v1/categories` trả `ApiResponse<List<CategoryResponse>>`, gọi `getActiveTree()`.
+- DTO gồm `id` (UUID), `name`, `description` (String), `parentId` (UUID), `level` (int), `status` (`CategoryStatus`, chưa audit giá trị enum), `hasChildren` (boolean), `children` (`List<CategoryResponse>`), `createdAt`, `updatedAt` (Instant).
+- Comment DTO xác nhận `children` là `null` cho detail và có giá trị cho tree. DTO không có trường ảnh; lưới trang chủ dùng `id` và `name` của các node cấp gốc.
+- Xác nhận tích hợp ngày 2026-11-10: sau khi khởi động Backend local, Chu xác nhận danh mục thật đã hiển thị trên trang chủ User. Luồng cây danh mục đã tích hợp; endpoint chi tiết chưa được nối, `CategoryPage` vẫn là placeholder. Loading, empty, error, retry, 403 và điều hướng thẻ được kiểm tra bằng tests mock tại service boundary.
+
 ### 2.2 Các kiểu phân trang khác nhau
 
 | Ở đâu | Tham số request | Dạng response | Ghi chú |
@@ -220,7 +228,7 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 | Admin: danh sách store / đổi trạng thái | `IMPLEMENTED` | `StoreController` | `GET /api/v1/stores`, `PUT /api/v1/stores/{id}/status` | `USER_STORE_MANAGE` | A | NOT_STARTED |
 | Staff: thêm / danh sách / permission / xóa / me | `IMPLEMENTED` | `StoreStaffController` | `POST`, `GET`, `PUT /{staffId}/permissions`, `DELETE /{staffId}`, `GET /me` dưới `/api/v1/stores/my-store/staff` | `STORE_STAFF_MANAGE` | U | NOT_STARTED |
 | Quy trình **mời** staff | `PLANNED` | không có | không có (chỉ có thêm trực tiếp bằng email) | không áp dụng | U | NOT_STARTED |
-| Category: cây / chi tiết | `IMPLEMENTED` | `CategoryController` | `GET /api/v1/categories`, `GET /api/v1/categories/{id}` | công khai | U, A | NOT_STARTED |
+| Category: cây / chi tiết | `IMPLEMENTED` | `CategoryController` | `GET /api/v1/categories`, `GET /api/v1/categories/{id}` | công khai | U, A | U: cây `INTEGRATED`, chi tiết `NOT_STARTED`; A: `NOT_STARTED` |
 | Category: CRUD cho admin | `IMPLEMENTED` | `CategoryController` | `POST`, `PUT /{id}`, `DELETE /{id}` | `CATEGORY_MANAGE` | A | NOT_STARTED |
 | Product: tạo / sửa / xóa / đổi trạng thái | `IMPLEMENTED` | `ProductController` | `POST /api/v1/products`, `PUT /{id}`, `DELETE /{id}`, `PATCH /{id}/status?status=` | `PRODUCT_CREATE`, `PRODUCT_MANAGE_OWN` | U | NOT_STARTED |
 | Product: danh sách / chi tiết | `IMPLEMENTED` | `ProductController` | `GET /api/v1/products`, `GET /api/v1/products/{id}` | công khai | U, A | NOT_STARTED |

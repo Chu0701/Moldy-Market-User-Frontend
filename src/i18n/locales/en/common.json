@@ -8,7 +8,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "backHome": "Back to home",
-    "reload": "Reload page"
+    "reload": "Reload page",
+    "retry": "Try again"
   },
   "language": {
     "label": "Language",
@@ -18,7 +19,10 @@
   "feedback": {
     "loading": "Loading page…",
     "errorMessage": "Something went wrong while opening the page. Please reload or return home.",
-    "errorTitle": "Unable to display this page"
+    "errorTitle": "Unable to display this page",
+    "forbiddenTitle": "Access denied",
+    "forbiddenMessage": "You do not have permission to view this content.",
+    "checkBack": "You can check back later."
   },
   "shell": {
     "phase": "Moldy Market is taking shape",
@@ -36,5 +40,15 @@
     "main": "Main navigation",
     "login": "Log in",
     "search": "Search products"
+  },
+  "categories": {
+    "loading": "Loading categories",
+    "pageTitle": "Products by category",
+    "description": "Find what you need by category.",
+    "errorTitle": "Unable to load categories",
+    "errorMessage": "Please try again in a few minutes.",
+    "title": "Explore categories",
+    "emptyTitle": "No categories yet",
+    "emptyMessage": "Categories will appear here when they are available."
   }
 }
