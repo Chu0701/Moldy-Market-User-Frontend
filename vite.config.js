@@ -14,6 +14,12 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.js'],
       passWithNoTests: true,
+      deps: {
+        // Bundle both entry points together so they share one router context in jsdom.
+        optimizer: {
+          client: { enabled: true, include: ['react-router', 'react-router/dom'] },
+        },
+      },
     },
     resolve: {
       alias: {

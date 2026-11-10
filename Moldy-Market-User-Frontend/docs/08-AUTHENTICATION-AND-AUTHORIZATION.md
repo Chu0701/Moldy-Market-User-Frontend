@@ -114,7 +114,11 @@ Trong lúc `status === 'unknown'`, router hiển thị màn hình chờ (skeleto
 
 ---
 
-## 4. Nơi lưu refresh token: Q2 CHƯA CHỐT
+## 4. Nơi lưu token: Q2 đã chốt, chờ Backend
+
+**Quyết định của Chu ngày 2026-11-10:** access token lưu trong `localStorage`; refresh token dùng cookie `HttpOnly` do Backend set. Chờ Backend bổ sung và xác minh contract cookie trước khi triển khai auth/refresh. Frontend không tự ghi hoặc đọc refresh cookie. Quyết định này thay thế mọi đề xuất access token trong bộ nhớ và refresh token trong JavaScript storage, kể cả ví dụ, bảng và sơ đồ cũ trong doc 08/09. Không dùng các ví dụ JSON token bên dưới để suy ra contract cookie mới.
+
+### Khảo sát trước quyết định (tham khảo lịch sử)
 
 Backend trả refresh token trong JSON body, nên cookie `httpOnly` (an toàn nhất trước XSS) đòi hỏi **Backend phải đổi**. Các phương án:
 

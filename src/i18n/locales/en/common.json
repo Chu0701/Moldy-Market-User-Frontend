@@ -6,11 +6,35 @@
   "actions": {
     "buyNow": "Buy now",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "backHome": "Back to home",
+    "reload": "Reload page"
   },
   "language": {
     "label": "Language",
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "feedback": {
+    "loading": "Loading page…",
+    "errorMessage": "Something went wrong while opening the page. Please reload or return home.",
+    "errorTitle": "Unable to display this page"
+  },
+  "shell": {
+    "phase": "Moldy Market is taking shape",
+    "placeholder": "This page is being built. Content and features will be added in the next steps."
+  },
+  "notFound": {
+    "message": "This address does not exist. You can return home or search for products.",
+    "title": "Page not found"
+  },
+  "navigation": {
+    "products": "Explore products",
+    "home": "Home",
+    "register": "Register",
+    "skipToContent": "Skip to content",
+    "main": "Main navigation",
+    "login": "Log in",
+    "search": "Search products"
   }
 }

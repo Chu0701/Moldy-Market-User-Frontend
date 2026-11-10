@@ -6,11 +6,35 @@
   "actions": {
     "buyNow": "Mua ngay",
     "save": "Lưu",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "backHome": "Về trang chủ",
+    "reload": "Tải lại trang"
   },
   "language": {
     "label": "Ngôn ngữ",
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "feedback": {
+    "loading": "Đang tải trang…",
+    "errorMessage": "Đã xảy ra lỗi khi mở trang. Vui lòng tải lại hoặc trở về trang chủ.",
+    "errorTitle": "Không thể hiển thị trang"
+  },
+  "shell": {
+    "phase": "Moldy Market đang được xây dựng",
+    "placeholder": "Trang này đang được xây dựng. Nội dung và tính năng sẽ được bổ sung trong các bước tiếp theo."
+  },
+  "notFound": {
+    "message": "Đường dẫn này không tồn tại. Bạn có thể trở về trang chủ hoặc tìm kiếm sản phẩm.",
+    "title": "Không tìm thấy trang"
+  },
+  "navigation": {
+    "products": "Khám phá sản phẩm",
+    "home": "Trang chủ",
+    "register": "Đăng ký",
+    "skipToContent": "Chuyển đến nội dung",
+    "main": "Điều hướng chính",
+    "login": "Đăng nhập",
+    "search": "Tìm kiếm sản phẩm"
   }
 }

@@ -465,7 +465,7 @@ OrderResponse {
 | ID | Câu hỏi | Chặn việc gì |
 |---|---|---|
 | Q1 | Frontend biết **permission code** của user bằng cách nào (và với staff thì biết thuộc gian hàng nào)? `GET /stores/my-store/staff/me` yêu cầu `STORE_STAFF_MANAGE`, mà một staff bình thường có thể không có quyền này. | Menu theo permission trong Store Dashboard. |
-| Q2 | Frontend lưu access/refresh token ở đâu (bộ nhớ, `localStorage`, hay cookie httpOnly)? Backend trả cả hai trong JSON body, nên dùng cookie sẽ phải sửa Backend. | Doc 08 và lớp Axios. |
+| Q2 | **Chu đã chốt 2026-11-10:** access token lưu `localStorage`; refresh token dùng cookie `HttpOnly` do Backend set. Contract đã xác minh hiện vẫn trả token trong JSON; **chờ Backend hỗ trợ cookie trước khi triển khai auth/refresh**. Chưa xác minh tên cookie, thuộc tính cookie hoặc request/response auth mới. | Doc 08 và lớp Axios; không tự sửa Backend hoặc giả định contract cookie. |
 | Q3 | **Đã trả lời từ source** (xem 3.2): khi gặp `AUTH_007`, Backend thu hồi toàn bộ phiên của user. Cách UI thông báo cho user sẽ ghi ở doc 08. | Doc 08. |
 | Q4 | Ai gọi escrow `hold` / `capture` / `release`: service order nội bộ hay Frontend? | Frontend có cần các endpoint này không. |
 | Q5 | Ảnh product upload bằng cách nào (API chỉ nhận URL HTTPS)? Pre-signed URL? Dịch vụ bên thứ ba? | Trang tạo/sửa product. |
