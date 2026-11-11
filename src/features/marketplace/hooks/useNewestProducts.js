@@ -1,10 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { searchProducts } from '@/services/products/productService'
-
-export const productKeys = {
-  search: (params) => ['products', 'search', params],
-}
+import { productKeys } from '@/features/products/hooks/useProductSearch'
 
 export function useNewestProducts() {
   const params = {

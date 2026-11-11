@@ -275,4 +275,30 @@ describe('user app routing', () => {
     expect(screen.queryByText('Internal chunk loading details')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Tải lại trang' })).toBeInTheDocument()
   })
+
+  test('keeps the keyword and sort order when moving to the next page', async () => {
+    vi.mocked(searchProducts).mockImplementation(async ({ page }) => ({
+      items: [{ ...product, title: `Product on page ${page}` }],
+      page,
+      size: 1,
+      totalElements: 2,
+      totalPages: 2,
+      totalCapped: false,
+      facets: null,
+      hasNext: page === 1,
+    }))
+
+    const user = renderRoute('/products?q=ao&sort=price_asc&size=1')
+
+    await screen.findByText('Trang 1')
+    expect(screen.getByRole('button', { name: 'Trước' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: 'Sau' }))
+
+    expect(await screen.findByText('Product on page 2')).toBeInTheDocument()
+    expect(searchProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ q: 'ao', sort: 'price_asc', size: 1, page: 2 }),
+    )
+    expect(screen.getByRole('button', { name: 'Sau' })).toBeDisabled()
+  })
 })

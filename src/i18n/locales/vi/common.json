@@ -73,6 +73,26 @@
     },
     "errorTitle": "Chưa tải được sản phẩm mới",
     "errorMessage": "Bạn có thể thử tải lại sản phẩm sau ít phút.",
-    "detailTitle": "Chi tiết sản phẩm"
+    "detailTitle": "Chi tiết sản phẩm",
+    "search": {
+      "sortLabel": "Sắp xếp",
+      "relevance": "Phù hợp nhất",
+      "newest": "Mới nhất",
+      "priceAsc": "Giá tăng dần",
+      "priceDesc": "Giá giảm dần",
+      "emptyTitle": "Không có sản phẩm phù hợp",
+      "emptyMessage": "Thử từ khóa khác hoặc xóa điều kiện tìm kiếm.",
+      "clear": "Xóa điều kiện tìm kiếm",
+      "errorTitle": "Chưa tải được sản phẩm",
+      "errorMessage": "Vui lòng thử tải lại sau ít phút."
+    }
+  },
+  "pagination": {
+    "label": "Phân trang sản phẩm",
+    "previous": "Trước",
+    "next": "Sau",
+    "page": "Trang {{page}}",
+    "results": "Kết quả: {{total}}",
+    "cappedResults": "Từ 10.000 kết quả trở lên"
   }
 }

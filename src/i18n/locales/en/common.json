@@ -73,6 +73,26 @@
     },
     "errorTitle": "Unable to load new arrivals",
     "errorMessage": "Please try loading the products again in a few minutes.",
-    "detailTitle": "Product details"
+    "detailTitle": "Product details",
+    "search": {
+      "sortLabel": "Sort by",
+      "relevance": "Most relevant",
+      "newest": "Newest",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low",
+      "emptyTitle": "No matching products",
+      "emptyMessage": "Try another keyword or clear your search.",
+      "clear": "Clear search",
+      "errorTitle": "Unable to load products",
+      "errorMessage": "Please try again in a few minutes."
+    }
+  },
+  "pagination": {
+    "label": "Product pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}",
+    "results": "Results: {{total}}",
+    "cappedResults": "10,000 or more results"
   }
 }
