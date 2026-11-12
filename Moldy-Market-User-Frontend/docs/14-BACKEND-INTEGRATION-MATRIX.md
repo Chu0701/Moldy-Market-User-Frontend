@@ -85,6 +85,23 @@ Các ngoại lệ đã thấy trong controller:
 - Payload WebSocket của chat **không** bọc trong `ApiResponse` (xem mục 5.2).
 - Webhook SePay trả `{ "success": true }`, cũng không bọc trong `ApiResponse` (xem mục 5.8). Endpoint này chỉ để SePay gọi, Frontend không bao giờ gọi.
 
+### 2.1.1 Category response: đối chiếu source local ngày 2026-11-10
+
+- Nguồn: `category/controller/CategoryController.java#getTree` và `category/dto/CategoryResponse.java` dưới `src/main/java/com/moldy/moldymarket/` của Backend local; không sửa Backend.
+- `GET /api/v1/categories` trả `ApiResponse<List<CategoryResponse>>`, gọi `getActiveTree()`.
+- DTO gồm `id` (UUID), `name`, `description` (String), `parentId` (UUID), `level` (int), `status` (`CategoryStatus`, chưa audit giá trị enum), `hasChildren` (boolean), `children` (`List<CategoryResponse>`), `createdAt`, `updatedAt` (Instant).
+- Comment DTO xác nhận `children` là `null` cho detail và có giá trị cho tree. DTO không có trường ảnh; lưới trang chủ dùng `id` và `name` của các node cấp gốc.
+- Xác nhận tích hợp ngày 2026-11-10: sau khi khởi động Backend local, Chu xác nhận danh mục thật đã hiển thị trên trang chủ User. Luồng cây danh mục đã tích hợp; endpoint chi tiết chưa được nối, `CategoryPage` vẫn là placeholder. Loading, empty, error, retry, 403 và điều hướng thẻ được kiểm tra bằng tests mock tại service boundary.
+
+### 2.1.2 Product search: đối chiếu source và HTTP local ngày 2026-11-10
+
+- Nguồn: `product/controller/ProductController.java`, `product/dto/ProductSearchResponse.java`, `product/dto/ProductResponse.java` dưới `src/main/java/com/moldy/moldymarket/` của Backend local; không sửa Backend.
+- `GET /api/v1/products/search?page=1&size=8&sort=newest` đã trả `success: true` với 4 items trong lần kiểm tra local. Đây là số lượng tại thời điểm kiểm tra, không phải số cố định cho UI.
+- Payload là `{ items, page, size, totalElements, totalPages, totalCapped, facets }`; `items` là danh sách `ProductResponse`, `facets` có thể null khi không yêu cầu facets.
+- `ProductResponse`: `id`, `sellerId`, `storeId`, `categoryId` (UUID); `title`, `description`, `removalReason` (String); `price` (BigDecimal); `condition`, `status`, `pricingStrategy` (enum); `images` (`List<String>`); `attributes` (`Map<String,Object>`); `createdAt` (Instant).
+- HTTP xác nhận `price` là số JSON và phần tử `images` là chuỗi URL. UI có thể lấy `images[0]` làm ảnh đầu tiên; nếu thiếu hoặc tải lỗi thì dùng placeholder. DTO không có trường tên gian hàng; chưa hiển thị tên giả hoặc tự gọi thêm API gian hàng trên từng thẻ.
+- Định dạng VND theo doc 03; định dạng locale chỉ đổi cách hiển thị, không quy đổi tiền tệ. Hook đã nối vào khối sản phẩm mới của trang chủ; loading, empty (ẩn khối), error, retry và 403 được kiểm tra bằng tests tại service boundary. Chưa đánh dấu UI search `INTEGRATED` trước khi Chu xác nhận hiển thị dữ liệu thật trong trình duyệt; trang chi tiết vẫn là placeholder.
+
 ### 2.2 Các kiểu phân trang khác nhau
 
 | Ở đâu | Tham số request | Dạng response | Ghi chú |
@@ -220,7 +237,7 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 | Admin: danh sách store / đổi trạng thái | `IMPLEMENTED` | `StoreController` | `GET /api/v1/stores`, `PUT /api/v1/stores/{id}/status` | `USER_STORE_MANAGE` | A | NOT_STARTED |
 | Staff: thêm / danh sách / permission / xóa / me | `IMPLEMENTED` | `StoreStaffController` | `POST`, `GET`, `PUT /{staffId}/permissions`, `DELETE /{staffId}`, `GET /me` dưới `/api/v1/stores/my-store/staff` | `STORE_STAFF_MANAGE` | U | NOT_STARTED |
 | Quy trình **mời** staff | `PLANNED` | không có | không có (chỉ có thêm trực tiếp bằng email) | không áp dụng | U | NOT_STARTED |
-| Category: cây / chi tiết | `IMPLEMENTED` | `CategoryController` | `GET /api/v1/categories`, `GET /api/v1/categories/{id}` | công khai | U, A | NOT_STARTED |
+| Category: cây / chi tiết | `IMPLEMENTED` | `CategoryController` | `GET /api/v1/categories`, `GET /api/v1/categories/{id}` | công khai | U, A | U: cây `INTEGRATED`, chi tiết `NOT_STARTED`; A: `NOT_STARTED` |
 | Category: CRUD cho admin | `IMPLEMENTED` | `CategoryController` | `POST`, `PUT /{id}`, `DELETE /{id}` | `CATEGORY_MANAGE` | A | NOT_STARTED |
 | Product: tạo / sửa / xóa / đổi trạng thái | `IMPLEMENTED` | `ProductController` | `POST /api/v1/products`, `PUT /{id}`, `DELETE /{id}`, `PATCH /{id}/status?status=` | `PRODUCT_CREATE`, `PRODUCT_MANAGE_OWN` | U | NOT_STARTED |
 | Product: danh sách / chi tiết | `IMPLEMENTED` | `ProductController` | `GET /api/v1/products`, `GET /api/v1/products/{id}` | công khai | U, A | NOT_STARTED |
@@ -465,7 +482,7 @@ OrderResponse {
 | ID | Câu hỏi | Chặn việc gì |
 |---|---|---|
 | Q1 | Frontend biết **permission code** của user bằng cách nào (và với staff thì biết thuộc gian hàng nào)? `GET /stores/my-store/staff/me` yêu cầu `STORE_STAFF_MANAGE`, mà một staff bình thường có thể không có quyền này. | Menu theo permission trong Store Dashboard. |
-| Q2 | Frontend lưu access/refresh token ở đâu (bộ nhớ, `localStorage`, hay cookie httpOnly)? Backend trả cả hai trong JSON body, nên dùng cookie sẽ phải sửa Backend. | Doc 08 và lớp Axios. |
+| Q2 | **Chu đã chốt 2026-11-10:** access token lưu `localStorage`; refresh token dùng cookie `HttpOnly` do Backend set. Contract đã xác minh hiện vẫn trả token trong JSON; **chờ Backend hỗ trợ cookie trước khi triển khai auth/refresh**. Chưa xác minh tên cookie, thuộc tính cookie hoặc request/response auth mới. | Doc 08 và lớp Axios; không tự sửa Backend hoặc giả định contract cookie. |
 | Q3 | **Đã trả lời từ source** (xem 3.2): khi gặp `AUTH_007`, Backend thu hồi toàn bộ phiên của user. Cách UI thông báo cho user sẽ ghi ở doc 08. | Doc 08. |
 | Q4 | Ai gọi escrow `hold` / `capture` / `release`: service order nội bộ hay Frontend? | Frontend có cần các endpoint này không. |
 | Q5 | Ảnh product upload bằng cách nào (API chỉ nhận URL HTTPS)? Pre-signed URL? Dịch vụ bên thứ ba? | Trang tạo/sửa product. |

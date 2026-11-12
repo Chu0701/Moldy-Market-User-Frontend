@@ -154,3 +154,116 @@
     @apply font-heading;
   }
 }
+
+@layer components {
+  .pagination-bar {
+    @apply mt-8 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .pagination-bar > p {
+    @apply text-sm leading-6 text-muted-foreground;
+  }
+
+  .pagination-controls {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .pagination-controls > button {
+    @apply min-h-11 min-w-11;
+  }
+
+  .pagination-controls > span {
+    @apply px-2 text-sm tabular-nums;
+  }
+
+  .product-list-page > h1 {
+    @apply mb-8 text-3xl font-semibold md:text-4xl;
+  }
+
+  .product-search-results[data-stale='true'] {
+    @apply opacity-50;
+  }
+
+  .product-search-empty {
+    @apply rounded-xl border border-border bg-muted px-4 py-10 text-center;
+  }
+
+  .product-search-empty h2 {
+    @apply text-2xl font-semibold;
+  }
+
+  .product-search-empty p {
+    @apply mx-auto mt-3 mb-6 max-w-xl text-sm leading-6 text-muted-foreground;
+  }
+
+  .product-search-empty a {
+    @apply min-h-11;
+  }
+
+  form:has(#product-search) {
+    @apply mb-8 grid gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground md:grid-cols-4 lg:p-6;
+  }
+
+  form:has(#product-search) > div {
+    @apply min-w-0;
+  }
+
+  form:has(#product-search) > div:first-child {
+    @apply md:col-span-2;
+  }
+
+  form:has(#product-search) label {
+    @apply mb-2 block text-sm font-medium;
+  }
+
+  form:has(#product-search) :is(input[type='search'], select) {
+    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  form:has(#product-search) > button {
+    @apply min-h-11 self-end;
+  }
+}
+
+@layer components {
+  .login-page {
+    @apply mx-auto w-full max-w-sm;
+  }
+
+  .login-page > h1 {
+    @apply mb-8 text-3xl leading-snug font-semibold sm:text-4xl;
+  }
+
+  .login-form {
+    @apply grid gap-5;
+  }
+
+  .login-field {
+    @apply grid gap-2;
+  }
+
+  .login-field > label {
+    @apply text-sm font-medium;
+  }
+
+  .login-field > input {
+    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .login-field > input[aria-invalid='true'] {
+    @apply border-destructive;
+  }
+
+  .login-field > p,
+  .login-form-error {
+    @apply text-sm text-destructive;
+  }
+
+  .login-form > button {
+    @apply min-h-11 w-full;
+  }
+
+  .login-register-link {
+    @apply mt-4 inline-flex min-h-11 items-center rounded-md text-sm underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+}

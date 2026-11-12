@@ -55,6 +55,8 @@ Lưu ý: chưa xác minh được Backend phản ứng thế nào nếu gửi ac
 
 ### 2.4 Response interceptor
 
+**Hiện trạng 2026-11-10:** đã triển khai `services/api/client.js`, `ApiError.js` và `unwrap.js`. Interceptor chuẩn hóa lỗi HTTP/mạng; cancellation giữ nguyên. `unwrap` trả `undefined` khi không có body và giữ nguyên payload `null`, `false`, `0`. Body sai envelope hoặc `success: false` bị từ chối. Chưa có auth interceptor, tự refresh hoặc logout: Q2 đã chốt access token ở `localStorage`, refresh token trong cookie `HttpOnly` do Backend set; chờ contract Backend (doc 14, Q2).
+
 Có hai việc, **tách riêng**:
 
 1. **Chuẩn hóa lỗi** thành một class `ApiError` (xem mục 4).
@@ -71,8 +73,8 @@ Backend trả mọi REST response dạng `{ success, code, message, data, timest
 export function unwrap(response) {
   const body = response.data
   // Một số endpoint không có body: DELETE category, DELETE product, PATCH ... /read (notification), v.v.
-  if (body === undefined || body === null || body === '') return null
-  return body.data ?? null
+  if (body === undefined || body === null || body === '') return undefined
+  return body.data
 }
 ```
 
@@ -109,7 +111,7 @@ export class ApiError extends Error {
 }
 ```
 
-Hai mã do **Frontend tự đặt** (không phải mã Backend, không có trong `ErrorCode`): `NETWORK_ERROR` (không nhận được phản hồi) và `UNKNOWN_ERROR`. Hãy giữ chúng tách biệt bằng tiền tố hoặc hằng số riêng để không nhầm với mã Backend.
+Hai mã do **Frontend tự đặt** (không phải mã Backend, không có trong `ErrorCode`): `FE_NETWORK_ERROR` (không nhận được phản hồi) và `FE_UNKNOWN_ERROR`. Hãy giữ chúng tách biệt bằng tiền tố hoặc hằng số riêng để không nhầm với mã Backend.
 
 ### 4.3 Ánh xạ mã lỗi sang giao diện
 

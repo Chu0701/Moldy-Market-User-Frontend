@@ -10,6 +10,17 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    test: {
+      environment: 'jsdom',
+      setupFiles: ['./src/test/setup.js'],
+      passWithNoTests: true,
+      deps: {
+        // Bundle both entry points together so they share one router context in jsdom.
+        optimizer: {
+          client: { enabled: true, include: ['react-router', 'react-router/dom'] },
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

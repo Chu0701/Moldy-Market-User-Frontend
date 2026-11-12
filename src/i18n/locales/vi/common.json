@@ -6,11 +6,111 @@
   "actions": {
     "buyNow": "Mua ngay",
     "save": "Lưu",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "backHome": "Về trang chủ",
+    "reload": "Tải lại trang",
+    "retry": "Thử lại"
   },
   "language": {
     "label": "Ngôn ngữ",
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "feedback": {
+    "loading": "Đang tải trang…",
+    "errorMessage": "Đã xảy ra lỗi khi mở trang. Vui lòng tải lại hoặc trở về trang chủ.",
+    "errorTitle": "Không thể hiển thị trang",
+    "forbiddenTitle": "Không có quyền xem nội dung",
+    "forbiddenMessage": "Bạn chưa được cấp quyền truy cập nội dung này.",
+    "checkBack": "Bạn có thể quay lại sau."
+  },
+  "shell": {
+    "phase": "Moldy Market đang được xây dựng",
+    "placeholder": "Trang này đang được xây dựng. Nội dung và tính năng sẽ được bổ sung trong các bước tiếp theo."
+  },
+  "notFound": {
+    "message": "Đường dẫn này không tồn tại. Bạn có thể trở về trang chủ hoặc tìm kiếm sản phẩm.",
+    "title": "Không tìm thấy trang"
+  },
+  "navigation": {
+    "products": "Khám phá sản phẩm",
+    "home": "Trang chủ",
+    "register": "Đăng ký",
+    "skipToContent": "Chuyển đến nội dung",
+    "main": "Điều hướng chính",
+    "login": "Đăng nhập",
+    "search": "Tìm kiếm sản phẩm",
+    "logout": "Đăng xuất",
+    "signingOut": "Đang đăng xuất…"
+  },
+  "auth": {
+    "login": {
+      "email": "Email",
+      "password": "Mật khẩu",
+      "emailRequired": "Vui lòng nhập email.",
+      "emailTooLong": "Email không được dài quá 254 ký tự.",
+      "emailInvalid": "Email không đúng định dạng.",
+      "passwordRequired": "Vui lòng nhập mật khẩu.",
+      "submitting": "Đang đăng nhập…",
+      "invalidCredentials": "Email hoặc mật khẩu không đúng.",
+      "accountLocked": "Tài khoản của bạn đã bị khóa.",
+      "accountDisabled": "Tài khoản chưa được kích hoạt hoặc đã bị vô hiệu hóa.",
+      "rateLimited": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.",
+      "submitError": "Chưa thể đăng nhập. Vui lòng thử lại."
+    }
+  },
+  "categories": {
+    "loading": "Đang tải danh mục",
+    "pageTitle": "Sản phẩm theo danh mục",
+    "description": "Tìm món đồ bạn cần theo từng danh mục.",
+    "errorTitle": "Chưa tải được danh mục",
+    "errorMessage": "Vui lòng thử lại sau ít phút.",
+    "title": "Khám phá danh mục",
+    "emptyTitle": "Chưa có danh mục",
+    "emptyMessage": "Danh mục sẽ xuất hiện tại đây khi được cập nhật."
+  },
+  "hero": {
+    "eyebrow": "Mua bán đồ đã qua sử dụng",
+    "title": "Món đồ cũ, khởi đầu mới.",
+    "description": "Khám phá những món đồ còn nhiều giá trị và tìm lựa chọn phù hợp cho cuộc sống của bạn.",
+    "explore": "Khám phá ngay",
+    "browseCategories": "Xem danh mục"
+  },
+  "products": {
+    "newestTitle": "Sản phẩm mới",
+    "newestDescription": "Những món đồ vừa được đăng, chờ một chủ nhân mới.",
+    "viewAll": "Xem tất cả sản phẩm",
+    "loading": "Đang tải sản phẩm",
+    "noImage": "Chưa có ảnh sản phẩm",
+    "conditions": {
+      "new": "Mới",
+      "likeNew": "Như mới",
+      "used": "Đã sử dụng",
+      "damaged": "Hư hỏng",
+      "unknown": "Chưa rõ tình trạng"
+    },
+    "errorTitle": "Chưa tải được sản phẩm mới",
+    "errorMessage": "Bạn có thể thử tải lại sản phẩm sau ít phút.",
+    "detailTitle": "Chi tiết sản phẩm",
+    "search": {
+      "sortLabel": "Sắp xếp",
+      "relevance": "Phù hợp nhất",
+      "newest": "Mới nhất",
+      "priceAsc": "Giá tăng dần",
+      "priceDesc": "Giá giảm dần",
+      "emptyTitle": "Không có sản phẩm phù hợp",
+      "emptyMessage": "Thử từ khóa khác hoặc xóa điều kiện tìm kiếm.",
+      "clear": "Xóa điều kiện tìm kiếm",
+      "errorTitle": "Chưa tải được sản phẩm",
+      "errorMessage": "Vui lòng thử tải lại sau ít phút."
+    }
+  },
+  "pagination": {
+    "label": "Phân trang sản phẩm",
+    "previous": "Trước",
+    "next": "Sau",
+    "page": "Trang {{page}}",
+    "results": "Kết quả: {{total}}",
+    "cappedResults": "Từ 10.000 kết quả trở lên"
   }
 }

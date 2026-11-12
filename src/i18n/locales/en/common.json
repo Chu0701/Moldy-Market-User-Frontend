@@ -6,11 +6,111 @@
   "actions": {
     "buyNow": "Buy now",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "backHome": "Back to home",
+    "reload": "Reload page",
+    "retry": "Try again"
   },
   "language": {
     "label": "Language",
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "feedback": {
+    "loading": "Loading page…",
+    "errorMessage": "Something went wrong while opening the page. Please reload or return home.",
+    "errorTitle": "Unable to display this page",
+    "forbiddenTitle": "Access denied",
+    "forbiddenMessage": "You do not have permission to view this content.",
+    "checkBack": "You can check back later."
+  },
+  "shell": {
+    "phase": "Moldy Market is taking shape",
+    "placeholder": "This page is being built. Content and features will be added in the next steps."
+  },
+  "notFound": {
+    "message": "This address does not exist. You can return home or search for products.",
+    "title": "Page not found"
+  },
+  "navigation": {
+    "products": "Explore products",
+    "home": "Home",
+    "register": "Register",
+    "skipToContent": "Skip to content",
+    "main": "Main navigation",
+    "login": "Log in",
+    "search": "Search products",
+    "logout": "Sign out",
+    "signingOut": "Signing out…"
+  },
+  "auth": {
+    "login": {
+      "email": "Email",
+      "password": "Password",
+      "emailRequired": "Enter your email address.",
+      "emailTooLong": "Email must be 254 characters or fewer.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Enter your password.",
+      "submitting": "Signing in…",
+      "invalidCredentials": "The email or password is incorrect.",
+      "accountLocked": "Your account is locked.",
+      "accountDisabled": "Your account is pending activation or has been disabled.",
+      "rateLimited": "Too many sign-in attempts. Please try again later.",
+      "submitError": "Unable to sign in. Please try again."
+    }
+  },
+  "categories": {
+    "loading": "Loading categories",
+    "pageTitle": "Products by category",
+    "description": "Find what you need by category.",
+    "errorTitle": "Unable to load categories",
+    "errorMessage": "Please try again in a few minutes.",
+    "title": "Explore categories",
+    "emptyTitle": "No categories yet",
+    "emptyMessage": "Categories will appear here when they are available."
+  },
+  "hero": {
+    "eyebrow": "A marketplace for second-hand finds",
+    "title": "Pre-loved finds, new beginnings.",
+    "description": "Discover items with more to give and find something that fits your everyday life.",
+    "explore": "Explore now",
+    "browseCategories": "Browse categories"
+  },
+  "products": {
+    "newestTitle": "New arrivals",
+    "newestDescription": "Recently listed finds, ready for a new home.",
+    "viewAll": "View all products",
+    "loading": "Loading products",
+    "noImage": "Product image unavailable",
+    "conditions": {
+      "new": "New",
+      "likeNew": "Like new",
+      "used": "Used",
+      "damaged": "Damaged",
+      "unknown": "Condition not specified"
+    },
+    "errorTitle": "Unable to load new arrivals",
+    "errorMessage": "Please try loading the products again in a few minutes.",
+    "detailTitle": "Product details",
+    "search": {
+      "sortLabel": "Sort by",
+      "relevance": "Most relevant",
+      "newest": "Newest",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low",
+      "emptyTitle": "No matching products",
+      "emptyMessage": "Try another keyword or clear your search.",
+      "clear": "Clear search",
+      "errorTitle": "Unable to load products",
+      "errorMessage": "Please try again in a few minutes."
+    }
+  },
+  "pagination": {
+    "label": "Product pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}",
+    "results": "Results: {{total}}",
+    "cappedResults": "10,000 or more results"
   }
 }
