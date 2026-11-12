@@ -229,6 +229,22 @@
     @apply min-w-0 break-words;
   }
 
+  .product-seller {
+    @apply mt-6 grid justify-items-start gap-3 rounded-xl border border-border bg-muted/50 p-5;
+  }
+
+  .product-seller > h2 {
+    @apply text-lg font-semibold;
+  }
+
+  .product-seller > p {
+    @apply min-w-0 text-sm break-words text-muted-foreground;
+  }
+
+  .product-seller > .product-seller-name {
+    @apply text-base font-semibold text-foreground;
+  }
+
   .product-detail-loading > span {
     @apply sr-only;
   }

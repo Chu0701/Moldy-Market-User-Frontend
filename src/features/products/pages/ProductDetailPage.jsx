@@ -76,6 +76,7 @@ export function ProductDetailPage() {
         status={product.status}
         description={product.description}
         attributes={product.attributes}
+        storeId={product.storeId}
       />
     </article>
   )

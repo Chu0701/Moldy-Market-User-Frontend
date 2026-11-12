@@ -117,6 +117,12 @@
       "removed": "Đã bị gỡ",
       "unknown": "Chưa rõ trạng thái"
     },
+    "seller": {
+      "title": "Gian hàng",
+      "loading": "Đang tải thông tin gian hàng…",
+      "unavailable": "Gian hàng hiện không khả dụng.",
+      "loadError": "Chưa tải được thông tin gian hàng."
+    },
     "detail": {
       "descriptionTitle": "Mô tả sản phẩm",
       "noDescription": "Người bán chưa thêm mô tả.",

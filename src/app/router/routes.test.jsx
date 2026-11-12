@@ -13,11 +13,13 @@ import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
 import { login, logout } from '@/services/auth/authService'
 import { getCategoryTree } from '@/services/categories/categoryService'
 import { getProductById, searchProducts } from '@/services/products/productService'
+import { getPublicStore } from '@/services/stores/storeService'
 import { getMe } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
 vi.mock('@/services/auth/authService', () => ({ login: vi.fn(), logout: vi.fn() }))
 vi.mock('@/services/users/userService', () => ({ getMe: vi.fn() }))
+vi.mock('@/services/stores/storeService', () => ({ getPublicStore: vi.fn() }))
 vi.mock('@/services/categories/categoryService', () => ({ getCategoryTree: vi.fn() }))
 vi.mock('@/services/products/productService', () => ({
   getProductById: vi.fn(),
@@ -35,6 +37,7 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getProductById).mockReset()
+  vi.mocked(getPublicStore).mockReset()
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
   vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
 })
@@ -84,12 +87,19 @@ describe('user app routing', () => {
     images: [],
   }
 
+  const store = {
+    id: 'a8098c1a-f86e-11da-bd1a-00112444be1f',
+    name: 'Test store',
+    description: 'Test store description',
+  }
+
   test('displays the newest product and navigates to its details', async () => {
     vi.mocked(searchProducts).mockResolvedValue({ items: [product] })
     vi.mocked(getProductById).mockResolvedValue({
       ...product,
       status: 'ACTIVE',
       description: 'Test product description',
+      storeId: null,
       attributes: {
         'Chất liệu': 'Da',
         'Có hộp': false,
@@ -114,8 +124,56 @@ describe('user app routing', () => {
     expect(screen.getByText('Có hộp', { selector: 'dt' })).toBeInTheDocument()
     expect(screen.getByText('Không', { selector: 'dd' })).toBeInTheDocument()
     expect(getProductById).toHaveBeenCalledWith(expect.objectContaining({ productId: product.id }))
+    expect(screen.queryByRole('heading', { name: 'Gian hàng' })).not.toBeInTheDocument()
+    expect(getPublicStore).not.toHaveBeenCalled()
     expect(router.state.location.pathname).toBe(`/products/${product.id}`)
     expect(screen.getByRole('banner')).toBe(header)
+  })
+
+  test('keeps product details visible while loading the associated public store', async () => {
+    vi.mocked(getProductById).mockResolvedValue({ ...product, status: 'ACTIVE', storeId: store.id })
+    const pendingStore = Promise.withResolvers()
+    vi.mocked(getPublicStore).mockReturnValueOnce(pendingStore.promise)
+    renderRoute(`/products/${product.id}`)
+
+    expect(await screen.findByRole('heading', { name: product.title })).toBeInTheDocument()
+    expect(screen.getByText('Đang tải thông tin gian hàng…')).toHaveAttribute('role', 'status')
+    expect(getPublicStore).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ storeId: store.id }),
+    )
+
+    pendingStore.resolve(store)
+
+    expect(await screen.findByText(store.name)).toBeInTheDocument()
+    expect(screen.getByText(store.description)).toBeInTheDocument()
+  })
+
+  test('allows retrying a temporary store failure without replacing product details', async () => {
+    vi.mocked(getProductById).mockResolvedValue({ ...product, status: 'ACTIVE', storeId: store.id })
+    vi.mocked(getPublicStore)
+      .mockRejectedValueOnce(Object.assign(new Error('Unavailable'), { status: 503 }))
+      .mockResolvedValueOnce(store)
+    const user = renderRoute(`/products/${product.id}`)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa tải được thông tin gian hàng.')
+    expect(screen.getByRole('heading', { name: product.title })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+    expect(await screen.findByText(store.name)).toBeInTheDocument()
+    expect(getProductById).toHaveBeenCalledOnce()
+  })
+
+  test('marks a forbidden store unavailable and keeps the product visible', async () => {
+    vi.mocked(getProductById).mockResolvedValue({ ...product, status: 'ACTIVE', storeId: store.id })
+    vi.mocked(getPublicStore).mockRejectedValueOnce(
+      Object.assign(new Error('Forbidden'), { status: 403 }),
+    )
+    renderRoute(`/products/${product.id}`)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Gian hàng hiện không khả dụng.')
+    expect(screen.getByRole('heading', { name: product.title })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Thử lại' })).not.toBeInTheDocument()
   })
 
   test('shows a way back to the catalog when a product is unavailable', async () => {

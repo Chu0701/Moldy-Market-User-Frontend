@@ -117,6 +117,12 @@
       "removed": "Removed",
       "unknown": "Status not specified"
     },
+    "seller": {
+      "title": "Store",
+      "loading": "Loading store information…",
+      "unavailable": "This store is currently unavailable.",
+      "loadError": "Unable to load store information."
+    },
     "detail": {
       "descriptionTitle": "Product description",
       "noDescription": "The seller has not added a description.",

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ProductPrice } from '@/components/common/ProductPrice'
 
 import { ProductAttributes } from './ProductAttributes'
+import { SellerCard } from './SellerCard'
 
 const conditionKeys = {
   NEW: 'products.conditions.new',
@@ -26,10 +27,11 @@ const statusKeys = {
  *  condition: string,
  *  status: string,
  *  description?: string|null,
- *  attributes?: Record<string, unknown> | null
+ *  attributes?: Record<string, unknown> | null,
+ *  storeId?: string | null
  * }} props
  */
-export function ProductInfo({ title, price, condition, status, description, attributes }) {
+export function ProductInfo({ title, price, condition, status, description, attributes, storeId }) {
   const { t } = useTranslation()
 
   return (
@@ -49,6 +51,7 @@ export function ProductInfo({ title, price, condition, status, description, attr
       </div>
 
       <ProductAttributes attributes={attributes} />
+      <SellerCard storeId={storeId} />
     </section>
   )
 }
