@@ -133,8 +133,8 @@ describe('user app routing', () => {
   test('keeps product details visible while loading the associated public store', async () => {
     vi.mocked(getProductById).mockResolvedValue({ ...product, status: 'ACTIVE', storeId: store.id })
     const pendingStore = Promise.withResolvers()
-    vi.mocked(getPublicStore).mockReturnValueOnce(pendingStore.promise)
-    renderRoute(`/products/${product.id}`)
+    vi.mocked(getPublicStore).mockResolvedValue(store).mockReturnValueOnce(pendingStore.promise)
+    const user = renderRoute(`/products/${product.id}`)
 
     expect(await screen.findByRole('heading', { name: product.title })).toBeInTheDocument()
     expect(screen.getByText('Đang tải thông tin gian hàng…')).toHaveAttribute('role', 'status')
@@ -146,6 +146,133 @@ describe('user app routing', () => {
 
     expect(await screen.findByText(store.name)).toBeInTheDocument()
     expect(screen.getByText(store.description)).toBeInTheDocument()
+
+    const storeLink = screen.getByRole('link', { name: 'Xem gian hàng' })
+    expect(storeLink).toHaveAttribute('href', `/stores/${store.id}`)
+    await user.click(storeLink)
+
+    expect(await screen.findByRole('heading', { name: store.name })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(`/stores/${store.id}`)
+  })
+
+  test('opens the public store URL directly and shows its public information', async () => {
+    vi.mocked(getPublicStore).mockResolvedValue(store)
+    renderRoute(`/stores/${store.id}`)
+
+    expect(await screen.findByRole('heading', { name: store.name })).toBeInTheDocument()
+    expect(screen.getByText(store.description)).toBeInTheDocument()
+    expect(getPublicStore).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ storeId: store.id }),
+    )
+  })
+
+  test('searches and paginates within the store from the path', async () => {
+    vi.mocked(getPublicStore).mockResolvedValue(store)
+    vi.mocked(searchProducts).mockImplementation(async ({ page, size }) => ({
+      items: [product],
+      page,
+      size,
+      totalElements: 3,
+      totalPages: 3,
+      hasNext: page < 3,
+    }))
+    const user = renderRoute(`/stores/${store.id}?page=3&size=1&storeId=other-store`)
+
+    expect(await screen.findByRole('link', { name: /Test product/ })).toHaveAttribute(
+      'href',
+      `/products/${product.id}`,
+    )
+    expect(searchProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ storeId: store.id, page: 3, size: 1 }),
+    )
+
+    await user.type(screen.getByRole('searchbox', { name: 'Tìm kiếm sản phẩm' }), 'áo')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Sắp xếp' }), 'price_asc')
+    await user.click(screen.getByRole('button', { name: 'Tìm kiếm sản phẩm' }))
+
+    await waitFor(() =>
+      expect(searchProducts).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          storeId: store.id,
+          q: 'áo',
+          sort: 'price_asc',
+          page: 1,
+          size: 1,
+        }),
+      ),
+    )
+    expect(router.state.location.pathname).toBe(`/stores/${store.id}`)
+    expect(await screen.findByText('Trang 1')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Sau' }))
+
+    expect(await screen.findByText('Trang 2')).toBeInTheDocument()
+    expect(searchProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ storeId: store.id, q: 'áo', sort: 'price_asc', page: 2, size: 1 }),
+    )
+    expect(router.state.location.pathname).toBe(`/stores/${store.id}`)
+  })
+
+  test('shows an empty store without pagination', async () => {
+    vi.mocked(getPublicStore).mockResolvedValue(store)
+    vi.mocked(searchProducts).mockResolvedValue({
+      items: [],
+      page: 1,
+      totalElements: 0,
+      hasNext: false,
+    })
+    renderRoute(`/stores/${store.id}`)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Gian hàng chưa có sản phẩm.' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: store.name })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('navigation', { name: 'Phân trang sản phẩm' }),
+    ).not.toBeInTheDocument()
+  })
+
+  test('retries a failed store product search while keeping store information visible', async () => {
+    vi.mocked(getPublicStore).mockResolvedValue(store)
+    vi.mocked(searchProducts)
+      .mockRejectedValueOnce(Object.assign(new Error('Unavailable'), { status: 503 }))
+      .mockResolvedValueOnce({ items: [product], page: 1, totalElements: 1, hasNext: false })
+    const user = renderRoute(`/stores/${store.id}`)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa tải được sản phẩm')
+    expect(screen.getByRole('heading', { name: store.name })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+    expect(await screen.findByRole('link', { name: /Test product/ })).toBeInTheDocument()
+    expect(getPublicStore).toHaveBeenCalledOnce()
+  })
+
+  test.each([403, 404])('shows an unavailable store for HTTP %s', async (status) => {
+    vi.mocked(getPublicStore).mockRejectedValueOnce(
+      Object.assign(new Error('Store unavailable'), { status }),
+    )
+    renderRoute(`/stores/${store.id}`)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Gian hàng tạm không khả dụng' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Xem danh sách sản phẩm' })).toHaveAttribute(
+      'href',
+      '/products',
+    )
+  })
+
+  test('retries a temporary public store page failure', async () => {
+    vi.mocked(getPublicStore)
+      .mockRejectedValueOnce(Object.assign(new Error('Unavailable'), { status: 503 }))
+      .mockResolvedValueOnce(store)
+    const user = renderRoute(`/stores/${store.id}`)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa tải được thông tin gian hàng.')
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+    expect(await screen.findByRole('heading', { name: store.name })).toBeInTheDocument()
   })
 
   test('allows retrying a temporary store failure without replacing product details', async () => {

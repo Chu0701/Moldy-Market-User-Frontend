@@ -5,15 +5,16 @@ import { Button } from '@/components/ui/button'
 
 /**
  * @param {{
- *    params: {q? : string, page: number, size: number, sort: string}
+ *    params: {q? : string, page: number, size: number, sort: string },
+ *    action?: string
  * }} props
  */
 
-export function ProductSearchForm({ params }) {
+export function ProductSearchForm({ params, action = '/products' }) {
   const { t } = useTranslation()
 
   return (
-    <Form key={JSON.stringify(params)} method="get" action="/products">
+    <Form key={JSON.stringify(params)} method="get" action={action}>
       <div>
         <label htmlFor="product-search">{t('navigation.search')}</label>
         <input

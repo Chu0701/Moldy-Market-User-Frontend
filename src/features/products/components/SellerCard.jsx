@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
-import { usePublicStore } from '@/features/products/hooks/usePublicStore'
+import { usePublicStore } from '@/features/stores/hooks/usePublicStore'
 
 /** @param {{ storeId?: string | null }} props */
 export function SellerCard({ storeId }) {
@@ -53,6 +54,9 @@ export function SellerCard({ storeId }) {
       <h2>{t('products.seller.title')}</h2>
       <p className="product-seller-name">{store.name}</p>
       {description && <p>{description}</p>}
+      <Button asChild variant="outline">
+        <Link to={`/stores/${encodeURIComponent(storeId)}`}>{t('products.seller.viewStore')}</Link>
+      </Button>
     </section>
   )
 }

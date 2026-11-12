@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
 
 import { readProductSearchParams } from './productSearchParams'
@@ -9,9 +9,13 @@ export const productKeys = {
   detail: (productId) => ['products', 'detail', productId],
 }
 
-export function useProductSearch() {
+/** @param {{ storeId?: string}} [options] */
+export function useProductSearch({ storeId } = {}) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const params = readProductSearchParams(searchParams)
+  const params = {
+    ...readProductSearchParams(searchParams),
+    ...(storeId ? { storeId } : {}),
+  }
 
   const query = useQuery({
     queryKey: productKeys.search(params),
@@ -20,7 +24,8 @@ export function useProductSearch() {
         ...params,
         signal,
       }),
-    placeholderData: keepPreviousData,
+    placeholderData: (previoudData, previousQuery) =>
+      previousQuery?.queryKey[2]?.storeId === storeId ? previoudData : undefined,
   })
 
   function changePage(page) {

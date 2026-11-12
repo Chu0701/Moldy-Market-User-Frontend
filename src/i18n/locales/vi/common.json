@@ -121,7 +121,8 @@
       "title": "Gian hàng",
       "loading": "Đang tải thông tin gian hàng…",
       "unavailable": "Gian hàng hiện không khả dụng.",
-      "loadError": "Chưa tải được thông tin gian hàng."
+      "loadError": "Chưa tải được thông tin gian hàng.",
+      "viewStore": "Xem gian hàng"
     },
     "detail": {
       "descriptionTitle": "Mô tả sản phẩm",
@@ -135,6 +136,15 @@
       "attributeYes": "Có",
       "attributeNo": "Không"
     }
+  },
+  "stores": {
+    "title": "Gian hàng",
+    "loading": "Đang tải thông tin gian hàng…",
+    "loadError": "Chưa tải được thông tin gian hàng.",
+    "unavailableTitle": "Gian hàng tạm không khả dụng",
+    "backToProducts": "Xem danh sách sản phẩm",
+    "productsTitle": "Sản phẩm của gian hàng",
+    "emptyProducts": "Gian hàng chưa có sản phẩm."
   },
   "pagination": {
     "label": "Phân trang sản phẩm",

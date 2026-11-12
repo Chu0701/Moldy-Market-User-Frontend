@@ -121,7 +121,8 @@
       "title": "Store",
       "loading": "Loading store information…",
       "unavailable": "This store is currently unavailable.",
-      "loadError": "Unable to load store information."
+      "loadError": "Unable to load store information.",
+      "viewStore": "View store"
     },
     "detail": {
       "descriptionTitle": "Product description",
@@ -135,6 +136,15 @@
       "attributeYes": "Yes",
       "attributeNo": "No"
     }
+  },
+  "stores": {
+    "title": "Store",
+    "loading": "Loading store information…",
+    "loadError": "Unable to load store information.",
+    "unavailableTitle": "Store temporarily unavailable",
+    "backToProducts": "Browse products",
+    "productsTitle": "Store products",
+    "emptyProducts": "This store has no products yet."
   },
   "pagination": {
     "label": "Product pagination",

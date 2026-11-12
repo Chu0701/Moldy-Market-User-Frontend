@@ -5,6 +5,7 @@ import { normalizeProductSearchPage } from '@/services/api/pagination'
  * Searches public products.
  * @param {{
  *   q?: string,
+ *   storeId?: string,
  *   page?: number,
  *   size?: number,
  *   sort?: 'relevance' | 'newest' | 'price_asc' | 'price_desc',
@@ -12,10 +13,18 @@ import { normalizeProductSearchPage } from '@/services/api/pagination'
  * }} [options]
  * @returns {Promise<unknown>}
  */
-export async function searchProducts({ q, page = 1, size = 8, sort = 'newest', signal } = {}) {
+export async function searchProducts({
+  q,
+  storeId,
+  page = 1,
+  size = 8,
+  sort = 'newest',
+  signal,
+} = {}) {
   const response = await apiClient.get('/api/v1/products/search', {
     params: {
       q,
+      storeId,
       page,
       size,
       sort,

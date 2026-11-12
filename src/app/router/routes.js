@@ -41,6 +41,12 @@ export const routes = [
               Component: (await import('@/features/marketplace/pages/CategoryPage')).CategoryPage,
             }),
           },
+          {
+            path: 'stores/:storeId',
+            lazy: async () => ({
+              Component: (await import('@/features/stores/pages/StorePublicPage')).StorePublicPage,
+            }),
+          },
         ],
       },
       {
