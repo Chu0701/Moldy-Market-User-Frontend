@@ -2,6 +2,7 @@ import { AuthLayout } from '@/app/layouts/AuthLayout'
 import { MainLayout } from '@/app/layouts/MainLayout'
 import { RouteErrorPage } from '@/features/system/pages/RouteErrorPage'
 import { RouteLoading } from '@/components/feedback/RouteLoading'
+import { GuestOnly } from '@/app/router/GuestOnly'
 
 /** @type {import('react-router').RouteObject[]} */
 export const routes = [
@@ -47,9 +48,15 @@ export const routes = [
         children: [
           {
             path: 'login',
-            lazy: async () => ({
-              Component: (await import('@/features/auth/pages/LoginPage')).LoginPage,
-            }),
+            Component: GuestOnly,
+            children: [
+              {
+                index: true,
+                lazy: async () => ({
+                  Component: (await import('@/features/auth/pages/LoginPage')).LoginPage,
+                }),
+              },
+            ],
           },
           {
             path: 'register',

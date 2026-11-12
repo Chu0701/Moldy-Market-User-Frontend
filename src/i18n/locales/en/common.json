@@ -39,7 +39,25 @@
     "skipToContent": "Skip to content",
     "main": "Main navigation",
     "login": "Log in",
-    "search": "Search products"
+    "search": "Search products",
+    "logout": "Sign out",
+    "signingOut": "Signing out…"
+  },
+  "auth": {
+    "login": {
+      "email": "Email",
+      "password": "Password",
+      "emailRequired": "Enter your email address.",
+      "emailTooLong": "Email must be 254 characters or fewer.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Enter your password.",
+      "submitting": "Signing in…",
+      "invalidCredentials": "The email or password is incorrect.",
+      "accountLocked": "Your account is locked.",
+      "accountDisabled": "Your account is pending activation or has been disabled.",
+      "rateLimited": "Too many sign-in attempts. Please try again later.",
+      "submitError": "Unable to sign in. Please try again."
+    }
   },
   "categories": {
     "loading": "Loading categories",

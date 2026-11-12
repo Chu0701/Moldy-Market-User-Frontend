@@ -39,7 +39,25 @@
     "skipToContent": "Chuyển đến nội dung",
     "main": "Điều hướng chính",
     "login": "Đăng nhập",
-    "search": "Tìm kiếm sản phẩm"
+    "search": "Tìm kiếm sản phẩm",
+    "logout": "Đăng xuất",
+    "signingOut": "Đang đăng xuất…"
+  },
+  "auth": {
+    "login": {
+      "email": "Email",
+      "password": "Mật khẩu",
+      "emailRequired": "Vui lòng nhập email.",
+      "emailTooLong": "Email không được dài quá 254 ký tự.",
+      "emailInvalid": "Email không đúng định dạng.",
+      "passwordRequired": "Vui lòng nhập mật khẩu.",
+      "submitting": "Đang đăng nhập…",
+      "invalidCredentials": "Email hoặc mật khẩu không đúng.",
+      "accountLocked": "Tài khoản của bạn đã bị khóa.",
+      "accountDisabled": "Tài khoản chưa được kích hoạt hoặc đã bị vô hiệu hóa.",
+      "rateLimited": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.",
+      "submitError": "Chưa thể đăng nhập. Vui lòng thử lại."
+    }
   },
   "categories": {
     "loading": "Đang tải danh mục",

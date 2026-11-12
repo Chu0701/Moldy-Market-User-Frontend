@@ -5,6 +5,10 @@ import { LanguageSwitcher } from '@/components/common/LanguageSwitcher'
 import { Logo } from '@/components/common/Logo'
 import { cn } from '@/lib/utils'
 
+import { Button } from '@/components/ui/button'
+import { useLogout } from '@/features/auth/hooks/useLogout'
+import { useSession } from '@/features/auth/hooks/useSession'
+
 const navigation = [
   { to: '/', label: 'navigation.home' },
   { to: '/products', label: 'navigation.products' },
@@ -14,6 +18,10 @@ const navigation = [
 export function MainLayout() {
   const { t } = useTranslation()
   const { state } = useNavigation()
+  const { signOut, isSigningOut } = useLogout()
+  const { hasAccessToken } = useSession()
+  const showLogout = hasAccessToken || isSigningOut
+  const visibleNavigation = showLogout ? navigation.filter(({ to }) => to !== '/login') : navigation
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
@@ -31,7 +39,7 @@ export function MainLayout() {
             aria-label={t('navigation.main')}
             className="flex w-full flex-wrap gap-1 border-t border-border pt-3"
           >
-            {navigation.map(({ to, label }) => (
+            {visibleNavigation.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -46,6 +54,18 @@ export function MainLayout() {
                 {t(label)}
               </NavLink>
             ))}
+
+            {showLogout && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="min-h-11 px-4"
+                disabled={isSigningOut}
+                onClick={signOut}
+              >
+                {t(isSigningOut ? 'navigation.signingOut' : 'navigation.logout')}
+              </Button>
+            )}
           </nav>
         </div>
       </header>

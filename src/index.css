@@ -224,3 +224,46 @@
     @apply min-h-11 self-end;
   }
 }
+
+@layer components {
+  .login-page {
+    @apply mx-auto w-full max-w-sm;
+  }
+
+  .login-page > h1 {
+    @apply mb-8 text-3xl leading-snug font-semibold sm:text-4xl;
+  }
+
+  .login-form {
+    @apply grid gap-5;
+  }
+
+  .login-field {
+    @apply grid gap-2;
+  }
+
+  .login-field > label {
+    @apply text-sm font-medium;
+  }
+
+  .login-field > input {
+    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .login-field > input[aria-invalid='true'] {
+    @apply border-destructive;
+  }
+
+  .login-field > p,
+  .login-form-error {
+    @apply text-sm text-destructive;
+  }
+
+  .login-form > button {
+    @apply min-h-11 w-full;
+  }
+
+  .login-register-link {
+    @apply mt-4 inline-flex min-h-11 items-center rounded-md text-sm underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+}

@@ -1,15 +1,23 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+import { RequireAuth } from '@/app/router/RequireAuth'
 import { routes } from '@/app/router/routes'
 import i18n from '@/i18n'
+import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenStorage'
+import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
+import { login, logout } from '@/services/auth/authService'
 import { getCategoryTree } from '@/services/categories/categoryService'
 import { searchProducts } from '@/services/products/productService'
+import { getMe } from '@/services/users/userService'
 
+vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
+vi.mock('@/services/auth/authService', () => ({ login: vi.fn(), logout: vi.fn() }))
+vi.mock('@/services/users/userService', () => ({ getMe: vi.fn() }))
 vi.mock('@/services/categories/categoryService', () => ({ getCategoryTree: vi.fn() }))
 vi.mock('@/services/products/productService', () => ({ searchProducts: vi.fn() }))
 
@@ -17,6 +25,12 @@ let router
 let queryClient
 
 beforeEach(() => {
+  vi.mocked(waitForPendingRefresh).mockReset().mockResolvedValue(undefined)
+  vi.mocked(login).mockReset()
+  vi.mocked(logout).mockReset()
+  vi.mocked(getMe)
+    .mockReset()
+    .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
   vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
 })
@@ -33,11 +47,29 @@ function renderRoute(path, routeConfig = routes) {
 }
 
 afterEach(async () => {
+  clearAccessToken()
   router?.dispose()
   queryClient?.clear()
   await i18n.changeLanguage('vi')
   document.documentElement.lang = 'vi'
 })
+
+const loginCredentials = { email: 'chu@example.com', password: ' test password ' }
+
+async function submitLogin(user) {
+  const email = await screen.findByRole('textbox', { name: 'Email' })
+  await user.type(email, loginCredentials.email)
+  await user.type(screen.getByLabelText('Mật khẩu'), loginCredentials.password)
+  await user.click(screen.getByRole('button', { name: 'Đăng nhập' }))
+}
+
+const routesWithPrivatePage = [
+  ...routes,
+  {
+    Component: RequireAuth,
+    children: [{ path: '/test-private', element: <h1>Test private page</h1> }],
+  },
+]
 
 describe('user app routing', () => {
   const product = {
@@ -209,6 +241,244 @@ describe('user app routing', () => {
 
     expect(await screen.findByRole('heading', { name: 'Đăng ký' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/register')
+  })
+
+  test('redirects a guest to login and returns to the complete protected URL after sign-in', async () => {
+    vi.mocked(login).mockResolvedValue({ accessToken: 'test-access-token' })
+    const path = '/test-private?tab=orders#recent'
+    const user = renderRoute(path, routesWithPrivatePage)
+
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(router.state.location.state).toEqual({ from: path })
+    expect(screen.queryByRole('heading', { name: 'Test private page' })).not.toBeInTheDocument()
+    expect(getMe).not.toHaveBeenCalled()
+
+    await submitLogin(user)
+
+    expect(await screen.findByRole('heading', { name: 'Test private page' })).toBeInTheDocument()
+    expect(router.state.location).toMatchObject({
+      pathname: '/test-private',
+      search: '?tab=orders',
+      hash: '#recent',
+    })
+  })
+
+  test('waits for profile verification before showing protected content', async () => {
+    setAccessToken('test-access-token')
+    const profile = Promise.withResolvers()
+    vi.mocked(getMe).mockReturnValueOnce(profile.promise)
+    renderRoute('/test-private', routesWithPrivatePage)
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Đang tải trang…')
+    expect(screen.queryByRole('heading', { name: 'Test private page' })).not.toBeInTheDocument()
+
+    profile.resolve({ id: 'test-user', roles: ['USER'] })
+
+    expect(await screen.findByRole('heading', { name: 'Test private page' })).toBeInTheDocument()
+  })
+
+  test('shows forbidden feedback without clearing the session when profile verification returns 403', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMe).mockRejectedValueOnce(Object.assign(new Error('Forbidden'), { status: 403 }))
+    renderRoute('/test-private', routesWithPrivatePage)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không có quyền xem nội dung')
+    expect(screen.queryByRole('heading', { name: 'Test private page' })).not.toBeInTheDocument()
+    expect(getAccessToken()).toBe('test-access-token')
+  })
+
+  test('waits to verify a saved session before redirecting away from login', async () => {
+    setAccessToken('test-access-token')
+    const profile = Promise.withResolvers()
+    vi.mocked(getMe).mockReturnValueOnce(profile.promise)
+    renderRoute('/login')
+
+    await waitFor(() => expect(getMe).toHaveBeenCalledOnce())
+    expect(screen.getByText('Đang tải trang…')).toHaveAttribute('role', 'status')
+    expect(screen.queryByRole('heading', { name: 'Đăng nhập' })).not.toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+
+    profile.resolve({ id: 'test-user', roles: ['USER'] })
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    expect(await screen.findByRole('button', { name: 'Đăng xuất' })).toBeInTheDocument()
+  })
+
+  test('keeps the saved token and allows retry when checking the session fails', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMe).mockRejectedValueOnce(new Error('Profile unavailable'))
+    const user = renderRoute('/login')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể hiển thị trang')
+    expect(getAccessToken()).toBe('test-access-token')
+    expect(router.state.location.pathname).toBe('/login')
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  })
+
+  test('shows the login form when the saved access token is cleared during verification', async () => {
+    setAccessToken('test-access-token')
+    const profile = Promise.withResolvers()
+    vi.mocked(getMe).mockReturnValueOnce(profile.promise)
+    renderRoute('/login')
+
+    await waitFor(() => expect(getMe).toHaveBeenCalledOnce())
+    expect(router.state.location.pathname).toBe('/login')
+
+    act(() => clearAccessToken())
+
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+
+    await act(async () => {
+      profile.resolve({ id: 'test-user', roles: ['USER'] })
+    })
+    expect(router.state.location.pathname).toBe('/login')
+  })
+
+  test('validates login fields on blur and clears a corrected email error', async () => {
+    const user = renderRoute('/login')
+    const email = await screen.findByRole('textbox', { name: 'Email' })
+    const password = screen.getByLabelText('Mật khẩu')
+
+    await user.type(email, 'abc')
+    await user.tab()
+
+    expect(await screen.findByText('Email không đúng định dạng.')).toBeInTheDocument()
+    expect(email).toHaveAccessibleDescription('Email không đúng định dạng.')
+    expect(password).toHaveFocus()
+
+    await user.tab()
+    expect(await screen.findByText('Vui lòng nhập mật khẩu.')).toBeInTheDocument()
+
+    await user.clear(email)
+    await user.type(email, 'chu@example.com')
+    await waitFor(() => expect(email).toHaveAttribute('aria-invalid', 'false'))
+    expect(screen.queryByText('Email không đúng định dạng.')).not.toBeInTheDocument()
+  })
+
+  test('stores the access token and waits for the profile before returning to the requested route', async () => {
+    const profile = { id: 'test-user', roles: ['USER'] }
+    let resolveProfile
+    vi.mocked(login).mockResolvedValue({ accessToken: 'test-access-token' })
+    vi.mocked(getMe).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveProfile = resolve
+        }),
+    )
+    const user = renderRoute({ pathname: '/login', state: { from: '/products' } })
+
+    await submitLogin(user)
+
+    expect(login).toHaveBeenCalledExactlyOnceWith(loginCredentials)
+    await waitFor(() => expect(getMe).toHaveBeenCalledOnce())
+    expect(getAccessToken()).toBe('test-access-token')
+    expect(screen.getByRole('button', { name: 'Đang đăng nhập…' })).toBeDisabled()
+    expect(router.state.location.pathname).toBe('/login')
+
+    resolveProfile(profile)
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/products'))
+    expect(queryClient.getQueryData(['users', 'me'])).toEqual(profile)
+  })
+
+  test('shows invalid credentials and preserves the entered email', async () => {
+    vi.mocked(login).mockRejectedValue(
+      Object.assign(new Error('Invalid credentials'), { status: 401, code: 'INVALID_CREDENTIALS' }),
+    )
+    const user = renderRoute('/login')
+
+    await submitLogin(user)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Email hoặc mật khẩu không đúng.')
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue(loginCredentials.email)
+    expect(getMe).not.toHaveBeenCalled()
+    expect(getAccessToken()).toBeNull()
+    expect(router.state.location.pathname).toBe('/login')
+  })
+
+  test('clears the local session when loading the profile fails after login', async () => {
+    vi.mocked(login).mockResolvedValue({ accessToken: 'test-access-token' })
+    vi.mocked(getMe).mockRejectedValue(new Error('Profile unavailable'))
+    const user = renderRoute('/login')
+
+    await submitLogin(user)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Chưa thể đăng nhập. Vui lòng thử lại.',
+    )
+    expect(getAccessToken()).toBeNull()
+    expect(queryClient.getQueryData(['users', 'me'])).toBeUndefined()
+    expect(router.state.location.pathname).toBe('/login')
+  })
+
+  test('restores the current user profile on entry when an access token is stored', async () => {
+    setAccessToken('test-access-token')
+    renderRoute('/')
+
+    await waitFor(() => {
+      expect(queryClient.getQueryData(['users', 'me'])).toEqual({
+        id: 'test-user',
+        roles: ['USER'],
+      })
+    })
+    expect(getMe).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: 'Đăng xuất' })).toBeInTheDocument()
+  })
+
+  test('does not request a profile when entering as a guest', async () => {
+    renderRoute('/')
+
+    expect(await screen.findByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(getMe).not.toHaveBeenCalled()
+    expect(queryClient.getQueryData(['users', 'me'])).toBeUndefined()
+  })
+
+  test('clears local session, waits for refresh, and signs out from the main navigation', async () => {
+    setAccessToken('test-access-token')
+    const refresh = Promise.withResolvers()
+    const logoutResponse = Promise.withResolvers()
+    vi.mocked(waitForPendingRefresh).mockReturnValue(refresh.promise)
+    vi.mocked(logout).mockReturnValue(logoutResponse.promise)
+    const user = renderRoute('/')
+    queryClient.setQueryData(['users', 'me'], { id: 'test-user' })
+
+    const button = await screen.findByRole('button', { name: 'Đăng xuất' })
+    expect(screen.queryByRole('link', { name: 'Đăng nhập' })).not.toBeInTheDocument()
+    await user.click(button)
+
+    expect(getAccessToken()).toBeNull()
+    expect(queryClient.getQueryData(['users', 'me'])).toBeUndefined()
+    expect(screen.getByRole('button', { name: 'Đang đăng xuất…' })).toBeDisabled()
+    expect(waitForPendingRefresh).toHaveBeenCalledOnce()
+    expect(logout).not.toHaveBeenCalled()
+
+    refresh.resolve()
+    await waitFor(() => expect(logout).toHaveBeenCalledOnce())
+    expect(router.state.location.pathname).toBe('/')
+
+    logoutResponse.resolve()
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+  })
+
+  test('returns to login and clears local session even when logout fails', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(logout).mockRejectedValue(new Error('Offline'))
+    const user = renderRoute('/')
+    queryClient.setQueryData(['users', 'me'], { id: 'test-user' })
+
+    await user.click(await screen.findByRole('button', { name: 'Đăng xuất' }))
+
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(logout).toHaveBeenCalledOnce()
+    expect(getAccessToken()).toBeNull()
+    expect(queryClient.getQueryData(['users', 'me'])).toBeUndefined()
+    expect(router.state.location.pathname).toBe('/login')
   })
 
   test('shows an unknown URL as 404 and lets the user navigate home', async () => {

@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { ApiError } from '@/services/api/ApiError'
+import { getAccessToken } from '@/lib/tokenStorage'
 
 export const apiClient = axios.create({
   // Services supply the complete path because Backend uses /api/v1 and /api.
@@ -9,7 +10,18 @@ export const apiClient = axios.create({
   headers: { Accept: 'application/json' },
 })
 
-// TODO(doc14:Q2): add auth/refresh only after the HttpOnly cookie contract is verified.
+apiClient.interceptors.request.use((config) => {
+  if (config.url?.startsWith('/api/v1/auth/')) return config
+
+  const accessToken = getAccessToken()
+
+  if (accessToken && !config.headers.has('Authorization')) {
+    config.headers.set('Authorization', `Bearer ${accessToken}`)
+  }
+
+  return config
+})
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
