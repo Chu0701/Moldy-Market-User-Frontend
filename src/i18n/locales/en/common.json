@@ -103,6 +103,31 @@
       "clear": "Clear search",
       "errorTitle": "Unable to load products",
       "errorMessage": "Please try again in a few minutes."
+    },
+    "gallery": {
+      "label": "Product images",
+      "selectImage": "View image {{number}}",
+      "position": "Image {{current}} of {{total}}"
+    },
+    "statuses": {
+      "active": "Available",
+      "hidden": "Hidden",
+      "sold": "Sold",
+      "deleted": "Deleted",
+      "removed": "Removed",
+      "unknown": "Status not specified"
+    },
+    "detail": {
+      "descriptionTitle": "Product description",
+      "noDescription": "The seller has not added a description.",
+      "errorTitle": "Unable to load product details",
+      "errorMessage": "Please try again in a few minutes.",
+      "unavailableTitle": "Product unavailable",
+      "unavailableMessage": "This product is currently unavailable. You can explore other items.",
+      "backToProducts": "Explore other products",
+      "attributesTitle": "Product attributes",
+      "attributeYes": "Yes",
+      "attributeNo": "No"
     }
   },
   "pagination": {

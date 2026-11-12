@@ -103,6 +103,31 @@
       "clear": "Xóa điều kiện tìm kiếm",
       "errorTitle": "Chưa tải được sản phẩm",
       "errorMessage": "Vui lòng thử tải lại sau ít phút."
+    },
+    "gallery": {
+      "label": "Ảnh sản phẩm",
+      "selectImage": "Xem ảnh {{number}}",
+      "position": "Ảnh {{current}} / {{total}}"
+    },
+    "statuses": {
+      "active": "Đang bán",
+      "hidden": "Đang ẩn",
+      "sold": "Đã bán",
+      "deleted": "Đã xóa",
+      "removed": "Đã bị gỡ",
+      "unknown": "Chưa rõ trạng thái"
+    },
+    "detail": {
+      "descriptionTitle": "Mô tả sản phẩm",
+      "noDescription": "Người bán chưa thêm mô tả.",
+      "errorTitle": "Chưa tải được chi tiết sản phẩm",
+      "errorMessage": "Vui lòng thử tải lại sau ít phút.",
+      "unavailableTitle": "Sản phẩm không còn",
+      "unavailableMessage": "Sản phẩm này hiện không thể xem được. Bạn có thể khám phá những món đồ khác.",
+      "backToProducts": "Xem sản phẩm khác",
+      "attributesTitle": "Thuộc tính sản phẩm",
+      "attributeYes": "Có",
+      "attributeNo": "Không"
     }
   },
   "pagination": {

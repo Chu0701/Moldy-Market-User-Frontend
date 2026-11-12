@@ -12,14 +12,17 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenSto
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
 import { login, logout } from '@/services/auth/authService'
 import { getCategoryTree } from '@/services/categories/categoryService'
-import { searchProducts } from '@/services/products/productService'
+import { getProductById, searchProducts } from '@/services/products/productService'
 import { getMe } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
 vi.mock('@/services/auth/authService', () => ({ login: vi.fn(), logout: vi.fn() }))
 vi.mock('@/services/users/userService', () => ({ getMe: vi.fn() }))
 vi.mock('@/services/categories/categoryService', () => ({ getCategoryTree: vi.fn() }))
-vi.mock('@/services/products/productService', () => ({ searchProducts: vi.fn() }))
+vi.mock('@/services/products/productService', () => ({
+  getProductById: vi.fn(),
+  searchProducts: vi.fn(),
+}))
 
 let router
 let queryClient
@@ -31,6 +34,7 @@ beforeEach(() => {
   vi.mocked(getMe)
     .mockReset()
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
+  vi.mocked(getProductById).mockReset()
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
   vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
 })
@@ -80,23 +84,52 @@ describe('user app routing', () => {
     images: [],
   }
 
-  test('displays the newest product and navigates to its detail placeholder', async () => {
+  test('displays the newest product and navigates to its details', async () => {
     vi.mocked(searchProducts).mockResolvedValue({ items: [product] })
+    vi.mocked(getProductById).mockResolvedValue({
+      ...product,
+      status: 'ACTIVE',
+      description: 'Test product description',
+      attributes: {
+        'Chất liệu': 'Da',
+        'Có hộp': false,
+      },
+    })
     const user = renderRoute('/')
 
-    expect(await screen.findByRole('link', { name: /Test product/ })).toHaveAttribute(
-      'href',
-      `/products/${product.id}`,
-    )
+    const productLink = await screen.findByRole('link', { name: /Test product/ })
+    expect(productLink).toHaveAttribute('href', `/products/${product.id}`)
     expect(screen.getByText('Như mới')).toBeInTheDocument()
     expect(screen.getByText(/250\.000/)).toHaveTextContent(/250\.000\s*₫/)
     expect(screen.getByText('Chưa có ảnh sản phẩm')).toBeInTheDocument()
-    const header = screen.getByRole('banner')
-    await user.click(screen.getByRole('link', { name: /Test product/ }))
 
-    expect(await screen.findByRole('heading', { name: 'Chi tiết sản phẩm' })).toBeInTheDocument()
+    const header = screen.getByRole('banner')
+    await user.click(productLink)
+
+    expect(await screen.findByRole('heading', { name: product.title })).toBeInTheDocument()
+    expect(screen.getByText('Test product description')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Thuộc tính sản phẩm' })).toBeInTheDocument()
+    expect(screen.getByText('Chất liệu', { selector: 'dt' })).toBeInTheDocument()
+    expect(screen.getByText('Da', { selector: 'dd' })).toBeInTheDocument()
+    expect(screen.getByText('Có hộp', { selector: 'dt' })).toBeInTheDocument()
+    expect(screen.getByText('Không', { selector: 'dd' })).toBeInTheDocument()
+    expect(getProductById).toHaveBeenCalledWith(expect.objectContaining({ productId: product.id }))
     expect(router.state.location.pathname).toBe(`/products/${product.id}`)
     expect(screen.getByRole('banner')).toBe(header)
+  })
+
+  test('shows a way back to the catalog when a product is unavailable', async () => {
+    vi.mocked(getProductById).mockRejectedValue(
+      Object.assign(new Error('Not found'), { status: 404 }),
+    )
+
+    renderRoute(`/products/${product.id}`)
+
+    expect(await screen.findByRole('heading', { name: 'Sản phẩm không còn' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Xem sản phẩm khác' })).toHaveAttribute(
+      'href',
+      '/products',
+    )
   })
 
   test('hides the product section when search succeeds without products', async () => {

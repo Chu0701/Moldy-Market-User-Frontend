@@ -6,6 +6,7 @@ import { searchProducts } from '@/services/products/productService'
 
 export const productKeys = {
   search: (params) => ['products', 'search', params],
+  detail: (productId) => ['products', 'detail', productId],
 }
 
 export function useProductSearch() {

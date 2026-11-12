@@ -25,3 +25,16 @@ export async function searchProducts({ q, page = 1, size = 8, sort = 'newest', s
 
   return normalizeProductSearchPage(unwrap(response))
 }
+
+/**
+ * Fetches one public product by ID.
+ * @param {{ productId: string, signal?: AbortSignal }} options
+ * @returns {Promise<unknown>}
+ */
+export async function getProductById({ productId, signal }) {
+  const response = await apiClient.get(`/api/v1/products/${encodeURIComponent(productId)}`, {
+    signal,
+  })
+
+  return unwrap(response)
+}
