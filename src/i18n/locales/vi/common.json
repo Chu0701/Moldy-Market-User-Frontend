@@ -137,6 +137,15 @@
       "attributesTitle": "Thuộc tính sản phẩm",
       "attributeYes": "Có",
       "attributeNo": "Không"
+    },
+    "filters": {
+      "condition": "Tình trạng",
+      "price": "Khoảng giá (₫)",
+      "minPrice": "Giá tối thiểu",
+      "maxPrice": "Giá tối đa",
+      "invalidPriceRange": "Giá tối thiểu phải nhỏ hơn hoặc bằng giá tối đa.",
+      "category": "Danh mục",
+      "categoryLimit": "Chọn tối đa 20 danh mục."
     }
   },
   "stores": {

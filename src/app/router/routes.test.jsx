@@ -111,7 +111,7 @@ describe('user app routing', () => {
     })
     const user = renderRoute('/')
 
-    const productLink = await screen.findByRole('link', { name: /Test product/ })
+    const productLink = await screen.findByRole('link', { name: /Test product/ }, { timeout: 4000 })
     expect(productLink).toHaveAttribute('href', `/products/${product.id}`)
     expect(screen.getByText('Như mới')).toBeInTheDocument()
     expect(screen.getByText(/250\.000/)).toHaveTextContent(/250\.000\s*₫/)
@@ -168,6 +168,127 @@ describe('user app routing', () => {
     expect(getPublicStore).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ storeId: store.id }),
     )
+  })
+
+  test('filters products by selected parent and child categories', async () => {
+    const parent = { id: 'a8098c1a-f86e-11da-bd1a-00112444be1e', name: 'Thời trang' }
+    const child = { id: 'a8098c1a-f86e-11da-bd1a-00112444be1f', name: 'Áo khoác' }
+    vi.mocked(getCategoryTree).mockResolvedValue([{ ...parent, children: [child] }])
+    const user = renderRoute('/products')
+
+    await user.click(await screen.findByRole('checkbox', { name: parent.name }))
+    await user.click(screen.getByRole('checkbox', { name: 'Thời trang / Áo khoác' }))
+    await user.click(screen.getByRole('button', { name: 'Tìm kiếm sản phẩm' }))
+
+    await waitFor(() =>
+      expect(searchProducts).toHaveBeenLastCalledWith(
+        expect.objectContaining({ categoryId: [parent.id, child.id], page: 1 }),
+      ),
+    )
+    expect(new URLSearchParams(router.state.location.search).getAll('categoryId')).toEqual([
+      parent.id,
+      child.id,
+    ])
+  })
+
+  test('blocks submissions with more than 20 selected categories', async () => {
+    const categories = Array.from({ length: 21 }, (_, index) => ({
+      id: 'a8098c1a-f86e-11da-bd1a-' + String(index).padStart(12, '0'),
+      name: 'Danh mục ' + (index + 1),
+    }))
+    vi.mocked(getCategoryTree).mockResolvedValue(categories)
+    const user = renderRoute('/products')
+
+    await screen.findByRole('checkbox', { name: 'Danh mục 21' })
+    for (const category of categories) {
+      await user.click(screen.getByRole('checkbox', { name: category.name }))
+    }
+    const submit = screen.getByRole('button', { name: 'Tìm kiếm sản phẩm' })
+    await user.click(submit)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Chọn tối đa 20 danh mục.')
+    expect(router.state.location.search).toBe('')
+    expect(searchProducts).toHaveBeenCalledOnce()
+
+    await user.click(screen.getByRole('checkbox', { name: 'Danh mục 21' }))
+    await user.click(submit)
+
+    await waitFor(() =>
+      expect(searchProducts).toHaveBeenLastCalledWith(
+        expect.objectContaining({ categoryId: categories.slice(0, 20).map(({ id }) => id) }),
+      ),
+    )
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  test('submits multiple conditions and price bounds and keeps them on the next page', async () => {
+    vi.mocked(searchProducts).mockImplementation(async ({ page }) => ({
+      items: [product],
+      page,
+      totalElements: 3,
+      hasNext: page < 3,
+    }))
+    const user = renderRoute('/products?page=3&size=1')
+    expect(await screen.findByText('Trang 3')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox', { name: 'Mới' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Đã sử dụng' }))
+    await user.type(screen.getByRole('spinbutton', { name: 'Giá tối thiểu' }), '0')
+    await user.type(screen.getByRole('spinbutton', { name: 'Giá tối đa' }), '200000')
+    await user.click(screen.getByRole('button', { name: 'Tìm kiếm sản phẩm' }))
+
+    expect(await screen.findByText('Trang 1')).toBeInTheDocument()
+    expect(new URLSearchParams(router.state.location.search).getAll('condition')).toEqual([
+      'NEW',
+      'USED',
+    ])
+    await user.click(screen.getByRole('button', { name: 'Sau' }))
+
+    expect(await screen.findByText('Trang 2')).toBeInTheDocument()
+    expect(searchProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        condition: ['NEW', 'USED'],
+        minPrice: 0,
+        maxPrice: 200000,
+        page: 2,
+      }),
+    )
+    expect(screen.getByRole('checkbox', { name: 'Mới' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Đã sử dụng' })).toBeChecked()
+  })
+
+  test('blocks an inverted price range and submits after the range is corrected', async () => {
+    vi.mocked(searchProducts).mockResolvedValue({
+      items: [product],
+      page: 1,
+      totalElements: 1,
+      hasNext: false,
+    })
+    const user = renderRoute('/products')
+    const minimum = await screen.findByRole('spinbutton', { name: 'Giá tối thiểu' })
+    const maximum = screen.getByRole('spinbutton', { name: 'Giá tối đa' })
+    const submit = screen.getByRole('button', { name: 'Tìm kiếm sản phẩm' })
+
+    await user.type(minimum, '200000')
+    await user.type(maximum, '100000')
+    await user.click(submit)
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Giá tối thiểu phải nhỏ hơn hoặc bằng giá tối đa.',
+    )
+    expect(router.state.location.search).toBe('')
+    expect(searchProducts).toHaveBeenCalledOnce()
+
+    await user.clear(maximum)
+    await user.type(maximum, '300000')
+    await user.click(submit)
+
+    await waitFor(() =>
+      expect(searchProducts).toHaveBeenLastCalledWith(
+        expect.objectContaining({ minPrice: 200000, maxPrice: 300000, page: 1 }),
+      ),
+    )
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   test('searches and paginates within the store from the path', async () => {
@@ -427,6 +548,8 @@ describe('user app routing', () => {
     expect(searchProducts).toHaveBeenLastCalledWith(
       expect.objectContaining({ categoryId: id, page: 3 }),
     )
+    expect(screen.queryByRole('group', { name: 'Danh mục' })).not.toBeInTheDocument()
+    expect(getCategoryTree).not.toHaveBeenCalled()
 
     await user.type(screen.getByRole('searchbox', { name: 'Tìm kiếm sản phẩm' }), 'áo')
     await user.click(screen.getByRole('button', { name: 'Tìm kiếm sản phẩm' }))

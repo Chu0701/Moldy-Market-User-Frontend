@@ -30,10 +30,39 @@ test.each(['storeId', 'categoryId'])(
       signal,
     })
 
-    expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/products/search', {
-      params: { q: 'áo', [filter]: id, page: 2, size: 8, sort: 'price_asc' },
-      signal,
-    })
+    expect(get).toHaveBeenCalledExactlyOnceWith(
+      '/api/v1/products/search',
+      expect.objectContaining({
+        params: expect.objectContaining({
+          q: 'áo',
+          [filter]: id,
+          page: 2,
+          size: 8,
+          sort: 'price_asc',
+        }),
+        signal,
+      }),
+    )
     expect(result).toMatchObject({ items, page: 2, hasNext: true })
   },
 )
+
+test('serializes selected filters as repeated query parameters understood by Backend', async () => {
+  const categoryId = [
+    'a8098c1a-f86e-11da-bd1a-00112444be1e',
+    'a8098c1a-f86e-11da-bd1a-00112444be1f',
+  ]
+  const condition = ['NEW', 'USED']
+  const get = vi.spyOn(apiClient, 'get').mockResolvedValue({
+    data: { success: true, code: 'SUCCESS', data: { items: [], page: 1, totalPages: 0 } },
+  })
+
+  await searchProducts({ categoryId, condition, minPrice: 0, maxPrice: 200000 })
+
+  const [url, config] = get.mock.calls[0]
+  const request = new URL(apiClient.getUri({ url, ...config }), 'http://localhost')
+  expect(request.searchParams.getAll('categoryId')).toEqual(categoryId)
+  expect(request.searchParams.getAll('condition')).toEqual(condition)
+  expect(request.searchParams.get('minPrice')).toBe('0')
+  expect(request.searchParams.get('maxPrice')).toBe('200000')
+})

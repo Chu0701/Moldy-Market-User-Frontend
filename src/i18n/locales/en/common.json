@@ -137,6 +137,15 @@
       "attributesTitle": "Product attributes",
       "attributeYes": "Yes",
       "attributeNo": "No"
+    },
+    "filters": {
+      "condition": "Condition",
+      "price": "Price range (₫)",
+      "minPrice": "Minimum price",
+      "maxPrice": "Maximum price",
+      "invalidPriceRange": "Minimum price must be less than or equal to maximum price.",
+      "category": "Category",
+      "categoryLimit": "Select up to 20 categories."
     }
   },
   "stores": {

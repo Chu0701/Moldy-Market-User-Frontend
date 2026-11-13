@@ -365,6 +365,42 @@
     @apply min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }
 
+  form:has(#product-search) > .product-filter-group {
+    @apply col-span-full min-w-0 border-t border-border pt-3;
+  }
+
+  .product-filter-group > legend {
+    @apply pr-2 text-sm font-semibold;
+  }
+
+  .product-filter-options {
+    @apply flex flex-wrap gap-x-4 gap-y-2;
+  }
+
+  form:has(#product-search) .product-filter-options > label {
+    @apply mb-0 inline-flex min-h-11 items-center gap-2;
+  }
+
+  .product-filter-categories {
+    @apply max-h-48 overflow-y-auto;
+  }
+
+  .product-filter-error {
+    @apply mt-2 text-sm text-destructive;
+  }
+
+  .product-filter-options input {
+    @apply size-4 accent-primary focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .product-filter-price {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
+  form:has(#product-search) .product-filter-price input[type='number'] {
+    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
   form:has(#product-search) > button {
     @apply min-h-11 self-end;
   }

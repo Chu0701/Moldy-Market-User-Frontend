@@ -32,7 +32,14 @@ export function ProductSearchPanel({ storeId, categoryId }) {
   }
 
   const EmptyHeading = storeId || categoryId ? 'h3' : 'h2'
-  const emptyStore = Boolean(storeId) && !params.q && params.page === 1 && products.length === 0
+  const hasFilter = Boolean(
+    params.q ||
+    params.categoryId ||
+    params.condition ||
+    params.minPrice !== undefined ||
+    params.maxPrice !== undefined,
+  )
+  const emptyStore = Boolean(storeId) && !hasFilter && params.page === 1 && products.length === 0
 
   let content
 
@@ -85,7 +92,7 @@ export function ProductSearchPanel({ storeId, categoryId }) {
 
   return (
     <>
-      <ProductSearchForm params={params} action={action} />
+      <ProductSearchForm params={params} action={action} showCategoryFilter={!categoryId} />
 
       <div
         className="product-search-results"
