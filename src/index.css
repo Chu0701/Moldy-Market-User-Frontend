@@ -504,6 +504,14 @@
     @apply text-3xl leading-snug font-semibold sm:text-4xl;
   }
 
+  .profile-page > p[role='status'] {
+    @apply rounded-md bg-success px-4 py-3 text-sm text-success-foreground;
+  }
+
+  .profile-page > a {
+    @apply justify-self-start;
+  }
+
   .profile-details {
     @apply divide-y divide-border rounded-xl border border-border;
   }
@@ -518,5 +526,37 @@
 
   .profile-details dd {
     @apply min-w-0 break-words;
+  }
+
+  .profile-edit-form {
+    @apply grid gap-5 rounded-xl border border-border p-4 sm:p-6;
+  }
+
+  .profile-edit-field {
+    @apply grid gap-2;
+  }
+
+  .profile-edit-field > label {
+    @apply text-sm font-medium;
+  }
+
+  .profile-edit-field > input {
+    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .profile-edit-field > input[aria-invalid='true'] {
+    @apply border-destructive;
+  }
+
+  .profile-edit-hint {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .profile-edit-error {
+    @apply text-sm text-destructive;
+  }
+
+  .profile-edit-actions {
+    @apply flex flex-wrap gap-3;
   }
 }

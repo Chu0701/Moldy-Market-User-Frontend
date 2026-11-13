@@ -58,6 +58,13 @@ export const routes = [
                   Component: (await import('@/features/profile/pages/ProfilePage')).ProfilePage,
                 }),
               },
+              {
+                path: 'edit',
+                lazy: async () => ({
+                  Component: (await import('@/features/profile/pages/ProfileEditPage'))
+                    .ProfileEditPage,
+                }),
+              },
             ],
           },
         ],

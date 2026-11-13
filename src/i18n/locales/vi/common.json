@@ -162,7 +162,21 @@
     "fullName": "Họ và tên",
     "email": "Email",
     "emptyTitle": "Chưa có thông tin hồ sơ",
-    "emptyDescription": "Thông tin cá nhân sẽ hiển thị tại đây khi có dữ liệu."
+    "emptyDescription": "Thông tin cá nhân sẽ hiển thị tại đây khi có dữ liệu.",
+    "edit": {
+      "title": "Chỉnh sửa hồ sơ",
+      "phone": "Số điện thoại",
+      "phoneHint": "Ví dụ: 0912345678 hoặc +84912345678. Để trống để giữ số hiện tại.",
+      "fullNameRequired": "Vui lòng nhập họ và tên.",
+      "fullNameTooLong": "Họ và tên tối đa 100 ký tự.",
+      "phoneInvalid": "Nhập số bắt đầu bằng 0 hoặc +84, theo sau là 9 chữ số.",
+      "phoneTaken": "Số điện thoại này đã được sử dụng.",
+      "submitError": "Không thể lưu hồ sơ. Vui lòng thử lại.",
+      "save": "Lưu thay đổi",
+      "saving": "Đang lưu…",
+      "back": "Về hồ sơ",
+      "saved": "Đã lưu thay đổi hồ sơ."
+    }
   },
   "pagination": {
     "label": "Phân trang sản phẩm",

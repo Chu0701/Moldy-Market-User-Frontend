@@ -18,7 +18,7 @@ Nếu một thông tin không có trong tài liệu này, Frontend phải coi n�
 **Chưa có code ở bất kỳ branch nào đã đọc:** offer/thương lượng, refund (chỉ có class rỗng), dispute (chỉ có entity), wishlist, follow store, review, thống kê doanh thu và thống kê admin, và phía người bán của order (xác nhận, giao hàng, huỷ).
 
 **Những điều cần biết trước khi code Frontend:**
-1. JWT không chứa role hay permission. Hiện chưa có endpoint nào trả permission code của user (câu hỏi Q1).
+1. JWT không chứa role hay permission. `GET /api/v1/users/me` trả tên role, permission code và `storeId` của user hiện tại (mục 3.4).
 2. Có nhiều kiểu phân trang khác nhau (kể cả không phân trang), và chỉ số `page` lúc bắt đầu từ 1, lúc bắt đầu từ 0.
 3. URL không thống nhất: phần lớn là `/api/v1/...` nhưng voucher và pricing là `/api/...`.
 4. Chat chỉ gắn hai user với nhau, không gắn với offer, order hay product.
@@ -199,11 +199,17 @@ Entity `UserRole` là `(user_id, role_id, store_id)`. Cột `store_id` làm cho 
 | Nhu cầu | Hiện có không? |
 |---|---|
 | Tên role của user hiện tại | Có: `GET /api/v1/users/me` trả `roles: string[]`. |
-| Permission code của user hiện tại | **Chưa thấy endpoint nào.** `/users/me` chỉ trả tên role; JWT không có. |
+| Permission code của user hiện tại | Có: `GET /api/v1/users/me` trả `permissions: string[]` từ các authority hiện tại sau khi lọc các giá trị bắt đầu bằng `ROLE_`. |
 | Permission của một staff | `StaffResponse.permissions` qua `GET /api/v1/stores/my-store/staff/me`, nhưng endpoint này yêu cầu `STORE_STAFF_MANAGE`. Xem Q1. |
-| Staff thuộc gian hàng nào | Chưa có endpoint đã xác minh nào cung cấp. |
+| Store ID của user hiện tại | `GET /api/v1/users/me` trả `storeId` đầu tiên khác null từ các bản ghi gán role, hoặc null. |
 
-Cho đến khi Q1 được giải quyết, Frontend chỉ có thể ẩn/hiện menu dựa trên **tên role**, và luôn phải coi phản hồi `403` là quyết định thật sự. Backend là nguồn quyết định cuối cùng.
+Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. Backend xác minh quyền ở mỗi request. Frontend xử lý `403` nếu quyền đã thay đổi.
+
+Đối chiếu source Backend `main` tại `21d16cd` cho hồ sơ cá nhân:
+
+- `GET` và `PUT /api/v1/users/me` trả cùng DTO `UserProfileReSponse` trong envelope `ApiResponse`. DTO gồm `id`, `email`, `fullName`, `phone`, `avatarUrl`, `status`, `trustPoints`, `roles`, `permissions`, `storeId` và `createdAt`.
+- Body của `PUT` gồm `fullName` bắt buộc, tối đa 100 ký tự, và `phone` tùy chọn. Số điện thoại bắt đầu bằng `0` hoặc `+84`, theo sau là đúng 9 chữ số ASCII. Bỏ qua `phone` hoặc gửi null sẽ giữ nguyên số hiện tại.
+- Số điện thoại đã thuộc về tài khoản khác trả `409 USER_002`. Cập nhật yêu cầu quyền `PROFILE_MANAGE`.
 
 ### 3.5 Kích hoạt tài khoản sau khi đăng ký (team đã xác nhận)
 
@@ -481,7 +487,7 @@ OrderResponse {
 
 | ID | Câu hỏi | Chặn việc gì |
 |---|---|---|
-| Q1 | Frontend biết **permission code** của user bằng cách nào (và với staff thì biết thuộc gian hàng nào)? `GET /stores/my-store/staff/me` yêu cầu `STORE_STAFF_MANAGE`, mà một staff bình thường có thể không có quyền này. | Menu theo permission trong Store Dashboard. |
+| Q1 | `GET /api/v1/users/me` đã trả permission code và một `storeId` (mục 3.4). Cần xác minh cách chọn gian hàng nếu một user có nhiều bản ghi gán role với các store khác nhau. | Menu theo permission trong Store Dashboard. |
 | Q2 | **Chu đã chốt 2026-11-10:** access token lưu `localStorage`; refresh token dùng cookie `HttpOnly` do Backend set. Contract đã xác minh hiện vẫn trả token trong JSON; **chờ Backend hỗ trợ cookie trước khi triển khai auth/refresh**. Chưa xác minh tên cookie, thuộc tính cookie hoặc request/response auth mới. | Doc 08 và lớp Axios; không tự sửa Backend hoặc giả định contract cookie. |
 | Q3 | **Đã trả lời từ source** (xem 3.2): khi gặp `AUTH_007`, Backend thu hồi toàn bộ phiên của user. Cách UI thông báo cho user sẽ ghi ở doc 08. | Doc 08. |
 | Q4 | Ai gọi escrow `hold` / `capture` / `release`: service order nội bộ hay Frontend? | Frontend có cần các endpoint này không. |

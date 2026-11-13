@@ -162,7 +162,21 @@
     "fullName": "Full name",
     "email": "Email",
     "emptyTitle": "No profile information yet",
-    "emptyDescription": "Your personal information will appear here when available."
+    "emptyDescription": "Your personal information will appear here when available.",
+    "edit": {
+      "title": "Edit profile",
+      "phone": "Phone number",
+      "phoneHint": "For example, 0912345678 or +84912345678. Leave blank to keep your current number.",
+      "fullNameRequired": "Enter your full name.",
+      "fullNameTooLong": "Full name must be 100 characters or fewer.",
+      "phoneInvalid": "Enter a number starting with 0 or +84, followed by 9 digits.",
+      "phoneTaken": "This phone number is already in use.",
+      "submitError": "Could not save your profile. Please try again.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "back": "Back to profile",
+      "saved": "Profile changes saved."
+    }
   },
   "pagination": {
     "label": "Product pagination",

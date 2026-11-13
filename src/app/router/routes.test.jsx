@@ -14,11 +14,14 @@ import { login, logout } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
 import { getProductById, searchProducts } from '@/services/products/productService'
 import { getPublicStore } from '@/services/stores/storeService'
-import { getMe } from '@/services/users/userService'
+import { getMe, updateMyProfile } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
 vi.mock('@/services/auth/authService', () => ({ login: vi.fn(), logout: vi.fn() }))
-vi.mock('@/services/users/userService', () => ({ getMe: vi.fn() }))
+vi.mock('@/services/users/userService', () => ({
+  getMe: vi.fn(),
+  updateMyProfile: vi.fn(),
+}))
 vi.mock('@/services/stores/storeService', () => ({ getPublicStore: vi.fn() }))
 vi.mock('@/services/categories/categoryService', () => ({
   getCategoryById: vi.fn(),
@@ -36,6 +39,7 @@ beforeEach(() => {
   vi.mocked(waitForPendingRefresh).mockReset().mockResolvedValue(undefined)
   vi.mocked(login).mockReset()
   vi.mocked(logout).mockReset()
+  vi.mocked(updateMyProfile).mockReset()
   vi.mocked(getMe)
     .mockReset()
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
@@ -688,6 +692,76 @@ describe('user app routing', () => {
     expect(main).toHaveTextContent('Nguyễn Văn Chu')
     expect(main).toHaveTextContent('Email')
     expect(main).toHaveTextContent('chu@example.com')
+  })
+
+  describe('editing the current profile', () => {
+    const profile = {
+      id: 'test-user',
+      fullName: 'Nguyễn Văn Chu',
+      email: 'chu@example.com',
+      phone: '0912345678',
+      roles: ['USER'],
+      permissions: ['PROFILE_MANAGE'],
+    }
+
+    beforeEach(() => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMe).mockResolvedValue(profile)
+    })
+
+    test('opens the prefilled form, saves the profile and displays the updated name', async () => {
+      const updatedProfile = { ...profile, fullName: 'Chu Nguyễn' }
+      vi.mocked(updateMyProfile).mockImplementationOnce(async () => {
+        vi.mocked(getMe).mockResolvedValue(updatedProfile)
+        return updatedProfile
+      })
+      const user = renderRoute('/profile')
+
+      await user.click(await screen.findByRole('link', { name: 'Chỉnh sửa hồ sơ' }))
+      const name = await screen.findByRole('textbox', { name: 'Họ và tên' })
+      expect(name).toHaveValue(profile.fullName)
+      expect(screen.getByRole('textbox', { name: 'Số điện thoại' })).toHaveValue(profile.phone)
+
+      await user.clear(name)
+      await user.type(name, ' Chu Nguyễn ')
+      await user.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+
+      expect(await screen.findByText('Đã lưu thay đổi hồ sơ.')).toHaveAttribute('role', 'status')
+      expect(screen.getByText(updatedProfile.fullName, { selector: 'dd' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/profile')
+      expect(updateMyProfile).toHaveBeenCalledOnce()
+      expect(vi.mocked(updateMyProfile).mock.calls[0][0]).toEqual({
+        fullName: updatedProfile.fullName,
+        phone: profile.phone,
+      })
+    })
+
+    test('shows a duplicate phone error on the phone field', async () => {
+      vi.mocked(updateMyProfile).mockRejectedValueOnce(
+        Object.assign(new Error('Phone already exists'), { status: 409, code: 'USER_002' }),
+      )
+      const user = renderRoute('/profile/edit')
+      const phone = await screen.findByRole('textbox', { name: 'Số điện thoại' })
+      await user.clear(phone)
+      await user.type(phone, '0987654321')
+      await user.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Số điện thoại này đã được sử dụng.',
+      )
+      expect(phone).toHaveAttribute('aria-invalid', 'true')
+      expect(phone).toHaveValue('0987654321')
+      expect(router.state.location.pathname).toBe('/profile/edit')
+    })
+
+    test('shows forbidden feedback for a user without permission to edit', async () => {
+      vi.mocked(getMe).mockResolvedValue({ ...profile, permissions: [] })
+      renderRoute('/profile/edit')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Không có quyền xem nội dung')
+      expect(screen.queryByRole('button', { name: 'Lưu thay đổi' })).not.toBeInTheDocument()
+      expect(updateMyProfile).not.toHaveBeenCalled()
+    })
   })
 
   test('retries loading the profile when session verification fails', async () => {

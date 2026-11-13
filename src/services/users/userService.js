@@ -10,3 +10,15 @@ export async function getMe({ signal } = {}) {
   const response = await apiClient.get('/api/v1/users/me', { signal })
   return unwrap(response)
 }
+
+/**
+ * @param {{ fullName: string, phone?: string }} profile
+ */
+export async function updateMyProfile({ fullName, phone }) {
+  const response = await apiClient.put('/api/v1/users/me', {
+    fullName,
+    phone,
+  })
+
+  return unwrap(response)
+}

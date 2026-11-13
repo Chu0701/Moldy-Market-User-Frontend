@@ -165,7 +165,7 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 |---|---|
 | Mục đích | Xem và cập nhật thông tin cá nhân |
 | API (đã xác minh) | `GET /api/v1/users/me` (trả cả `roles: string[]`), `PUT /api/v1/users/me` (quyền `PROFILE_MANAGE`) |
-| Dữ liệu và validation | Các trường của hồ sơ và của request cập nhật **chưa audit** trong doc 14 (chỉ biết tên class `UserProfileReSponse`, B9). Cần đọc response thật trước khi dựng form; khi đó bổ sung bảng validation vào tài liệu này |
+| Dữ liệu và validation | `fullName` bắt buộc, tối đa 100 ký tự. `phone` tùy chọn, bắt đầu bằng `0` hoặc `+84`, sau đó là 9 chữ số ASCII. Bỏ qua `phone` để giữ số hiện tại. Số đã dùng bởi tài khoản khác trả `409 USER_002`. Xem contract ở mục 3.4 doc 14. |
 | Trạng thái giao diện | Form mở sẵn dữ liệu hiện tại; thành công: toast và quay về `/profile`; `403` (thiếu `PROFILE_MANAGE`): khối không có quyền |
 | Trạng thái triển khai | Backend `IMPLEMENTED`; FE `NOT_STARTED` |
 

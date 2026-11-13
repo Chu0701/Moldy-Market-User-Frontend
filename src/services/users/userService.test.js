@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 
 import { clearAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { apiClient } from '@/services/api/client'
-import { getMe } from './userService'
+import { getMe, updateMyProfile } from './userService'
 
 const originalAdapter = apiClient.defaults.adapter
 
@@ -35,6 +35,27 @@ test('sends the stored access token and unwraps the current user profile', async
   )
   expect(adapter.mock.calls[0][0].headers.get('Authorization')).toBe('Bearer test-access-token')
   expect(result).toEqual(profile)
+})
+
+test.each([
+  { phone: '0912345678', expectedBody: { fullName: 'New Name', phone: '0912345678' } },
+  { phone: undefined, expectedBody: { fullName: 'New Name' } },
+])('updates the current profile with phone $phone', async ({ phone, expectedBody }) => {
+  const updatedProfile = { id: 'test-user', ...expectedBody }
+  const adapter = vi.fn(async (config) => ({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: updatedProfile },
+    headers: {},
+    config,
+  }))
+  apiClient.defaults.adapter = adapter
+
+  await expect(updateMyProfile({ fullName: 'New Name', phone })).resolves.toEqual(updatedProfile)
+
+  expect(adapter).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({ url: '/api/v1/users/me', method: 'put' }),
+  )
+  expect(JSON.parse(adapter.mock.calls[0][0].data)).toEqual(expectedBody)
 })
 
 test('skips the stored access token on auth requests', async () => {
