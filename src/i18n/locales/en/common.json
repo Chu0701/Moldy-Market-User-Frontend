@@ -157,6 +157,13 @@
     "productsTitle": "Store products",
     "emptyProducts": "This store has no products yet."
   },
+  "profile": {
+    "title": "My profile",
+    "fullName": "Full name",
+    "email": "Email",
+    "emptyTitle": "No profile information yet",
+    "emptyDescription": "Your personal information will appear here when available."
+  },
   "pagination": {
     "label": "Product pagination",
     "previous": "Previous",

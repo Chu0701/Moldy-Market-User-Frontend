@@ -157,6 +157,13 @@
     "productsTitle": "Sản phẩm của gian hàng",
     "emptyProducts": "Gian hàng chưa có sản phẩm."
   },
+  "profile": {
+    "title": "Hồ sơ của tôi",
+    "fullName": "Họ và tên",
+    "email": "Email",
+    "emptyTitle": "Chưa có thông tin hồ sơ",
+    "emptyDescription": "Thông tin cá nhân sẽ hiển thị tại đây khi có dữ liệu."
+  },
   "pagination": {
     "label": "Phân trang sản phẩm",
     "previous": "Trước",

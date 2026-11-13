@@ -3,6 +3,7 @@ import { MainLayout } from '@/app/layouts/MainLayout'
 import { RouteErrorPage } from '@/features/system/pages/RouteErrorPage'
 import { RouteLoading } from '@/components/feedback/RouteLoading'
 import { GuestOnly } from '@/app/router/GuestOnly'
+import { RequireAuth } from '@/app/router/RequireAuth'
 
 /** @type {import('react-router').RouteObject[]} */
 export const routes = [
@@ -46,6 +47,18 @@ export const routes = [
             lazy: async () => ({
               Component: (await import('@/features/stores/pages/StorePublicPage')).StorePublicPage,
             }),
+          },
+          {
+            path: 'profile',
+            Component: RequireAuth,
+            children: [
+              {
+                index: true,
+                lazy: async () => ({
+                  Component: (await import('@/features/profile/pages/ProfilePage')).ProfilePage,
+                }),
+              },
+            ],
           },
         ],
       },

@@ -21,7 +21,12 @@ export function MainLayout() {
   const { signOut, isSigningOut } = useLogout()
   const { hasAccessToken } = useSession()
   const showLogout = hasAccessToken || isSigningOut
-  const visibleNavigation = showLogout ? navigation.filter(({ to }) => to !== '/login') : navigation
+  const visibleNavigation = showLogout
+    ? [
+        ...navigation.filter(({ to }) => to !== '/login'),
+        { to: '/profile', label: 'profile.title' },
+      ]
+    : navigation
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">

@@ -494,3 +494,29 @@
     @apply w-full;
   }
 }
+
+@layer components {
+  .profile-page {
+    @apply grid w-full max-w-2xl gap-6;
+  }
+
+  .profile-page > h1 {
+    @apply text-3xl leading-snug font-semibold sm:text-4xl;
+  }
+
+  .profile-details {
+    @apply divide-y divide-border rounded-xl border border-border;
+  }
+
+  .profile-details > div {
+    @apply grid min-w-0 gap-1 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] sm:gap-4 sm:px-6;
+  }
+
+  .profile-details dt {
+    @apply text-sm font-medium text-muted-foreground;
+  }
+
+  .profile-details dd {
+    @apply min-w-0 break-words;
+  }
+}

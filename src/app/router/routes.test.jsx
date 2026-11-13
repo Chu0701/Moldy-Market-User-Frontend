@@ -658,6 +658,58 @@ describe('user app routing', () => {
     expect(router.state.location.pathname).toBe('/register')
   })
 
+  test('redirects a guest from the profile route to login', async () => {
+    renderRoute('/profile')
+
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(router.state.location).toMatchObject({
+      pathname: '/login',
+      state: { from: '/profile' },
+    })
+    expect(getMe).not.toHaveBeenCalled()
+  })
+
+  test('opens the signed-in user’s profile from the main navigation', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMe).mockResolvedValue({
+      id: 'test-user',
+      fullName: 'Nguyễn Văn Chu',
+      email: 'chu@example.com',
+      roles: ['USER'],
+    })
+    const user = renderRoute('/')
+    const profileLink = await screen.findByRole('link', { name: 'Hồ sơ của tôi' })
+    await user.click(profileLink)
+
+    const main = await screen.findByRole('main')
+    expect(await screen.findByRole('heading', { name: 'Hồ sơ của tôi' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/profile')
+    expect(main).toHaveTextContent('Họ và tên')
+    expect(main).toHaveTextContent('Nguyễn Văn Chu')
+    expect(main).toHaveTextContent('Email')
+    expect(main).toHaveTextContent('chu@example.com')
+  })
+
+  test('retries loading the profile when session verification fails', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMe)
+      .mockRejectedValueOnce(new Error('Profile unavailable'))
+      .mockResolvedValue({
+        id: 'test-user',
+        fullName: 'Nguyễn Văn Chu',
+        email: 'chu@example.com',
+        roles: ['USER'],
+      })
+    const user = renderRoute('/profile')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể hiển thị trang')
+    expect(screen.queryByRole('heading', { name: 'Hồ sơ của tôi' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+    expect(await screen.findByRole('heading', { name: 'Hồ sơ của tôi' })).toBeInTheDocument()
+  })
+
   test('redirects a guest to login and returns to the complete protected URL after sign-in', async () => {
     vi.mocked(login).mockResolvedValue({ accessToken: 'test-access-token' })
     const path = '/test-private?tab=orders#recent'
@@ -849,6 +901,7 @@ describe('user app routing', () => {
     renderRoute('/')
 
     expect(await screen.findByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Hồ sơ của tôi' })).not.toBeInTheDocument()
     expect(getMe).not.toHaveBeenCalled()
     expect(queryClient.getQueryData(['users', 'me'])).toBeUndefined()
   })
