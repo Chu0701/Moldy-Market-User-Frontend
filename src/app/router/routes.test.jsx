@@ -11,7 +11,7 @@ import i18n from '@/i18n'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
 import { login, logout } from '@/services/auth/authService'
-import { getCategoryTree } from '@/services/categories/categoryService'
+import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
 import { getProductById, searchProducts } from '@/services/products/productService'
 import { getPublicStore } from '@/services/stores/storeService'
 import { getMe } from '@/services/users/userService'
@@ -20,7 +20,10 @@ vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh:
 vi.mock('@/services/auth/authService', () => ({ login: vi.fn(), logout: vi.fn() }))
 vi.mock('@/services/users/userService', () => ({ getMe: vi.fn() }))
 vi.mock('@/services/stores/storeService', () => ({ getPublicStore: vi.fn() }))
-vi.mock('@/services/categories/categoryService', () => ({ getCategoryTree: vi.fn() }))
+vi.mock('@/services/categories/categoryService', () => ({
+  getCategoryById: vi.fn(),
+  getCategoryTree: vi.fn(),
+}))
 vi.mock('@/services/products/productService', () => ({
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
@@ -38,6 +41,7 @@ beforeEach(() => {
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getProductById).mockReset()
   vi.mocked(getPublicStore).mockReset()
+  vi.mocked(getCategoryById).mockReset()
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
   vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
 })
@@ -377,6 +381,17 @@ describe('user app routing', () => {
   test('navigates from a category card to its page inside the shared layout', async () => {
     const id = 'a8098c1a-f86e-11da-bd1a-00112444be1e'
     vi.mocked(getCategoryTree).mockResolvedValue([{ id, name: 'Test category', children: [] }])
+    vi.mocked(getCategoryById).mockResolvedValue({
+      id,
+      name: 'Test category',
+      description: 'Test description',
+    })
+    vi.mocked(searchProducts).mockResolvedValue({
+      items: [product],
+      page: 1,
+      totalElements: 1,
+      hasNext: false,
+    })
     const user = renderRoute('/')
 
     expect(await screen.findByRole('link', { name: 'Test category' })).toHaveAttribute(
@@ -386,11 +401,70 @@ describe('user app routing', () => {
     const header = screen.getByRole('banner')
     await user.click(screen.getByRole('link', { name: 'Test category' }))
 
-    expect(
-      await screen.findByRole('heading', { name: 'Sản phẩm theo danh mục' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Test category' })).toBeInTheDocument()
+    expect(screen.getByText('Test description')).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: /Test product/ })).toBeInTheDocument()
+    expect(getCategoryById).toHaveBeenCalledWith(expect.objectContaining({ categoryId: id }))
+    expect(searchProducts).toHaveBeenLastCalledWith(expect.objectContaining({ categoryId: id }))
     expect(router.state.location.pathname).toBe(`/categories/${id}`)
-    expect(screen.getByRole('banner')).toBe(header)
+    expect(screen.getByRole('navigation', { name: 'Điều hướng chính' }).closest('header')).toBe(
+      header,
+    )
+  })
+
+  test('keeps the category from the path when searching and changing pages', async () => {
+    const id = 'a8098c1a-f86e-11da-bd1a-00112444be1e'
+    vi.mocked(getCategoryById).mockResolvedValue({ id, name: 'Test category' })
+    vi.mocked(searchProducts).mockImplementation(async ({ page }) => ({
+      items: [product],
+      page,
+      totalElements: 3,
+      hasNext: page < 3,
+    }))
+    const user = renderRoute(`/categories/${id}?page=3&size=1&categoryId=other`)
+
+    expect(await screen.findByText('Trang 3')).toBeInTheDocument()
+    expect(searchProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ categoryId: id, page: 3 }),
+    )
+
+    await user.type(screen.getByRole('searchbox', { name: 'Tìm kiếm sản phẩm' }), 'áo')
+    await user.click(screen.getByRole('button', { name: 'Tìm kiếm sản phẩm' }))
+    expect(await screen.findByText('Trang 1')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Sau' }))
+    expect(await screen.findByText('Trang 2')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(`/categories/${id}`)
+    expect(searchProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ categoryId: id, q: 'áo', page: 2, size: 1 }),
+    )
+  })
+
+  test('offers the product list when the category does not exist', async () => {
+    vi.mocked(getCategoryById).mockRejectedValueOnce(
+      Object.assign(new Error('Not found'), { status: 404 }),
+    )
+    renderRoute('/categories/a8098c1a-f86e-11da-bd1a-00112444be1e')
+
+    expect(
+      await screen.findByRole('heading', { name: 'Không tìm thấy danh mục' }),
+    ).toBeInTheDocument()
+    expect(searchProducts).not.toHaveBeenCalled()
+  })
+
+  test('retries a temporary category detail failure', async () => {
+    const id = 'a8098c1a-f86e-11da-bd1a-00112444be1e'
+    vi.mocked(getCategoryById)
+      .mockRejectedValueOnce(Object.assign(new Error('Unavailable'), { status: 503 }))
+      .mockResolvedValueOnce({ id, name: 'Test category' })
+    const user = renderRoute(`/categories/${id}`)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa tải được danh mục')
+    expect(screen.getByRole('alert')).toHaveTextContent('Vui lòng thử lại sau ít phút.')
+    expect(searchProducts).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+    expect(await screen.findByRole('heading', { name: 'Test category' })).toBeInTheDocument()
   })
 
   test('explains when the category tree is empty', async () => {

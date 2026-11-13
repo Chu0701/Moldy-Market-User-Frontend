@@ -9,13 +9,15 @@ import { normalizeProductSearchPage } from '@/services/api/pagination'
  *   page?: number,
  *   size?: number,
  *   sort?: 'relevance' | 'newest' | 'price_asc' | 'price_desc',
- *   signal?: AbortSignal
+ *   signal?: AbortSignal,
+ *   categoryId?: string,
  * }} [options]
  * @returns {Promise<unknown>}
  */
 export async function searchProducts({
   q,
   storeId,
+  categoryId,
   page = 1,
   size = 8,
   sort = 'newest',
@@ -25,6 +27,7 @@ export async function searchProducts({
     params: {
       q,
       storeId,
+      categoryId,
       page,
       size,
       sort,

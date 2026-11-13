@@ -13,3 +13,12 @@ export async function getCategoryTree({ signal } = {}) {
 
   return unwrap(response)
 }
+
+/** @param {{ categoryId: string, signal?: AbortSignal }} options */
+export async function getCategoryById({ categoryId, signal }) {
+  const response = await apiClient.get(`/api/v1/categories/${encodeURIComponent(categoryId)}`, {
+    signal,
+  })
+
+  return unwrap(response)
+}

@@ -67,7 +67,9 @@
     "errorMessage": "Please try again in a few minutes.",
     "title": "Explore categories",
     "emptyTitle": "No categories yet",
-    "emptyMessage": "Categories will appear here when they are available."
+    "emptyMessage": "Categories will appear here when they are available.",
+    "notFoundTitle": "Category not found",
+    "productsTitle": "Products in this category"
   },
   "hero": {
     "eyebrow": "A marketplace for second-hand finds",

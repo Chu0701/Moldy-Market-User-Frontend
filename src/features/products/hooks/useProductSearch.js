@@ -9,12 +9,13 @@ export const productKeys = {
   detail: (productId) => ['products', 'detail', productId],
 }
 
-/** @param {{ storeId?: string}} [options] */
-export function useProductSearch({ storeId } = {}) {
+/** @param {{ storeId?: string, categoryId?: string }} [options] */
+export function useProductSearch({ storeId, categoryId } = {}) {
   const [searchParams, setSearchParams] = useSearchParams()
   const params = {
     ...readProductSearchParams(searchParams),
     ...(storeId ? { storeId } : {}),
+    ...(categoryId ? { categoryId } : {}),
   }
 
   const query = useQuery({
@@ -24,8 +25,12 @@ export function useProductSearch({ storeId } = {}) {
         ...params,
         signal,
       }),
-    placeholderData: (previoudData, previousQuery) =>
-      previousQuery?.queryKey[2]?.storeId === storeId ? previoudData : undefined,
+    placeholderData: (previousData, previousQuery) => {
+      const previousParams = previousQuery?.queryKey[2]
+      return previousParams?.storeId === storeId && previousParams?.categoryId === categoryId
+        ? previousData
+        : undefined
+    },
   })
 
   function changePage(page) {

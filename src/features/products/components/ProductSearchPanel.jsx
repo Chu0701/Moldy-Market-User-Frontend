@@ -18,13 +18,20 @@ const conditionKeys = {
   DAMAGED: 'products.conditions.damaged',
 }
 
-/** @param {{ storeId?: string }} props */
-export function ProductSearchPanel({ storeId }) {
+/** @param {{ storeId?: string, categoryId?: string }} props */
+export function ProductSearchPanel({ storeId, categoryId }) {
   const { t } = useTranslation()
-  const { params, query, changePage } = useProductSearch({ storeId })
+  const { params, query, changePage } = useProductSearch({ storeId, categoryId })
   const products = query.data?.items ?? []
-  const action = storeId ? `/stores/${encodeURIComponent(storeId)}` : '/products'
-  const EmptyHeading = storeId ? 'h3' : 'h2'
+  let action = '/products'
+
+  if (storeId) {
+    action = `/stores/${encodeURIComponent(storeId)}`
+  } else if (categoryId) {
+    action = `/categories/${encodeURIComponent(categoryId)}`
+  }
+
+  const EmptyHeading = storeId || categoryId ? 'h3' : 'h2'
   const emptyStore = Boolean(storeId) && !params.q && params.page === 1 && products.length === 0
 
   let content

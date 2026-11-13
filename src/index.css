@@ -418,35 +418,43 @@
 }
 
 @layer components {
-  .store-public-page {
+  .store-public-page,
+  .category-page {
     @apply min-w-0;
   }
 
-  .store-public-page h1 {
+  .store-public-page h1,
+  .category-page h1 {
     @apply text-3xl leading-snug font-semibold break-words sm:text-4xl;
   }
 
-  .store-public-header {
+  .store-public-header,
+  .category-page-header {
     @apply border-b border-border pb-8;
   }
 
-  .store-public-header > p {
+  .store-public-header > p,
+  .category-page-header > p {
     @apply mt-4 max-w-2xl leading-7 break-words whitespace-pre-wrap text-muted-foreground;
   }
 
-  .store-public-products {
+  .store-public-products,
+  .category-page-products {
     @apply mt-8;
   }
 
-  .store-public-products > h2 {
+  .store-public-products > h2,
+  .category-page-products > h2 {
     @apply mb-5 text-2xl font-semibold;
   }
 
-  .store-public-feedback {
+  .store-public-feedback,
+  .category-page-feedback {
     @apply grid justify-items-start gap-4;
   }
 
-  .store-public-feedback > [role='alert'] {
+  .store-public-feedback > [role='alert'],
+  .category-page-feedback > [role='alert'] {
     @apply w-full;
   }
 }

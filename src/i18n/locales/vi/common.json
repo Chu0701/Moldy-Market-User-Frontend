@@ -67,7 +67,9 @@
     "errorMessage": "Vui lòng thử lại sau ít phút.",
     "title": "Khám phá danh mục",
     "emptyTitle": "Chưa có danh mục",
-    "emptyMessage": "Danh mục sẽ xuất hiện tại đây khi được cập nhật."
+    "emptyMessage": "Danh mục sẽ xuất hiện tại đây khi được cập nhật.",
+    "notFoundTitle": "Không tìm thấy danh mục",
+    "productsTitle": "Sản phẩm trong danh mục"
   },
   "hero": {
     "eyebrow": "Mua bán đồ đã qua sử dụng",
