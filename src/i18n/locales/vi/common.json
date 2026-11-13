@@ -155,7 +155,18 @@
     "unavailableTitle": "Gian hàng tạm không khả dụng",
     "backToProducts": "Xem danh sách sản phẩm",
     "productsTitle": "Sản phẩm của gian hàng",
-    "emptyProducts": "Gian hàng chưa có sản phẩm."
+    "emptyProducts": "Gian hàng chưa có sản phẩm.",
+    "open": {
+      "title": "Mở gian hàng",
+      "name": "Tên gian hàng",
+      "description": "Mô tả (tùy chọn)",
+      "pickupAddress": "Địa chỉ lấy hàng (tùy chọn)",
+      "nameRequired": "Vui lòng nhập tên gian hàng.",
+      "nameTooLong": "Tên gian hàng tối đa 255 ký tự.",
+      "submit": "Tạo gian hàng",
+      "submitting": "Đang tạo gian hàng…",
+      "submitError": "Không thể tạo gian hàng. Vui lòng thử lại."
+    }
   },
   "profile": {
     "title": "Hồ sơ của tôi",

@@ -251,6 +251,12 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 | Admin kiểm duyệt product | `IMPLEMENTED` | `ProductController` | `PUT /{id}/remove` (body `{ reason }`), `PUT /{id}/restore` | `PRODUCT_MODERATE` | A | NOT_STARTED |
 | Chiến lược định giá của product | `PARTIALLY_IMPLEMENTED` | `ProductService` | enum có `SELLER_SET`, `AUTO_PRICING`, `APPRAISER`; lỗi `PROD_003` ghi "This pricing strategy is not supported yet" | không áp dụng | U | NOT_STARTED |
 
+#### Contract mở gian hàng trên `main` tại `21d16cd`
+
+- `POST /api/v1/stores` nhận `name` bắt buộc, tối đa 255 ký tự, và hai trường tùy chọn `description`, `pickupAddress`. Khi thành công, API trả `201` và Backend gán role `OWNER` kèm ID gian hàng. Nếu user đã có gian hàng, API trả `409 STORE_002`.
+- `GET /api/v1/stores/my-store` tìm theo ID chủ gian hàng của tài khoản hiện tại. Nếu chưa có gian hàng, API trả `404 STORE_001`.
+- Cả hai trả `StoreResponse` trong `ApiResponse`, gồm `id`, `ownerId`, `name`, `description`, `pickupAddress`, `status` và `createdAt`.
+
 ### 4.2 Chỉ có ở branch chưa merge (`IN_PROGRESS`)
 
 | Tính năng | Branch | Endpoint | Xác thực quan sát được | Dùng bởi | FE |

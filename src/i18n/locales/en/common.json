@@ -155,7 +155,18 @@
     "unavailableTitle": "Store temporarily unavailable",
     "backToProducts": "Browse products",
     "productsTitle": "Store products",
-    "emptyProducts": "This store has no products yet."
+    "emptyProducts": "This store has no products yet.",
+    "open": {
+      "title": "Open a store",
+      "name": "Store name",
+      "description": "Description (optional)",
+      "pickupAddress": "Pickup address (optional)",
+      "nameRequired": "Enter your store name.",
+      "nameTooLong": "Store name must be 255 characters or fewer.",
+      "submit": "Create store",
+      "submitting": "Creating store…",
+      "submitError": "Could not create the store. Please try again."
+    }
   },
   "profile": {
     "title": "My profile",

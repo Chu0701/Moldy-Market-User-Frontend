@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 
 import { apiClient } from '@/services/api/client'
-import { getPublicStore } from './storeService'
+import { createStore, getMyStore, getPublicStore } from './storeService'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -22,4 +22,28 @@ test('requests the public store by ID, forwards the abort signal, and unwraps th
 
   await expect(getPublicStore({ storeId: store.id, signal })).resolves.toEqual(store)
   expect(get).toHaveBeenCalledExactlyOnceWith(`/api/v1/stores/${store.id}`, { signal })
+})
+
+test('requests the current user’s store and forwards the abort signal', async () => {
+  const store = { id: 'my-store', name: 'My store' }
+  const { signal } = new AbortController()
+  const get = vi.spyOn(apiClient, 'get').mockResolvedValue({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: store },
+  })
+
+  await expect(getMyStore({ signal })).resolves.toEqual(store)
+  expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store', { signal })
+})
+
+test('sends the store name, description and pickup address when creating a store', async () => {
+  const input = { name: 'My store', description: 'Used books', pickupAddress: '123 Main St' }
+  const store = { id: 'new-store', ...input }
+  const post = vi.spyOn(apiClient, 'post').mockResolvedValue({
+    status: 201,
+    data: { success: true, code: 'SUCCESS', data: store },
+  })
+
+  await expect(createStore(input)).resolves.toEqual(store)
+  expect(post).toHaveBeenCalledExactlyOnceWith('/api/v1/stores', input)
 })

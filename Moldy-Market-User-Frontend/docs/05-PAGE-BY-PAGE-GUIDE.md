@@ -187,9 +187,9 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 | Mục đích | Cho người dùng đã đăng nhập mở gian hàng của mình |
 | API (đã xác minh) | `POST /api/v1/stores` |
 | Quy tắc đã xác minh | Mỗi user một gian hàng; vi phạm trả `STORE_002` |
-| Dữ liệu và validation | Các trường request **chưa audit**; bổ sung sau khi đọc DTO |
+| Dữ liệu và validation | `name` bắt buộc, tối đa 255 ký tự. `description` và `pickupAddress` tùy chọn, DTO không khai báo giới hạn độ dài. |
 | Điều hướng | Tạo xong chuyển tới `/store` |
-| Trạng thái giao diện | Nếu `GET /api/v1/stores/my-store` đã trả gian hàng thì không cho mở lần nữa mà chuyển tới `/store` |
+| Trạng thái giao diện | Nếu `GET /api/v1/stores/my-store` trả gian hàng thì chuyển tới `/store`. Hiện form khi API trả `404 STORE_001`. |
 | Quyền | Đã đăng nhập |
 | Trạng thái triển khai | Backend `IMPLEMENTED`; FE `NOT_STARTED` |
 

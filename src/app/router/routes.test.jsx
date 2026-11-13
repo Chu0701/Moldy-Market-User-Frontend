@@ -13,7 +13,7 @@ import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
 import { login, logout } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
 import { getProductById, searchProducts } from '@/services/products/productService'
-import { getPublicStore } from '@/services/stores/storeService'
+import { createStore, getMyStore, getPublicStore } from '@/services/stores/storeService'
 import { getMe, updateMyProfile } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
@@ -22,7 +22,11 @@ vi.mock('@/services/users/userService', () => ({
   getMe: vi.fn(),
   updateMyProfile: vi.fn(),
 }))
-vi.mock('@/services/stores/storeService', () => ({ getPublicStore: vi.fn() }))
+vi.mock('@/services/stores/storeService', () => ({
+  createStore: vi.fn(),
+  getMyStore: vi.fn(),
+  getPublicStore: vi.fn(),
+}))
 vi.mock('@/services/categories/categoryService', () => ({
   getCategoryById: vi.fn(),
   getCategoryTree: vi.fn(),
@@ -44,6 +48,8 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getProductById).mockReset()
+  vi.mocked(createStore).mockReset()
+  vi.mocked(getMyStore).mockReset()
   vi.mocked(getPublicStore).mockReset()
   vi.mocked(getCategoryById).mockReset()
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
@@ -692,6 +698,74 @@ describe('user app routing', () => {
     expect(main).toHaveTextContent('Nguyễn Văn Chu')
     expect(main).toHaveTextContent('Email')
     expect(main).toHaveTextContent('chu@example.com')
+  })
+
+  describe('opening a store', () => {
+    const myStore = { id: 'my-store', name: 'Tiệm sách cũ' }
+    const noStore = Object.assign(new Error('Store not found'), {
+      status: 404,
+      code: 'STORE_001',
+    })
+
+    test('redirects a guest to login before checking for a store', async () => {
+      renderRoute('/open-store')
+
+      expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+      expect(router.state.location).toMatchObject({
+        pathname: '/login',
+        state: { from: '/open-store' },
+      })
+      expect(getMyStore).not.toHaveBeenCalled()
+    })
+
+    test('creates a store and shows it on the overview page', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMyStore).mockRejectedValueOnce(noStore).mockResolvedValue(myStore)
+      vi.mocked(createStore).mockResolvedValue(myStore)
+      const user = renderRoute('/open-store')
+
+      await user.type(
+        await screen.findByRole('textbox', { name: 'Tên gian hàng' }),
+        ' Tiệm sách cũ ',
+      )
+      await user.click(screen.getByRole('button', { name: 'Tạo gian hàng' }))
+
+      expect(await screen.findByRole('heading', { name: myStore.name })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/store')
+      expect(createStore).toHaveBeenCalledOnce()
+      expect(vi.mocked(createStore).mock.calls[0][0]).toEqual({
+        name: myStore.name,
+        description: undefined,
+        pickupAddress: undefined,
+      })
+    })
+
+    test('skips the creation form when the account already owns a store', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMyStore).mockResolvedValue(myStore)
+      renderRoute('/open-store')
+
+      expect(await screen.findByRole('heading', { name: myStore.name })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/store')
+      expect(screen.queryByRole('button', { name: 'Tạo gian hàng' })).not.toBeInTheDocument()
+      expect(createStore).not.toHaveBeenCalled()
+    })
+
+    test('loads the existing store when another tab created it before submit', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMyStore).mockRejectedValueOnce(noStore).mockResolvedValue(myStore)
+      vi.mocked(createStore).mockRejectedValueOnce(
+        Object.assign(new Error('Store already exists'), { status: 409, code: 'STORE_002' }),
+      )
+      const user = renderRoute('/open-store')
+      queryClient.setQueryDefaults(['stores', 'mine'], { staleTime: 30_000 })
+
+      await user.type(await screen.findByRole('textbox', { name: 'Tên gian hàng' }), 'Tiệm sách')
+      await user.click(screen.getByRole('button', { name: 'Tạo gian hàng' }))
+
+      expect(await screen.findByRole('heading', { name: myStore.name })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/store')
+    })
   })
 
   describe('editing the current profile', () => {

@@ -559,4 +559,40 @@
   .profile-edit-actions {
     @apply flex flex-wrap gap-3;
   }
+
+  .open-store-page {
+    @apply grid w-full max-w-2xl gap-6;
+  }
+
+  .open-store-form {
+    @apply grid w-full max-w-2xl gap-5 rounded-xl border border-border p-4 sm:p-6;
+  }
+
+  .open-store-field {
+    @apply grid gap-2;
+  }
+
+  .open-store-field > label {
+    @apply text-sm font-medium;
+  }
+
+  .open-store-field > :is(input, textarea) {
+    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .open-store-field > textarea {
+    @apply resize-y;
+  }
+
+  .open-store-field > [aria-invalid='true'] {
+    @apply border-destructive;
+  }
+
+  .open-store-error {
+    @apply text-sm text-destructive;
+  }
+
+  .open-store-form > button {
+    @apply min-h-11 justify-self-start;
+  }
 }

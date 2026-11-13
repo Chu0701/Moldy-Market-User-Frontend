@@ -48,6 +48,7 @@ export const routes = [
               Component: (await import('@/features/stores/pages/StorePublicPage')).StorePublicPage,
             }),
           },
+
           {
             path: 'profile',
             Component: RequireAuth,
@@ -63,6 +64,24 @@ export const routes = [
                 lazy: async () => ({
                   Component: (await import('@/features/profile/pages/ProfileEditPage'))
                     .ProfileEditPage,
+                }),
+              },
+            ],
+          },
+          {
+            Component: RequireAuth,
+            children: [
+              {
+                path: 'open-store',
+                lazy: async () => ({
+                  Component: (await import('@/features/stores/pages/OpenStorePage')).OpenStorePage,
+                }),
+              },
+              {
+                path: 'store',
+                lazy: async () => ({
+                  Component: (await import('@/features/stores/pages/StoreOverviewPage'))
+                    .StoreOverviewPage,
                 }),
               },
             ],
