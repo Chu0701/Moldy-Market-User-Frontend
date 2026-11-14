@@ -174,10 +174,10 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 | Mục | Nội dung |
 |---|---|
 | Mục đích | Đổi mật khẩu và chỉnh tùy chọn giao diện |
-| API (đã xác minh) | `PUT /api/v1/users/me/password`. Các trường request **chưa audit**; thường gồm mật khẩu cũ và mới, cần xác nhận bằng code Backend trước khi dựng form |
-| Validation | Mật khẩu mới: dùng quy tắc 8 đến 100 ký tự giống đăng ký (suy ra từ đăng ký, **cần xác nhận** cho endpoint đổi mật khẩu) |
+| API (đã xác minh) | `PUT /api/v1/users/me/password` nhận `currentPassword` và `newPassword`. Xác nhận mật khẩu mới là trường của form Frontend. |
+| Validation | Hai mật khẩu bắt buộc. DTO yêu cầu mật khẩu mới tối thiểu 8 ký tự. Backend trả `401 INVALID_CREDENTIALS` nếu mật khẩu hiện tại sai và `400 SAME_PASSWORD` nếu mật khẩu mới trùng mật khẩu hiện tại. |
 | Tùy chọn cục bộ | Chọn ngôn ngữ `vi`/`en` (hạ tầng i18n đã có `[ĐÃ CẤU HÌNH]`; lưu lựa chọn bằng Zustand khi làm trang này) |
-| Chưa biết | Sau khi đổi mật khẩu Backend có thu hồi refresh token cũ không: chưa đọc. Không giả định |
+| Phiên đăng nhập | Tại `21d16cd`, service đổi mật khẩu chỉ cập nhật hash. Frontend giữ phiên đăng nhập khi đổi mật khẩu thành công. |
 | Trạng thái triển khai | Backend `IMPLEMENTED`; FE `NOT_STARTED` |
 
 ### 3.3 Mở gian hàng `/open-store` (`OpenStorePage`)

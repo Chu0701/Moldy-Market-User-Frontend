@@ -211,6 +211,8 @@ Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. 
 - Body của `PUT` gồm `fullName` bắt buộc, tối đa 100 ký tự, và `phone` tùy chọn. Số điện thoại bắt đầu bằng `0` hoặc `+84`, theo sau là đúng 9 chữ số ASCII. Bỏ qua `phone` hoặc gửi null sẽ giữ nguyên số hiện tại.
 - Số điện thoại đã thuộc về tài khoản khác trả `409 PHONE_ALREADY_EXISTS`. Cập nhật yêu cầu quyền `PROFILE_MANAGE`.
 
+`PUT /api/v1/users/me/password` trên cùng commit nhận hai trường bắt buộc `currentPassword` và `newPassword`. DTO đặt độ dài tối thiểu 8 ký tự cho mật khẩu mới. Thành công trả `200` với `ApiResponse<Void>`. Sai mật khẩu hiện tại trả `401 INVALID_CREDENTIALS` và mật khẩu mới trùng mật khẩu hiện tại trả `400 SAME_PASSWORD`. Frontend hiển thị lỗi sai mật khẩu tại ô mật khẩu hiện tại. Service cập nhật hash và giữ nguyên refresh token.
+
 ### 3.5 Kích hoạt tài khoản sau khi đăng ký (team đã xác nhận)
 
 Theo đọc code, và team Backend đã xác nhận ngày 2026-11-08 rằng chưa có luồng nào đặt user thành `ACTIVE`:

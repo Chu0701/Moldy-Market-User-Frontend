@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 
 import { clearAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { apiClient } from '@/services/api/client'
-import { getMe, updateMyProfile } from './userService'
+import { changePassword, getMe, updateMyProfile } from './userService'
 
 const originalAdapter = apiClient.defaults.adapter
 
@@ -56,6 +56,29 @@ test.each([
     expect.objectContaining({ url: '/api/v1/users/me', method: 'put' }),
   )
   expect(JSON.parse(adapter.mock.calls[0][0].data)).toEqual(expectedBody)
+})
+
+test('sends only the two password fields and accepts a null response payload', async () => {
+  setAccessToken('test-access-token')
+  const passwords = { currentPassword: ' old password ', newPassword: ' new password ' }
+  const adapter = vi.fn(async (config) => ({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: null },
+    headers: {},
+    config,
+  }))
+  apiClient.defaults.adapter = adapter
+
+  await expect(
+    changePassword({ ...passwords, confirmPassword: passwords.newPassword }),
+  ).resolves.toBeUndefined()
+
+  expect(adapter).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({ url: '/api/v1/users/me/password', method: 'put' }),
+  )
+  const [config] = adapter.mock.calls[0]
+  expect(config.headers.get('Authorization')).toBe('Bearer test-access-token')
+  expect(JSON.parse(config.data)).toEqual(passwords)
 })
 
 test('skips the stored access token on auth requests', async () => {

@@ -168,6 +168,26 @@
       "submitError": "Không thể tạo gian hàng. Vui lòng thử lại."
     }
   },
+  "account": {
+    "title": "Cài đặt tài khoản",
+    "password": {
+      "title": "Đổi mật khẩu",
+      "currentPassword": "Mật khẩu hiện tại",
+      "newPassword": "Mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu mới",
+      "currentRequired": "Vui lòng nhập mật khẩu hiện tại.",
+      "newRequired": "Vui lòng nhập mật khẩu mới.",
+      "newTooShort": "Mật khẩu mới phải có ít nhất 8 ký tự.",
+      "confirmRequired": "Vui lòng nhập lại mật khẩu mới.",
+      "confirmMismatch": "Mật khẩu xác nhận không khớp.",
+      "samePassword": "Mật khẩu mới phải khác mật khẩu hiện tại.",
+      "currentIncorrect": "Mật khẩu hiện tại không đúng.",
+      "submitError": "Không thể đổi mật khẩu. Vui lòng thử lại.",
+      "saving": "Đang đổi mật khẩu…",
+      "submit": "Đổi mật khẩu",
+      "saved": "Đã đổi mật khẩu."
+    }
+  },
   "profile": {
     "title": "Hồ sơ của tôi",
     "fullName": "Họ và tên",

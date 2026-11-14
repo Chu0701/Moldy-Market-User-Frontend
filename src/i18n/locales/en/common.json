@@ -168,6 +168,26 @@
       "submitError": "Could not create the store. Please try again."
     }
   },
+  "account": {
+    "title": "Account settings",
+    "password": {
+      "title": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "currentRequired": "Enter your current password.",
+      "newRequired": "Enter a new password.",
+      "newTooShort": "Your new password must be at least 8 characters.",
+      "confirmRequired": "Enter your new password again.",
+      "confirmMismatch": "The passwords do not match.",
+      "samePassword": "Your new password must differ from your current password.",
+      "currentIncorrect": "Your current password is incorrect.",
+      "submitError": "Could not change your password. Please try again.",
+      "saving": "Changing password…",
+      "submit": "Change password",
+      "saved": "Password changed."
+    }
+  },
   "profile": {
     "title": "My profile",
     "fullName": "Full name",

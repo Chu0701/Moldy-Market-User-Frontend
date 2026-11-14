@@ -38,6 +38,15 @@ export function installAuthRefreshInterceptor(onSessionExpired) {
     const currentToken = getAccessToken()
 
     if (
+      config?.method === 'put' &&
+      config?.url === '/api/v1/users/me/password' &&
+      error?.status === 401 &&
+      error?.code === 'INVALID_CREDENTIALS'
+    ) {
+      throw error
+    }
+
+    if (
       error?.status !== 401 ||
       !config ||
       !currentToken ||

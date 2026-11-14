@@ -14,11 +14,12 @@ import { login, logout } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
 import { getProductById, searchProducts } from '@/services/products/productService'
 import { createStore, getMyStore, getPublicStore } from '@/services/stores/storeService'
-import { getMe, updateMyProfile } from '@/services/users/userService'
+import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
 vi.mock('@/services/auth/authService', () => ({ login: vi.fn(), logout: vi.fn() }))
 vi.mock('@/services/users/userService', () => ({
+  changePassword: vi.fn(),
   getMe: vi.fn(),
   updateMyProfile: vi.fn(),
 }))
@@ -43,6 +44,7 @@ beforeEach(() => {
   vi.mocked(waitForPendingRefresh).mockReset().mockResolvedValue(undefined)
   vi.mocked(login).mockReset()
   vi.mocked(logout).mockReset()
+  vi.mocked(changePassword).mockReset()
   vi.mocked(updateMyProfile).mockReset()
   vi.mocked(getMe)
     .mockReset()
@@ -772,6 +774,51 @@ describe('user app routing', () => {
     })
   })
 
+  describe('changing the account password', () => {
+    async function fillPasswords(user) {
+      const current = await screen.findByLabelText('Mật khẩu hiện tại')
+      await user.type(current, 'old password')
+      await user.type(screen.getByLabelText('Mật khẩu mới'), 'new password')
+      await user.type(screen.getByLabelText('Xác nhận mật khẩu mới'), 'new password')
+      await user.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }))
+      return current
+    }
+
+    test('opens account settings from the profile and clears the form after saving', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(changePassword).mockResolvedValueOnce(undefined)
+      const user = renderRoute('/profile')
+
+      await user.click(await screen.findByRole('link', { name: 'Cài đặt tài khoản' }))
+      const current = await fillPasswords(user)
+
+      expect(await screen.findByRole('status')).toHaveTextContent('Đã đổi mật khẩu.')
+      expect(router.state.location.pathname).toBe('/account/settings')
+      expect(changePassword).toHaveBeenCalledOnce()
+      expect(current).toHaveValue('')
+      expect(screen.getByLabelText('Mật khẩu mới')).toHaveValue('')
+      expect(screen.getByLabelText('Xác nhận mật khẩu mới')).toHaveValue('')
+    })
+
+    test('shows the wrong-password error on the current password field and stays signed in', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(changePassword).mockRejectedValueOnce(
+        Object.assign(new Error('Invalid credentials'), {
+          status: 401,
+          code: 'INVALID_CREDENTIALS',
+        }),
+      )
+      const user = renderRoute('/account/settings')
+      const current = await fillPasswords(user)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Mật khẩu hiện tại không đúng.')
+      expect(current).toHaveAccessibleDescription('Mật khẩu hiện tại không đúng.')
+      expect(screen.queryByText('Đã đổi mật khẩu.')).not.toBeInTheDocument()
+      expect(getAccessToken()).toBe('test-access-token')
+      expect(router.state.location.pathname).toBe('/account/settings')
+    })
+  })
+
   describe('editing the current profile', () => {
     const profile = {
       id: 'test-user',
@@ -812,6 +859,21 @@ describe('user app routing', () => {
         fullName: updatedProfile.fullName,
         phone: profile.phone,
       })
+    })
+
+    test('does not save a profile when the form is unchanged', async () => {
+      const user = renderRoute('/profile/edit')
+      const name = await screen.findByRole('textbox', { name: 'Họ và tên' })
+      const save = screen.getByRole('button', { name: 'Lưu thay đổi' })
+
+      expect(save).toBeDisabled()
+      await user.type(name, 'x')
+      expect(save).toBeEnabled()
+      await user.keyboard('{Backspace}')
+      expect(save).toBeDisabled()
+      await user.click(save)
+
+      expect(updateMyProfile).not.toHaveBeenCalled()
     })
 
     test('shows a duplicate phone error on the phone field', async () => {
@@ -864,21 +926,6 @@ describe('user app routing', () => {
 
     expect(await screen.findByRole('heading', { name: 'Hồ sơ của tôi' })).toBeInTheDocument()
   })
-    test('does not save a profile when the form is unchanged', async () => {
-      const user = renderRoute('/profile/edit')
-      const name = await screen.findByRole('textbox', { name: 'Họ và tên' })
-      const save = screen.getByRole('button', { name: 'Lưu thay đổi' })
-
-      expect(save).toBeDisabled()
-      await user.type(name, 'x')
-      expect(save).toBeEnabled()
-      await user.keyboard('{Backspace}')
-      expect(save).toBeDisabled()
-      await user.click(save)
-
-      expect(updateMyProfile).not.toHaveBeenCalled()
-    })
-
 
   test('redirects a guest to login and returns to the complete protected URL after sign-in', async () => {
     vi.mocked(login).mockResolvedValue({ accessToken: 'test-access-token' })

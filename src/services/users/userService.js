@@ -22,3 +22,15 @@ export async function updateMyProfile({ fullName, phone }) {
 
   return unwrap(response)
 }
+
+/**
+ * @param {{ currentPassword: string, newPassword: string }} passwords
+ */
+export async function changePassword({ currentPassword, newPassword }) {
+  const response = await apiClient.put('/api/v1/users/me/password', {
+    currentPassword,
+    newPassword,
+  })
+
+  unwrap(response)
+}

@@ -504,7 +504,8 @@
     @apply text-3xl leading-snug font-semibold sm:text-4xl;
   }
 
-  .profile-page > p[role='status'] {
+  .profile-page > p[role='status'],
+  .profile-edit-form > p[role='status'] {
     @apply rounded-md bg-success px-4 py-3 text-sm text-success-foreground;
   }
 

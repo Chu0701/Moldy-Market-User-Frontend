@@ -158,6 +158,22 @@ test('expires the session without refreshing a second time when a retried reques
   expect(onSessionExpired).toHaveBeenCalledOnce()
 })
 
+test('keeps the session when the current password is incorrect', async () => {
+  const adapter = vi.fn(async (config) => {
+    throw unauthorized(config, 'INVALID_CREDENTIALS')
+  })
+  apiClient.defaults.adapter = adapter
+
+  await expect(apiClient.put('/api/v1/users/me/password')).rejects.toMatchObject({
+    status: 401,
+    code: 'INVALID_CREDENTIALS',
+  })
+
+  expect(adapter).toHaveBeenCalledOnce()
+  expect(getAccessToken()).toBe(oldToken)
+  expect(onSessionExpired).not.toHaveBeenCalled()
+})
+
 test('skips refresh on login 401', async () => {
   const adapter = vi.fn(async (config) => {
     throw unauthorized(config, 'INVALID_CREDENTIALS')

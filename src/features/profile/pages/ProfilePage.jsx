@@ -44,6 +44,9 @@ export function ProfilePage() {
           <Link to="/profile/edit">{t('profile.edit.title')}</Link>
         </Button>
       )}
+      <Button asChild variant="outline">
+        <Link to="/account/settings">{t('account.title')}</Link>
+      </Button>
     </section>
   )
 }
