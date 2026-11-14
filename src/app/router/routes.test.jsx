@@ -718,11 +718,12 @@ describe('user app routing', () => {
       expect(getMyStore).not.toHaveBeenCalled()
     })
 
-    test('creates a store and shows it on the overview page', async () => {
+    test('opens the store form from the header and shows the newly created store', async () => {
       setAccessToken('test-access-token')
       vi.mocked(getMyStore).mockRejectedValueOnce(noStore).mockResolvedValue(myStore)
       vi.mocked(createStore).mockResolvedValue(myStore)
-      const user = renderRoute('/open-store')
+      const user = renderRoute('/')
+      await user.click(await screen.findByRole('link', { name: 'Mở gian hàng' }))
 
       await user.type(
         await screen.findByRole('textbox', { name: 'Tên gian hàng' }),
@@ -1050,6 +1051,7 @@ describe('user app routing', () => {
 
     expect(await screen.findByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Hồ sơ của tôi' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Mở gian hàng' })).not.toBeInTheDocument()
     expect(getMe).not.toHaveBeenCalled()
     expect(queryClient.getQueryData(['users', 'me'])).toBeUndefined()
   })
