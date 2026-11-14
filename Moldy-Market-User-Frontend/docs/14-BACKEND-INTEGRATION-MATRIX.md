@@ -78,7 +78,7 @@ Mọi REST response (thành công lẫn lỗi) có dạng:
 }
 ```
 
-Khi lỗi: `success` là `false`, `code` là một chuỗi `ErrorCode` (ví dụ `AUTH_001`), và `data` là object `ApiError` (có ít nhất đường dẫn request, các trường khác chưa được đọc).
+Khi lỗi, `success` là `false`. Với `AppException`, `GlobalExceptionHandler` ghi tên enum từ `ErrorCode.name()` vào `code` (ví dụ `INVALID_CREDENTIALS`), còn `data` là object `ApiError` có đường dẫn request.
 
 Các ngoại lệ đã thấy trong controller:
 - Một số endpoint **không có body**: `DELETE /api/v1/categories/{id}`, `DELETE /api/v1/products/{id}`, các thao tác `PATCH .../read`, `DELETE`, `PATCH .../restore` của notification, và `DELETE /api/admin/reference-prices/{id}`. Lớp Axios không được giả định lúc nào cũng có `response.data.data`.
@@ -209,7 +209,7 @@ Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. 
 
 - `GET` và `PUT /api/v1/users/me` trả cùng DTO `UserProfileReSponse` trong envelope `ApiResponse`. DTO gồm `id`, `email`, `fullName`, `phone`, `avatarUrl`, `status`, `trustPoints`, `roles`, `permissions`, `storeId` và `createdAt`.
 - Body của `PUT` gồm `fullName` bắt buộc, tối đa 100 ký tự, và `phone` tùy chọn. Số điện thoại bắt đầu bằng `0` hoặc `+84`, theo sau là đúng 9 chữ số ASCII. Bỏ qua `phone` hoặc gửi null sẽ giữ nguyên số hiện tại.
-- Số điện thoại đã thuộc về tài khoản khác trả `409 USER_002`. Cập nhật yêu cầu quyền `PROFILE_MANAGE`.
+- Số điện thoại đã thuộc về tài khoản khác trả `409 PHONE_ALREADY_EXISTS`. Cập nhật yêu cầu quyền `PROFILE_MANAGE`.
 
 ### 3.5 Kích hoạt tài khoản sau khi đăng ký (team đã xác nhận)
 
@@ -253,8 +253,8 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 
 #### Contract mở gian hàng trên `main` tại `21d16cd`
 
-- `POST /api/v1/stores` nhận `name` bắt buộc, tối đa 255 ký tự, và hai trường tùy chọn `description`, `pickupAddress`. Khi thành công, API trả `201` và Backend gán role `OWNER` kèm ID gian hàng. Nếu user đã có gian hàng, API trả `409 STORE_002`.
-- `GET /api/v1/stores/my-store` tìm theo ID chủ gian hàng của tài khoản hiện tại. Nếu chưa có gian hàng, API trả `404 STORE_001`.
+- `POST /api/v1/stores` nhận `name` bắt buộc, tối đa 255 ký tự, và hai trường tùy chọn `description`, `pickupAddress`. Khi thành công, API trả `201` và Backend gán role `OWNER` kèm ID gian hàng. Nếu user đã có gian hàng, API trả `409 STORE_ALREADY_EXISTS`.
+- `GET /api/v1/stores/my-store` tìm theo ID chủ gian hàng của tài khoản hiện tại. Nếu chưa có gian hàng, API trả `404 STORE_NOT_FOUND`.
 - Cả hai trả `StoreResponse` trong `ApiResponse`, gồm `id`, `ownerId`, `name`, `description`, `pickupAddress`, `status` và `createdAt`.
 
 ### 4.2 Chỉ có ở branch chưa merge (`IN_PROGRESS`)

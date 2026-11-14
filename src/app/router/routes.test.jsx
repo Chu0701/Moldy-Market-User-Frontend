@@ -704,7 +704,7 @@ describe('user app routing', () => {
     const myStore = { id: 'my-store', name: 'Tiệm sách cũ' }
     const noStore = Object.assign(new Error('Store not found'), {
       status: 404,
-      code: 'STORE_001',
+      code: 'STORE_NOT_FOUND',
     })
 
     test('redirects a guest to login before checking for a store', async () => {
@@ -756,7 +756,10 @@ describe('user app routing', () => {
       setAccessToken('test-access-token')
       vi.mocked(getMyStore).mockRejectedValueOnce(noStore).mockResolvedValue(myStore)
       vi.mocked(createStore).mockRejectedValueOnce(
-        Object.assign(new Error('Store already exists'), { status: 409, code: 'STORE_002' }),
+        Object.assign(new Error('Store already exists'), {
+          status: 409,
+          code: 'STORE_ALREADY_EXISTS',
+        }),
       )
       const user = renderRoute('/open-store')
       queryClient.setQueryDefaults(['stores', 'mine'], { staleTime: 30_000 })
@@ -813,7 +816,10 @@ describe('user app routing', () => {
 
     test('shows a duplicate phone error on the phone field', async () => {
       vi.mocked(updateMyProfile).mockRejectedValueOnce(
-        Object.assign(new Error('Phone already exists'), { status: 409, code: 'USER_002' }),
+        Object.assign(new Error('Phone already exists'), {
+          status: 409,
+          code: 'PHONE_ALREADY_EXISTS',
+        }),
       )
       const user = renderRoute('/profile/edit')
       const phone = await screen.findByRole('textbox', { name: 'Số điện thoại' })
@@ -858,6 +864,21 @@ describe('user app routing', () => {
 
     expect(await screen.findByRole('heading', { name: 'Hồ sơ của tôi' })).toBeInTheDocument()
   })
+    test('does not save a profile when the form is unchanged', async () => {
+      const user = renderRoute('/profile/edit')
+      const name = await screen.findByRole('textbox', { name: 'Họ và tên' })
+      const save = screen.getByRole('button', { name: 'Lưu thay đổi' })
+
+      expect(save).toBeDisabled()
+      await user.type(name, 'x')
+      expect(save).toBeEnabled()
+      await user.keyboard('{Backspace}')
+      expect(save).toBeDisabled()
+      await user.click(save)
+
+      expect(updateMyProfile).not.toHaveBeenCalled()
+    })
+
 
   test('redirects a guest to login and returns to the complete protected URL after sign-in', async () => {
     vi.mocked(login).mockResolvedValue({ accessToken: 'test-access-token' })

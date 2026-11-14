@@ -16,7 +16,7 @@ export function useMyStore(userId) {
           try {
             return await getMyStore({ signal })
           } catch (error) {
-            if (error?.status === 404 && error?.code === 'STORE_001') {
+            if (error?.status === 404 && error?.code === 'STORE_NOT_FOUND') {
               return null
             }
 

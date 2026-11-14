@@ -21,7 +21,7 @@ export function ProfileEditForm({ profile, onSaved }) {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isDirty, isSubmitting },
   } = useForm({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
@@ -32,10 +32,12 @@ export function ProfileEditForm({ profile, onSaved }) {
   })
 
   async function onSubmit(values) {
+    if (!isDirty) return
+
     try {
       await mutateAsync(values)
     } catch (error) {
-      if (error?.code === 'USER_002') {
+      if (error?.status === 409 && error.code === 'PHONE_ALREADY_EXISTS') {
         setError(
           'phone',
           { message: 'profile.edit.phoneTaken' },
@@ -118,7 +120,7 @@ export function ProfileEditForm({ profile, onSaved }) {
       )}
 
       <div className="profile-edit-actions">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={!isDirty || isSubmitting}>
           {t(isSubmitting ? 'profile.edit.saving' : 'profile.edit.save')}
         </Button>
         <Button asChild variant="outline">

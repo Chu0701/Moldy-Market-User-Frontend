@@ -25,7 +25,7 @@ export function OpenStoreForm({ userId, onCreated, onExistingStore }) {
     try {
       await mutateAsync(values)
     } catch (error) {
-      if (error?.status === 409 && error?.code === 'STORE_002') {
+      if (error?.status === 409 && error?.code === 'STORE_ALREADY_EXISTS') {
         onExistingStore()
         return
       }

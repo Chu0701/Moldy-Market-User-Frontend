@@ -165,7 +165,7 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 |---|---|
 | Mục đích | Xem và cập nhật thông tin cá nhân |
 | API (đã xác minh) | `GET /api/v1/users/me` (trả cả `roles: string[]`), `PUT /api/v1/users/me` (quyền `PROFILE_MANAGE`) |
-| Dữ liệu và validation | `fullName` bắt buộc, tối đa 100 ký tự. `phone` tùy chọn, bắt đầu bằng `0` hoặc `+84`, sau đó là 9 chữ số ASCII. Bỏ qua `phone` để giữ số hiện tại. Số đã dùng bởi tài khoản khác trả `409 USER_002`. Xem contract ở mục 3.4 doc 14. |
+| Dữ liệu và validation | `fullName` bắt buộc, tối đa 100 ký tự. `phone` tùy chọn, bắt đầu bằng `0` hoặc `+84`, sau đó là 9 chữ số ASCII. Bỏ qua `phone` để giữ số hiện tại. Số đã dùng bởi tài khoản khác trả `409 PHONE_ALREADY_EXISTS`. Xem contract ở mục 3.4 doc 14. |
 | Trạng thái giao diện | Form mở sẵn dữ liệu hiện tại; thành công: toast và quay về `/profile`; `403` (thiếu `PROFILE_MANAGE`): khối không có quyền |
 | Trạng thái triển khai | Backend `IMPLEMENTED`; FE `NOT_STARTED` |
 
@@ -186,10 +186,10 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 |---|---|
 | Mục đích | Cho người dùng đã đăng nhập mở gian hàng của mình |
 | API (đã xác minh) | `POST /api/v1/stores` |
-| Quy tắc đã xác minh | Mỗi user một gian hàng; vi phạm trả `STORE_002` |
+| Quy tắc đã xác minh | Mỗi user một gian hàng; vi phạm trả `STORE_ALREADY_EXISTS` |
 | Dữ liệu và validation | `name` bắt buộc, tối đa 255 ký tự. `description` và `pickupAddress` tùy chọn, DTO không khai báo giới hạn độ dài. |
 | Điều hướng | Tạo xong chuyển tới `/store` |
-| Trạng thái giao diện | Nếu `GET /api/v1/stores/my-store` trả gian hàng thì chuyển tới `/store`. Hiện form khi API trả `404 STORE_001`. |
+| Trạng thái giao diện | Nếu `GET /api/v1/stores/my-store` trả gian hàng thì chuyển tới `/store`. Hiện form khi API trả `404 STORE_NOT_FOUND`. |
 | Quyền | Đã đăng nhập |
 | Trạng thái triển khai | Backend `IMPLEMENTED`; FE `NOT_STARTED` |
 
