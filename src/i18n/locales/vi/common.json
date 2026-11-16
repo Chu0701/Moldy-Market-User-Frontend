@@ -145,6 +145,12 @@
       "selectImage": "Xem ảnh {{number}}",
       "position": "Ảnh {{current}} / {{total}}"
     },
+    "delete": {
+      "action": "Xóa tin",
+      "confirm": "Bạn có chắc muốn xóa tin này? Tin sẽ bị gỡ khỏi danh sách sản phẩm.",
+      "pending": "Đang xóa…",
+      "submitError": "Không thể xóa tin. Vui lòng thử lại."
+    },
     "visibility": {
       "hide": "Ẩn tin",
       "show": "Hiện tin",

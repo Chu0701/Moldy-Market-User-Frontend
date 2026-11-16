@@ -12,6 +12,7 @@ import {
   useProductDetail,
 } from '@/features/products/hooks/useProductDetail'
 import { ProductVisibilityButton } from '@/features/products/components/ProductVisibilityButton'
+import { ProductDeleteButton } from '@/features/products/components/ProductDeleteButton'
 
 export function ProductDetailPage() {
   const { t } = useTranslation()
@@ -97,6 +98,7 @@ export function ProductDetailPage() {
             productId={product.id}
             status={product.status}
           />
+          <ProductDeleteButton key={`delete-${product.id}`} productId={product.id} />
         </div>
       )}
     </article>

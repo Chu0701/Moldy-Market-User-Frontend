@@ -128,3 +128,8 @@ export async function changeProductStatus({ productId, status }) {
 
   unwrap(response)
 }
+
+/** @param {{ productId: string }} options */
+export async function deleteProduct({ productId }) {
+  await apiClient.delete(`/api/v1/products/${encodeURIComponent(productId)}`)
+}

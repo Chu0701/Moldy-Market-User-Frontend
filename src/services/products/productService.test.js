@@ -4,6 +4,7 @@ import { apiClient } from '@/services/api/client'
 import {
   changeProductStatus,
   createPersonal,
+  deleteProduct,
   searchProducts,
   updateProduct,
 } from './productService'
@@ -72,6 +73,14 @@ test.each(['HIDDEN', 'ACTIVE'])(
     )
   },
 )
+
+test('deletes a product and accepts a 204 response with no body', async () => {
+  const productId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
+  const remove = vi.spyOn(apiClient, 'delete').mockResolvedValue({ status: 204, data: '' })
+
+  await expect(deleteProduct({ productId })).resolves.toBeUndefined()
+  expect(remove).toHaveBeenCalledExactlyOnceWith(`/api/v1/products/${productId}`)
+})
 
 test.each(['storeId', 'categoryId'])(
   'sends the %s filter with search and pagination parameters',

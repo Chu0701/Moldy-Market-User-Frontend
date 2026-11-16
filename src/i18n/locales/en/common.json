@@ -145,6 +145,12 @@
       "selectImage": "View image {{number}}",
       "position": "Image {{current}} of {{total}}"
     },
+    "delete": {
+      "action": "Delete listing",
+      "confirm": "Delete this listing? It will be removed from the product list.",
+      "pending": "Deleting…",
+      "submitError": "Could not delete the listing. Please try again."
+    },
     "visibility": {
       "hide": "Hide listing",
       "show": "Show listing",

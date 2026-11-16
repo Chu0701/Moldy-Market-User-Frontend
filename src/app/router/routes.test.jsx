@@ -15,6 +15,7 @@ import { getCategoryById, getCategoryTree } from '@/services/categories/category
 import {
   changeProductStatus,
   createPersonal,
+  deleteProduct,
   getProductById,
   searchProducts,
   updateProduct,
@@ -41,6 +42,7 @@ vi.mock('@/services/categories/categoryService', () => ({
 vi.mock('@/services/products/productService', () => ({
   changeProductStatus: vi.fn(),
   createPersonal: vi.fn(),
+  deleteProduct: vi.fn(),
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
   updateProduct: vi.fn(),
@@ -60,6 +62,7 @@ beforeEach(() => {
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getProductById).mockReset()
   vi.mocked(changeProductStatus).mockReset()
+  vi.mocked(deleteProduct).mockReset()
   vi.mocked(updateProduct).mockReset()
   vi.mocked(createPersonal).mockReset()
   vi.mocked(createStore).mockReset()
@@ -190,6 +193,55 @@ describe('user app routing', () => {
         permissions: ['PRODUCT_MANAGE_OWN'],
       })
       vi.mocked(getProductById).mockResolvedValue(listing)
+    })
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    test(
+      'only deletes after confirmation and returns to the product list',
+      { timeout: 15000 },
+      async () => {
+        const confirm = vi
+          .spyOn(window, 'confirm')
+          .mockReturnValueOnce(false)
+          .mockReturnValueOnce(true)
+        vi.mocked(deleteProduct).mockResolvedValueOnce(undefined)
+        const path = `/products/${listing.id}`
+        const user = renderRoute(path)
+        const button = await screen.findByRole('button', { name: 'Xóa tin' }, { timeout: 4000 })
+
+        await user.click(button)
+        expect(deleteProduct).not.toHaveBeenCalled()
+        expect(router.state.location.pathname).toBe(path)
+
+        await user.click(button)
+        await waitFor(() => expect(router.state.location.pathname).toBe('/products'), {
+          timeout: 4000,
+        })
+        expect(confirm).toHaveBeenCalledWith(
+          expect.stringContaining('Bạn có chắc muốn xóa tin này?'),
+        )
+        expect(deleteProduct).toHaveBeenCalledExactlyOnceWith({ productId: listing.id })
+        expect(queryClient.getQueryData(['products', 'detail', listing.id])).toMatchObject({
+          status: 'DELETED',
+        })
+      },
+    )
+
+    test('keeps the listing on screen when delete fails', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      vi.mocked(deleteProduct).mockRejectedValueOnce(new Error('Delete failed'))
+      const path = `/products/${listing.id}`
+      const user = renderRoute(path)
+
+      await user.click(await screen.findByRole('button', { name: 'Xóa tin' }, { timeout: 4000 }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xóa tin.')
+      expect(router.state.location.pathname).toBe(path)
+      expect(screen.getByRole('heading', { name: listing.title })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Xóa tin' })).toBeEnabled()
     })
 
     test('hides and shows a listing, refreshing its status after each change', async () => {
