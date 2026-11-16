@@ -105,6 +105,14 @@
       "limitReached": "Bạn đã đạt giới hạn số sản phẩm được đăng.",
       "rateLimited": "Bạn thao tác quá nhanh. Vui lòng thử lại sau."
     },
+    "edit": {
+      "title": "Chỉnh sửa sản phẩm",
+      "saving": "Đang lưu…",
+      "submitError": "Không thể lưu sản phẩm. Vui lòng thử lại.",
+      "conflict": "Sản phẩm đã thay đổi kể từ khi bạn mở form. Tải lại sẽ thay nội dung đang nhập bằng dữ liệu mới nhất.",
+      "reload": "Tải lại dữ liệu",
+      "reloadError": "Chưa tải được phiên bản mới. Vui lòng thử lại."
+    },
     "newestTitle": "Sản phẩm mới",
     "newestDescription": "Những món đồ vừa được đăng, chờ một chủ nhân mới.",
     "viewAll": "Xem tất cả sản phẩm",

@@ -6,11 +6,16 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { ProductGallery } from '@/features/products/components/ProductGallery'
 import { ProductInfo } from '@/features/products/components/ProductInfo'
-import { useProductDetail } from '@/features/products/hooks/useProductDetail'
+import { useSession } from '@/features/auth/hooks/useSession'
+import {
+  canEditPersonalProduct,
+  useProductDetail,
+} from '@/features/products/hooks/useProductDetail'
 
 export function ProductDetailPage() {
   const { t } = useTranslation()
   const query = useProductDetail()
+  const { profileQuery } = useSession()
 
   if (query.isPending) {
     return (
@@ -78,6 +83,16 @@ export function ProductDetailPage() {
         attributes={product.attributes}
         storeId={product.storeId}
       />
+
+      {canEditPersonalProduct(product, profileQuery.data) && (
+        <div className="md:col-start-2">
+          <Button asChild variant="outline">
+            <Link to={`/my-products/${encodeURIComponent(product.id)}/edit`}>
+              {t('products.edit.title')}
+            </Link>
+          </Button>
+        </div>
+      )}
     </article>
   )
 }

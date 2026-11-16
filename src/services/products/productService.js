@@ -85,3 +85,35 @@ export async function createPersonal({ categoryId, title, description, price, co
 
   return unwrap(response)
 }
+
+/**
+ * @param {{
+ *   productId: string,
+ *   version: number,
+ *   title: string,
+ *   description: string,
+ *   price: number,
+ *   condition: 'NEW' | 'LIKE_NEW' | 'USED' | 'DAMAGED',
+ *   images: string[],
+ * }} product
+ */
+export async function updateProduct({
+  productId,
+  version,
+  title,
+  description,
+  price,
+  condition,
+  images,
+}) {
+  const response = await apiClient.put(`/api/v1/products/${encodeURIComponent(productId)}`, {
+    version,
+    title,
+    description,
+    price,
+    condition,
+    images,
+  })
+
+  return unwrap(response)
+}

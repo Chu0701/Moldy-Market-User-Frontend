@@ -377,7 +377,7 @@ Hiện chỉ có API voucher cho **hệ thống/admin**. Chưa có API voucher c
 ### 5.6 Điểm chính của contract Product (`main`)
 
 - Tạo product bắt buộc có `categoryId`, `title (<=150)`, `price (0 < price <= 1.000.000.000, tối đa 2 chữ số thập phân)`, `condition`, `pricingStrategy`. Tùy chọn: `storeId` (null nghĩa là đăng bán cá nhân), `description (<=2000)`, `images (<=10, chỉ https)`, `attributes` (kiểm tra bằng `@ValidProductAttributes`).
-- Cập nhật bắt buộc có `version` (optimistic locking). Version cũ sẽ trả `COMMON_010`.
+- Cập nhật bắt buộc có `version` (optimistic locking). Version cũ trả HTTP 409 với `code: "CONCURRENT_MODIFICATION"` (`COMMON_010` trong enum). Ở `dc11b09`, `ProductResponse` chưa có `version`. Thay đổi Backend local thêm `Long version` vào DTO. Mapper đã generate lấy `Product.version` cho response đầy đủ của chủ sở hữu và người có quyền kiểm duyệt. Mapper công khai để giá trị null để Jackson bỏ trường này khỏi JSON.
 - Enum: `ProductCondition { NEW, LIKE_NEW, USED, DAMAGED }`, `ProductStatus { ACTIVE, HIDDEN, SOLD, DELETED, REMOVED }`, `PricingStrategy { SELLER_SET, AUTO_PRICING, APPRAISER }`.
 - Người bán chỉ được chuyển qua lại giữa `ACTIVE` và `HIDDEN` (`PROD_004`).
 - Tham số search: `q (<=100)`, `categoryId[] (<=20)`, `condition[] (<=10)`, `minPrice`, `maxPrice`, `storeId`, `sellerType`, `attr[] (<=10)`, `sort`, `facets`. Giá trị `sort` hợp lệ: `relevance`, `newest`, `price_asc`, `price_desc`. `attr` được parse thành khóa và danh sách giá trị (OR trong cùng một khóa); định dạng chuỗi chính xác chưa audit.

@@ -12,7 +12,12 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenSto
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
 import { login, logout } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
-import { createPersonal, getProductById, searchProducts } from '@/services/products/productService'
+import {
+  createPersonal,
+  getProductById,
+  searchProducts,
+  updateProduct,
+} from '@/services/products/productService'
 import { createStore, getMyStore, getPublicStore } from '@/services/stores/storeService'
 import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
 
@@ -36,6 +41,7 @@ vi.mock('@/services/products/productService', () => ({
   createPersonal: vi.fn(),
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
+  updateProduct: vi.fn(),
 }))
 
 let router
@@ -51,6 +57,7 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getProductById).mockReset()
+  vi.mocked(updateProduct).mockReset()
   vi.mocked(createPersonal).mockReset()
   vi.mocked(createStore).mockReset()
   vi.mocked(getMyStore).mockReset()
@@ -161,6 +168,121 @@ describe('user app routing', () => {
       })
     },
   )
+
+  describe('editing a personal listing', () => {
+    const listing = {
+      ...product,
+      sellerId: 'test-user',
+      storeId: null,
+      status: 'ACTIVE',
+      version: 0,
+    }
+    const editPath = `/my-products/${listing.id}/edit`
+
+    beforeEach(() => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMe).mockResolvedValue({
+        id: 'test-user',
+        roles: ['USER'],
+        permissions: ['PRODUCT_MANAGE_OWN'],
+      })
+      vi.mocked(getProductById).mockResolvedValue(listing)
+    })
+
+    test(
+      'opens the edit form from the listing and saves version zero',
+      { timeout: 15000 },
+      async () => {
+        const saved = { ...listing, title: 'Updated listing', version: 1 }
+        vi.mocked(updateProduct).mockImplementationOnce(async () => {
+          vi.mocked(getProductById).mockResolvedValue(saved)
+          return saved
+        })
+        const user = renderRoute(`/products/${listing.id}`)
+
+        await user.click(
+          await screen.findByRole('link', { name: 'Chỉnh sửa sản phẩm' }, { timeout: 4000 }),
+        )
+        const title = await screen.findByRole(
+          'textbox',
+          { name: 'Tên sản phẩm' },
+          { timeout: 4000 },
+        )
+        expect(title).toHaveValue(listing.title)
+        await user.clear(title)
+        await user.type(title, saved.title)
+        await user.click(screen.getByRole('button', { name: 'Lưu' }))
+
+        expect(
+          await screen.findByRole('heading', { name: saved.title }, { timeout: 4000 }),
+        ).toBeInTheDocument()
+        expect(router.state.location.pathname).toBe(`/products/${listing.id}`)
+        expect(updateProduct).toHaveBeenCalledExactlyOnceWith({
+          productId: listing.id,
+          version: 0,
+          title: saved.title,
+          price: listing.price,
+          condition: listing.condition,
+          description: '',
+          images: [],
+        })
+      },
+    )
+
+    test(
+      'keeps the draft on conflict and uses the latest version after reload',
+      { timeout: 15000 },
+      async () => {
+        const latest = { ...listing, title: 'Edited in another tab', version: 1 }
+        vi.mocked(updateProduct)
+          .mockRejectedValueOnce(
+            Object.assign(new Error('Conflict'), { status: 409, code: 'CONCURRENT_MODIFICATION' }),
+          )
+          .mockResolvedValueOnce({ ...latest, version: 2 })
+        const user = renderRoute(editPath)
+        const title = await screen.findByRole(
+          'textbox',
+          { name: 'Tên sản phẩm' },
+          { timeout: 4000 },
+        )
+        await user.clear(title)
+        await user.type(title, 'My draft')
+        const save = screen.getByRole('button', { name: 'Lưu' })
+        await user.click(save)
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('Sản phẩm đã thay đổi')
+        expect(title).toHaveValue('My draft')
+        expect(save).toBeDisabled()
+
+        vi.mocked(getProductById).mockResolvedValue(latest)
+        await user.click(screen.getByRole('button', { name: 'Tải lại dữ liệu' }))
+        await waitFor(() => expect(title).toHaveValue(latest.title))
+        expect(save).toBeEnabled()
+        await user.click(save)
+
+        await waitFor(() => {
+          expect(updateProduct).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({ title: latest.title, version: latest.version }),
+          )
+        })
+      },
+    )
+
+    test('blocks the direct edit route for another seller’s listing', async () => {
+      vi.mocked(getProductById).mockResolvedValue({
+        ...listing,
+        sellerId: 'other-user',
+        version: undefined,
+      })
+      renderRoute(editPath)
+
+      expect(await screen.findByRole('alert', {}, { timeout: 4000 })).toHaveTextContent(
+        'Không có quyền xem nội dung',
+      )
+      expect(screen.queryByRole('button', { name: 'Lưu' })).not.toBeInTheDocument()
+    })
+  })
 
   test('displays the newest product and navigates to its details', async () => {
     vi.mocked(searchProducts).mockResolvedValue({ items: [product] })

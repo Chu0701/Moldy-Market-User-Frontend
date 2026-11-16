@@ -105,6 +105,14 @@
       "limitReached": "You have reached your listing limit.",
       "rateLimited": "Too many attempts. Please try again later."
     },
+    "edit": {
+      "title": "Edit product",
+      "saving": "Saving…",
+      "submitError": "Could not save the product. Please try again.",
+      "conflict": "This product has changed since you opened the form. Reloading will replace your edits with the latest data.",
+      "reload": "Reload product data",
+      "reloadError": "Could not load the latest version. Please try again."
+    },
     "newestTitle": "New arrivals",
     "newestDescription": "Recently listed finds, ready for a new home.",
     "viewAll": "View all products",

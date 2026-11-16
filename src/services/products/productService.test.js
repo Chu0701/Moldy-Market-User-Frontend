@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 
 import { apiClient } from '@/services/api/client'
-import { createPersonal, searchProducts } from './productService'
+import { createPersonal, searchProducts, updateProduct } from './productService'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -28,6 +28,26 @@ test('posts a personal listing with the seller-set pricing strategy', async () =
     storeId: null,
     pricingStrategy: 'SELLER_SET',
   })
+})
+
+test('updates a listing with version zero and preserves cleared optional fields', async () => {
+  const productId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
+  const changes = {
+    version: 0,
+    title: 'Sách cũ',
+    description: '',
+    price: 45000.5,
+    condition: 'USED',
+    images: [],
+  }
+  const product = { id: productId, ...changes }
+  const put = vi.spyOn(apiClient, 'put').mockResolvedValue({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: product },
+  })
+
+  await expect(updateProduct({ productId, ...changes })).resolves.toEqual(product)
+  expect(put).toHaveBeenCalledExactlyOnceWith(`/api/v1/products/${productId}`, changes)
 })
 
 test.each(['storeId', 'categoryId'])(

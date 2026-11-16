@@ -79,6 +79,13 @@ export const routes = [
                 }),
               },
               {
+                path: 'my-products/:productId/edit',
+                lazy: async () => ({
+                  Component: (await import('@/features/products/pages/ProductEditPage'))
+                    .ProductEditPage,
+                }),
+              },
+              {
                 path: 'account/settings',
                 lazy: async () => ({
                   Component: (await import('@/features/profile/pages/AccountSettingsPage'))
