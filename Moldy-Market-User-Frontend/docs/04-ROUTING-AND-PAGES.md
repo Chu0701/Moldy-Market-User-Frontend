@@ -76,8 +76,8 @@ Ghi chú các cột:
 | `/profile/edit` | `ProfileEditPage` | `GET`, `PUT /api/v1/users/me` (quyền `PROFILE_MANAGE`) | `IMPLEMENTED` | `NOT_STARTED` |
 | `/account/settings` | `AccountSettingsPage` | `PUT /api/v1/users/me/password`. Các tùy chọn khác (ví dụ ngôn ngữ) chỉ là UI cục bộ | `IMPLEMENTED` | `NOT_STARTED` |
 | `/open-store` | `OpenStorePage` | `POST /api/v1/stores` (mỗi user một gian hàng, lỗi `STORE_002`) | `IMPLEMENTED` | `NOT_STARTED` |
-| `/my-products` | `MyProductsPage` | **Chưa có endpoint đã xác minh để liệt kê riêng sản phẩm của tôi.** Chỉ có `GET /api/v1/products/search` với `storeId`, `sellerType`; tham số lọc theo người bán cá nhân chưa audit. Xem Q19 ở mục 6 | `IMPLEMENTED` (CRUD); phần liệt kê **chưa rõ** | `NOT_STARTED` |
-| `/my-products/new` | `ProductCreatePage` | `POST /api/v1/products` (quyền `PRODUCT_CREATE`; `storeId = null` là đăng bán cá nhân) | `IMPLEMENTED` | `NOT_STARTED` |
+| `/my-products` | `MyProductsPage` | `GET /api/v1/products/me` (Q19), danh sách tin cá nhân đã đăng | Có trên Backend local, chờ kiểm tra HTTP | Đã thêm service |
+| `/my-products/new` | Chuyển hướng sang `/store/products/new` | Áp dụng luồng đăng bán qua gian hàng | — | Có chuyển hướng |
 | `/my-products/:productId/edit` | `ProductEditPage` | `GET /api/v1/products/{id}`, `PUT /api/v1/products/{id}` (bắt buộc `version`), `DELETE`, `PATCH /{id}/status?status=` | `IMPLEMENTED` | `NOT_STARTED` |
 | `/cart` | `CartPage` | Các endpoint `/api/v1/carts...` (branch `feature/cart`) | `IN_PROGRESS` | `NOT_STARTED` |
 | `/checkout` | `CheckoutPage` | `POST /api/v1/checkout-groups` (branch `feature/order`). Bỏ `quantity` theo quyết định team (Q17) | `IN_PROGRESS` | `NOT_STARTED` |
@@ -107,7 +107,7 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 | `/store` | `StoreOverviewPage` | Số liệu doanh thu, đơn: không có API (`STORE_STATS_VIEW` chỉ là permission, chưa có controller). Chỉ làm skeleton | `NOT_FOUND` | `NOT_STARTED` |
 | `/store/profile` | `StoreProfilePage` | `GET`, `PUT /api/v1/stores/my-store` | `IMPLEMENTED` | `NOT_STARTED` |
 | `/store/products` | `StoreProductsPage` | Liệt kê bằng `GET /api/v1/products/search` với `storeId` | `IMPLEMENTED` | `NOT_STARTED` |
-| `/store/products/new` | `StoreProductCreatePage` | `POST /api/v1/products` kèm `storeId` | `IMPLEMENTED` | `NOT_STARTED` |
+| `/store/products/new` | `ProductCreatePage` | Kiểm tra `GET /api/v1/stores/my-store`, sau đó `POST /api/v1/products` kèm `storeId` | `IMPLEMENTED` | Có form, chờ kiểm tra với Backend thật |
 | `/store/products/:productId/edit` | `StoreProductEditPage` | `PUT`, `DELETE`, `PATCH /{id}/status` (xem 3.3) | `IMPLEMENTED` | `NOT_STARTED` |
 | `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | `NOT_STARTED` |
 | `/store/orders` | `StoreOrdersPage` | Không có order phía người bán (Q15) | `NOT_FOUND` | `NOT_STARTED` |
@@ -164,12 +164,12 @@ Lưu ý: `/categories/:categoryId` và `/stores/:storeId` lấy `categoryId`, `s
 
 | ID | Câu hỏi | Chặn việc gì |
 |---|---|---|
-| Q19 (mới, của doc 04/05) | Frontend liệt kê "sản phẩm cá nhân của tôi" bằng cách nào? `GET /api/v1/products/search` có tham số `sellerType` nhưng giá trị hợp lệ và cách lọc theo chính user hiện tại chưa audit. | Trang `/my-products` |
+| Q19 | Dùng `GET /api/v1/products/me` từ thay đổi Backend local. Endpoint lấy người bán từ phiên đăng nhập và chỉ trả tin cá nhân `ACTIVE` hoặc `HIDDEN`. | Trang `/my-products` |
 | Q1 | Xem doc 14: permission code và gian hàng của staff. | `RequireStoreAccess`, menu Store Dashboard |
 | Q14 | Xem doc 14: luồng kích hoạt tài khoản. | `/register`, `/login` |
 | Q15 | Xem doc 14: ai chuyển trạng thái order. | `/store/orders`, timeline ở `/orders/:orderId` |
 
-Q19 là câu hỏi mới của hai tài liệu này, cần được thêm vào doc 14 mục 7 khi team review. Các câu hỏi còn lại giữ nguyên số trong doc 14.
+Contract Q19 được ghi trong mục 5.6 của doc 14.
 
 ---
 

@@ -63,6 +63,7 @@ export async function getProductById({ productId, signal }) {
 
 /**
  * @param {{
+ *  storeId: string,
  *  categoryId: string,
  *  title:string,
  *  description?:string,
@@ -71,9 +72,19 @@ export async function getProductById({ productId, signal }) {
  *  images?:string[],
  * }} product
  */
-export async function createPersonal({ categoryId, title, description, price, condition, images }) {
+export async function createStoreProduct({
+  storeId,
+  categoryId,
+  title,
+  description,
+  price,
+  condition,
+  images,
+}) {
+  if (!storeId) throw new Error('Creating a product requires a store ID')
+
   const response = await apiClient.post('/api/v1/products', {
-    storeId: null,
+    storeId,
     categoryId,
     title,
     description,
@@ -132,4 +143,22 @@ export async function changeProductStatus({ productId, status }) {
 /** @param {{ productId: string }} options */
 export async function deleteProduct({ productId }) {
   await apiClient.delete(`/api/v1/products/${encodeURIComponent(productId)}`)
+}
+
+/** @param {{ page?: number, size?: number, signal?: AbortSignal }} [options] */
+export async function getMyProducts({ page = 1, size = 20, signal } = {}) {
+  const response = await apiClient.get('/api/v1/products/me', {
+    params: { page, size },
+    signal,
+  })
+
+  const data = unwrap(response)
+
+  return {
+    items: data.content,
+    page: data.page,
+    size: data.size,
+    hasNext: data.hasNext,
+    totalElements: data.totalElements,
+  }
 }

@@ -79,8 +79,14 @@
     "browseCategories": "Xem danh mục"
   },
   "products": {
+    "mine": {
+      "title": "Sản phẩm của tôi",
+      "empty": "Trang này chưa có tin cá nhân.",
+      "loadError": "Chưa tải được sản phẩm của bạn."
+    },
     "create": {
       "pageTitle": "Đăng sản phẩm",
+      "storeRequired": "Bạn cần mở gian hàng trước khi đăng sản phẩm.",
       "categoryRequired": "Chọn danh mục con",
       "categoryUnavailable": "Danh mục này không còn đăng được. Vui lòng chọn danh mục khác.",
       "titleLabel": "Tên sản phẩm",

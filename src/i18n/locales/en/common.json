@@ -79,8 +79,14 @@
     "browseCategories": "Browse categories"
   },
   "products": {
+    "mine": {
+      "title": "My products",
+      "empty": "There are no personal listings on this page.",
+      "loadError": "Could not load your products."
+    },
     "create": {
       "pageTitle": "List a product",
+      "storeRequired": "Open a store before listing a product.",
       "categoryRequired": "Select a subcategory",
       "categoryUnavailable": "This category no longer accepts listings. Choose another category.",
       "titleLabel": "Product name",

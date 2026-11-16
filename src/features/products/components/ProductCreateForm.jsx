@@ -7,7 +7,7 @@ import {
   createProductSchema,
   productConditions,
 } from '@/features/products/schemas/createProductSchema'
-import { createPersonal } from '@/services/products/productService'
+import { createStoreProduct } from '@/services/products/productService'
 
 const conditionKeys = {
   NEW: 'products.conditions.new',
@@ -16,7 +16,7 @@ const conditionKeys = {
   DAMAGED: 'products.conditions.damaged',
 }
 
-export function ProductCreateForm({ categoryGroups, onCreated }) {
+export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
   const { t } = useTranslation()
   const {
     register,
@@ -39,7 +39,7 @@ export function ProductCreateForm({ categoryGroups, onCreated }) {
     let product
 
     try {
-      product = await createPersonal(values)
+      product = await createStoreProduct({ ...values, storeId })
     } catch (error) {
       if (['CATEGORY_INACTIVE', 'CATEGORY_NOT_LEAF', 'CATEGORY_NOT_FOUND'].includes(error?.code)) {
         setError('categoryId', { message: 'products.create.categoryUnavailable' })

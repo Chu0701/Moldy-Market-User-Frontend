@@ -197,9 +197,9 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 
 | Mục | Nội dung |
 |---|---|
-| Mục đích | Người dùng đăng bán đồ cũ cá nhân (không thuộc gian hàng, `storeId = null`) |
-| API tạo, sửa, xóa | `POST /api/v1/products` (quyền `PRODUCT_CREATE`), `PUT /api/v1/products/{id}`, `DELETE /api/v1/products/{id}` (không có body trả về), `PATCH /api/v1/products/{id}/status?status=` (quyền `PRODUCT_MANAGE_OWN`) |
-| Liệt kê tin của tôi | **Chưa rõ** (Q19). Không bịa tham số. Trang danh sách ở trạng thái `TODO` cho đến khi xác nhận cách lọc |
+| Mục đích | Quản lý các tin cá nhân đã có. Tin mới đăng qua gian hàng tại `/store/products/new`. |
+| API sửa, xóa, đổi trạng thái | `PUT /api/v1/products/{id}`, `DELETE /api/v1/products/{id}` (không có body trả về), `PATCH /api/v1/products/{id}/status?status=` (quyền `PRODUCT_MANAGE_OWN`) |
+| Liệt kê tin của tôi | `GET /api/v1/products/me?page=1&size=20` từ thay đổi Backend local (Q19). Chỉ liệt kê tin cá nhân `ACTIVE` và `HIDDEN` của tài khoản đang đăng nhập. |
 | Form tạo, validation đã xác minh | `categoryId` bắt buộc; `title` bắt buộc, tối đa 150 ký tự; `price` bắt buộc, lớn hơn 0 và không quá 1.000.000.000, tối đa 2 chữ số thập phân; `condition` bắt buộc (`NEW`, `LIKE_NEW`, `USED`, `DAMAGED`); `pricingStrategy` bắt buộc; `description` tùy chọn, tối đa 2000; `images` tối đa 10, **chỉ URL https**, mỗi URL tối đa 500 ký tự; `attributes` được Backend kiểm tra bằng `@ValidProductAttributes` (quy tắc thuộc tính theo danh mục **chưa audit**) |
 | Chiến lược định giá | Chỉ `SELLER_SET` hoạt động. `AUTO_PRICING` và `APPRAISER` trả `PROD_003` ("chưa hỗ trợ"). Form nên chỉ cho chọn `SELLER_SET` cho đến khi module pricing merge |
 | Ảnh | Backend chỉ nhận **URL https**, không có API upload (Q5). Giao diện ảnh ở trạng thái `TODO`; không tự dựng cơ chế upload |

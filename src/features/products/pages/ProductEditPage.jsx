@@ -27,6 +27,7 @@ export function ProductEditPage() {
       exact: true,
     })
     void queryClient.invalidateQueries({ queryKey: ['products', 'search'] })
+    void queryClient.invalidateQueries({ queryKey: ['products', 'mine'] })
     void navigate(`/products/${encodeURIComponent(product.id)}`, { replace: true })
   }
 

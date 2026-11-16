@@ -1,3 +1,5 @@
+import { redirect } from 'react-router'
+
 import { AuthLayout } from '@/app/layouts/AuthLayout'
 import { MainLayout } from '@/app/layouts/MainLayout'
 import { RouteErrorPage } from '@/features/system/pages/RouteErrorPage'
@@ -72,7 +74,18 @@ export const routes = [
             Component: RequireAuth,
             children: [
               {
+                path: 'my-products',
+                lazy: async () => ({
+                  Component: (await import('@/features/products/pages/MyProductsPage'))
+                    .MyProductsPage,
+                }),
+              },
+              {
                 path: 'my-products/new',
+                loader: () => redirect('/store/products/new'),
+              },
+              {
+                path: 'store/products/new',
                 lazy: async () => ({
                   Component: (await import('@/features/products/pages/ProductCreatePage'))
                     .ProductCreatePage,

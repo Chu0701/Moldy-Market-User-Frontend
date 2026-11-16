@@ -21,6 +21,7 @@ export function ProductDeleteButton({ productId }) {
         product ? { ...product, status: 'DELETED' } : undefined,
       )
       void queryClient.invalidateQueries({ queryKey: ['products', 'search'] })
+      void queryClient.invalidateQueries({ queryKey: ['products', 'mine'] })
       await navigate('/products', { replace: true })
     },
   })

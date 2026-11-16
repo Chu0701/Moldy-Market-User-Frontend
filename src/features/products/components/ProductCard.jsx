@@ -5,9 +5,9 @@ import { ProductPrice } from '@/components/common/ProductPrice'
 
 /**
  * @param {{ id: string, title: string, price: number, imageUrl?: string,
- * conditionLabel: string }} props
+ * conditionLabel: string, statusLabel?: string, }} props
  */
-export function ProductCard({ id, title, price, imageUrl, conditionLabel }) {
+export function ProductCard({ id, title, price, imageUrl, conditionLabel, statusLabel }) {
   return (
     <Link
       to={`/products/${id}`}
@@ -21,6 +21,11 @@ export function ProductCard({ id, title, price, imageUrl, conditionLabel }) {
         <span className="self-start rounded-md bg-muted px-2 py-1 text-xs leading-5 text-muted-foreground">
           {conditionLabel}
         </span>
+        {statusLabel && (
+          <span className="self-start rounded-md bg-muted px-2 py-1 text-xs leading-5 text-muted-foreground">
+            {statusLabel}
+          </span>
+        )}
         <ProductPrice value={price} className="mt-auto text-lg font-semibold" />
       </div>
     </Link>

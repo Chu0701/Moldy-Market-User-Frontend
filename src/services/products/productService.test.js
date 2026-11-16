@@ -3,8 +3,9 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { apiClient } from '@/services/api/client'
 import {
   changeProductStatus,
-  createPersonal,
+  createStoreProduct,
   deleteProduct,
+  getMyProducts,
   searchProducts,
   updateProduct,
 } from './productService'
@@ -13,8 +14,9 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-test('posts a personal listing with the seller-set pricing strategy', async () => {
+test('posts a store listing with the seller-set pricing strategy', async () => {
   const fields = {
+    storeId: 'store-1',
     categoryId: 'a8098c1a-f86e-11da-bd1a-00112444be1f',
     title: 'Sách cũ',
     price: 45000.5,
@@ -27,13 +29,19 @@ test('posts a personal listing with the seller-set pricing strategy', async () =
     data: { success: true, code: 'SUCCESS', data: product },
   })
 
-  await expect(createPersonal(fields)).resolves.toEqual(product)
+  await expect(createStoreProduct(fields)).resolves.toEqual(product)
   expect(post).toHaveBeenCalledExactlyOnceWith('/api/v1/products', {
     ...fields,
     description: undefined,
-    storeId: null,
     pricingStrategy: 'SELLER_SET',
   })
+})
+
+test('does not post a listing without a store ID', async () => {
+  const post = vi.spyOn(apiClient, 'post')
+
+  await expect(createStoreProduct({ storeId: null })).rejects.toThrow('requires a store ID')
+  expect(post).not.toHaveBeenCalled()
 })
 
 test('updates a listing with version zero and preserves cleared optional fields', async () => {
@@ -81,6 +89,33 @@ test('deletes a product and accepts a 204 response with no body', async () => {
   await expect(deleteProduct({ productId })).resolves.toBeUndefined()
   expect(remove).toHaveBeenCalledExactlyOnceWith(`/api/v1/products/${productId}`)
 })
+
+test.each([
+  { content: [{ id: 'personal-product', status: 'HIDDEN' }], hasNext: true, totalElements: 3 },
+  { content: [], hasNext: false, totalElements: 0 },
+])(
+  'reads the current seller’s listings with total $totalElements',
+  async ({ content, hasNext, totalElements }) => {
+    const { signal } = new AbortController()
+    const data = { content, page: 1, size: 2, hasNext, totalElements }
+    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({
+      status: 200,
+      data: { success: true, code: 'SUCCESS', data },
+    })
+
+    await expect(getMyProducts({ page: 1, size: 2, signal })).resolves.toEqual({
+      items: content,
+      page: 1,
+      size: 2,
+      hasNext,
+      totalElements,
+    })
+    expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/products/me', {
+      params: { page: 1, size: 2 },
+      signal,
+    })
+  },
+)
 
 test.each(['storeId', 'categoryId'])(
   'sends the %s filter with search and pagination parameters',

@@ -14,8 +14,9 @@ import { login, logout } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
 import {
   changeProductStatus,
-  createPersonal,
+  createStoreProduct,
   deleteProduct,
+  getMyProducts,
   getProductById,
   searchProducts,
   updateProduct,
@@ -41,8 +42,9 @@ vi.mock('@/services/categories/categoryService', () => ({
 }))
 vi.mock('@/services/products/productService', () => ({
   changeProductStatus: vi.fn(),
-  createPersonal: vi.fn(),
+  createStoreProduct: vi.fn(),
   deleteProduct: vi.fn(),
+  getMyProducts: vi.fn(),
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
   updateProduct: vi.fn(),
@@ -63,8 +65,9 @@ beforeEach(() => {
   vi.mocked(getProductById).mockReset()
   vi.mocked(changeProductStatus).mockReset()
   vi.mocked(deleteProduct).mockReset()
+  vi.mocked(getMyProducts).mockReset()
   vi.mocked(updateProduct).mockReset()
-  vi.mocked(createPersonal).mockReset()
+  vi.mocked(createStoreProduct).mockReset()
   vi.mocked(createStore).mockReset()
   vi.mocked(getMyStore).mockReset()
   vi.mocked(getPublicStore).mockReset()
@@ -125,10 +128,12 @@ describe('user app routing', () => {
   }
 
   test(
-    'creates a personal listing from the header using a subcategory',
+    'creates a listing for the current user’s store from the header',
     { timeout: 15000 },
     async () => {
       setAccessToken('test-access-token')
+      vi.mocked(getMyStore).mockResolvedValue({ ...store, status: 'ACTIVE' })
+      vi.mocked(getPublicStore).mockResolvedValue(store)
       const categoryId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
       const listing = {
         ...product,
@@ -136,12 +141,13 @@ describe('user app routing', () => {
         price: 45000.5,
         condition: 'USED',
         status: 'ACTIVE',
+        storeId: store.id,
       }
       vi.mocked(getCategoryTree).mockResolvedValue([
         { id: 'root', name: 'Sách', children: [{ id: categoryId, name: 'Văn học' }] },
         { id: 'empty', name: 'Đồ điện tử', children: [] },
       ])
-      vi.mocked(createPersonal).mockResolvedValue(listing)
+      vi.mocked(createStoreProduct).mockResolvedValue(listing)
       vi.mocked(getProductById).mockResolvedValue(listing)
       const user = renderRoute('/')
 
@@ -152,6 +158,7 @@ describe('user app routing', () => {
       )
       await user.click(listingLink)
       const category = await screen.findByRole('combobox', { name: 'Danh mục' }, { timeout: 4000 })
+      expect(router.state.location.pathname).toBe('/store/products/new')
       expect(screen.queryByRole('option', { name: 'Sách' })).not.toBeInTheDocument()
       expect(screen.queryByRole('group', { name: 'Đồ điện tử' })).not.toBeInTheDocument()
       await user.selectOptions(category, categoryId)
@@ -164,7 +171,8 @@ describe('user app routing', () => {
         await screen.findByRole('heading', { name: listing.title }, { timeout: 4000 }),
       ).toBeInTheDocument()
       expect(router.state.location.pathname).toBe(`/products/${listing.id}`)
-      expect(createPersonal).toHaveBeenCalledExactlyOnceWith({
+      expect(createStoreProduct).toHaveBeenCalledExactlyOnceWith({
+        storeId: store.id,
         categoryId,
         title: listing.title,
         description: undefined,
@@ -172,6 +180,62 @@ describe('user app routing', () => {
         condition: 'USED',
         images: [],
       })
+    },
+  )
+
+  test('requires a store even when entering the former personal listing URL', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMyStore).mockRejectedValueOnce(
+      Object.assign(new Error('Store not found'), { status: 404, code: 'STORE_NOT_FOUND' }),
+    )
+    renderRoute('/my-products/new')
+
+    expect(
+      await screen.findByText(
+        'Bạn cần mở gian hàng trước khi đăng sản phẩm.',
+        {},
+        { timeout: 4000 },
+      ),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/store/products/new')
+    const main = screen.getByRole('main')
+    expect(main.querySelector('a[href="/open-store"]')).toHaveTextContent('Mở gian hàng')
+    expect(screen.queryByRole('button', { name: 'Đăng sản phẩm' })).not.toBeInTheDocument()
+    expect(createStoreProduct).not.toHaveBeenCalled()
+  })
+
+  test(
+    'shows a hidden personal listing and opens the next page from the header',
+    { timeout: 15000 },
+    async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMyProducts).mockImplementation(async ({ page }) => ({
+        items: page === 1 ? [{ ...product, title: 'Tin cá nhân đang ẩn', status: 'HIDDEN' }] : [],
+        page,
+        size: 20,
+        hasNext: page === 1,
+        totalElements: 1,
+      }))
+      const user = renderRoute('/')
+
+      await user.click(
+        await screen.findByRole('link', { name: 'Sản phẩm của tôi' }, { timeout: 4000 }),
+      )
+      const listing = await screen.findByRole(
+        'link',
+        { name: /Tin cá nhân đang ẩn/ },
+        { timeout: 4000 },
+      )
+      expect(listing).toHaveAttribute('href', `/products/${product.id}`)
+      expect(listing).toHaveTextContent('Đang ẩn')
+
+      await user.click(screen.getByRole('button', { name: 'Sau' }))
+
+      expect(await screen.findByText('Trang này chưa có tin cá nhân.')).toBeInTheDocument()
+      expect(router.state.location).toMatchObject({ pathname: '/my-products', search: '?page=2' })
+      expect(screen.getByRole('button', { name: 'Trước' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Sau' })).toBeDisabled()
+      expect(vi.mocked(getMyProducts).mock.calls.map(([options]) => options.page)).toEqual([1, 2])
     },
   )
 
@@ -184,6 +248,7 @@ describe('user app routing', () => {
       version: 0,
     }
     const editPath = `/my-products/${listing.id}/edit`
+    const myProductsKey = ['products', 'mine', 'test-user', 2]
 
     beforeEach(() => {
       setAccessToken('test-access-token')
@@ -210,6 +275,7 @@ describe('user app routing', () => {
         vi.mocked(deleteProduct).mockResolvedValueOnce(undefined)
         const path = `/products/${listing.id}`
         const user = renderRoute(path)
+        queryClient.setQueryData(myProductsKey, { items: [listing] })
         const button = await screen.findByRole('button', { name: 'Xóa tin' }, { timeout: 4000 })
 
         await user.click(button)
@@ -227,6 +293,7 @@ describe('user app routing', () => {
         expect(queryClient.getQueryData(['products', 'detail', listing.id])).toMatchObject({
           status: 'DELETED',
         })
+        expect(queryClient.getQueryState(myProductsKey)?.isInvalidated).toBe(true)
       },
     )
 
@@ -250,13 +317,17 @@ describe('user app routing', () => {
       })
       const user = renderRoute(`/products/${listing.id}`)
 
+      queryClient.setQueryData(myProductsKey, { items: [listing] })
       await user.click(await screen.findByRole('button', { name: 'Ẩn tin' }, { timeout: 4000 }))
       const show = await screen.findByRole('button', { name: 'Hiện tin' })
       expect(screen.getByText('Đang ẩn')).toBeInTheDocument()
+      expect(queryClient.getQueryState(myProductsKey)?.isInvalidated).toBe(true)
 
+      queryClient.setQueryData(myProductsKey, { items: [{ ...listing, status: 'HIDDEN' }] })
       await user.click(show)
       expect(await screen.findByRole('button', { name: 'Ẩn tin' })).toBeEnabled()
       expect(screen.getByText('Đang bán')).toBeInTheDocument()
+      expect(queryClient.getQueryState(myProductsKey)?.isInvalidated).toBe(true)
       expect(changeProductStatus).toHaveBeenCalledTimes(2)
       expect(vi.mocked(changeProductStatus).mock.calls.map(([options]) => options)).toEqual([
         { productId: listing.id, status: 'HIDDEN' },
@@ -287,6 +358,7 @@ describe('user app routing', () => {
         })
         const user = renderRoute(`/products/${listing.id}`)
 
+        queryClient.setQueryData(myProductsKey, { items: [listing] })
         await user.click(
           await screen.findByRole('link', { name: 'Chỉnh sửa sản phẩm' }, { timeout: 4000 }),
         )
@@ -304,6 +376,7 @@ describe('user app routing', () => {
           await screen.findByRole('heading', { name: saved.title }, { timeout: 4000 }),
         ).toBeInTheDocument()
         expect(router.state.location.pathname).toBe(`/products/${listing.id}`)
+        expect(queryClient.getQueryState(myProductsKey)?.isInvalidated).toBe(true)
         expect(updateProduct).toHaveBeenCalledExactlyOnceWith({
           productId: listing.id,
           version: 0,
