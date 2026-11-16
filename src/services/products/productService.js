@@ -60,3 +60,28 @@ export async function getProductById({ productId, signal }) {
 
   return unwrap(response)
 }
+
+/**
+ * @param {{
+ *  categoryId: string,
+ *  title:string,
+ *  description?:string,
+ *  price:number,
+ *  condition:'NEW'|'LIKE_NEW'|'USED'|'DAMAGED',
+ *  images?:string[],
+ * }} product
+ */
+export async function createPersonal({ categoryId, title, description, price, condition, images }) {
+  const response = await apiClient.post('/api/v1/products', {
+    storeId: null,
+    categoryId,
+    title,
+    description,
+    price,
+    condition,
+    pricingStrategy: 'SELLER_SET',
+    images,
+  })
+
+  return unwrap(response)
+}

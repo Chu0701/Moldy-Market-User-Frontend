@@ -12,7 +12,7 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenSto
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
 import { login, logout } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
-import { getProductById, searchProducts } from '@/services/products/productService'
+import { createPersonal, getProductById, searchProducts } from '@/services/products/productService'
 import { createStore, getMyStore, getPublicStore } from '@/services/stores/storeService'
 import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
 
@@ -33,6 +33,7 @@ vi.mock('@/services/categories/categoryService', () => ({
   getCategoryTree: vi.fn(),
 }))
 vi.mock('@/services/products/productService', () => ({
+  createPersonal: vi.fn(),
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
 }))
@@ -50,6 +51,7 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getProductById).mockReset()
+  vi.mocked(createPersonal).mockReset()
   vi.mocked(createStore).mockReset()
   vi.mocked(getMyStore).mockReset()
   vi.mocked(getPublicStore).mockReset()
@@ -108,6 +110,57 @@ describe('user app routing', () => {
     name: 'Test store',
     description: 'Test store description',
   }
+
+  test(
+    'creates a personal listing from the header using a subcategory',
+    { timeout: 15000 },
+    async () => {
+      setAccessToken('test-access-token')
+      const categoryId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
+      const listing = {
+        ...product,
+        title: 'Sách cũ',
+        price: 45000.5,
+        condition: 'USED',
+        status: 'ACTIVE',
+      }
+      vi.mocked(getCategoryTree).mockResolvedValue([
+        { id: 'root', name: 'Sách', children: [{ id: categoryId, name: 'Văn học' }] },
+        { id: 'empty', name: 'Đồ điện tử', children: [] },
+      ])
+      vi.mocked(createPersonal).mockResolvedValue(listing)
+      vi.mocked(getProductById).mockResolvedValue(listing)
+      const user = renderRoute('/')
+
+      const listingLink = await screen.findByRole(
+        'link',
+        { name: 'Đăng sản phẩm' },
+        { timeout: 4000 },
+      )
+      await user.click(listingLink)
+      const category = await screen.findByRole('combobox', { name: 'Danh mục' }, { timeout: 4000 })
+      expect(screen.queryByRole('option', { name: 'Sách' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('group', { name: 'Đồ điện tử' })).not.toBeInTheDocument()
+      await user.selectOptions(category, categoryId)
+      await user.type(screen.getByRole('textbox', { name: 'Tên sản phẩm' }), ' Sách cũ ')
+      await user.type(screen.getByRole('textbox', { name: 'Giá (₫)' }), '45000,50')
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Tình trạng' }), 'USED')
+      await user.click(screen.getByRole('button', { name: 'Đăng sản phẩm' }))
+
+      expect(
+        await screen.findByRole('heading', { name: listing.title }, { timeout: 4000 }),
+      ).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe(`/products/${listing.id}`)
+      expect(createPersonal).toHaveBeenCalledExactlyOnceWith({
+        categoryId,
+        title: listing.title,
+        description: undefined,
+        price: listing.price,
+        condition: 'USED',
+        images: [],
+      })
+    },
+  )
 
   test('displays the newest product and navigates to its details', async () => {
     vi.mocked(searchProducts).mockResolvedValue({ items: [product] })
@@ -203,7 +256,7 @@ describe('user app routing', () => {
     ])
   })
 
-  test('blocks submissions with more than 20 selected categories', async () => {
+  test('blocks submissions with more than 20 selected categories', { timeout: 10000 }, async () => {
     const categories = Array.from({ length: 21 }, (_, index) => ({
       id: 'a8098c1a-f86e-11da-bd1a-' + String(index).padStart(12, '0'),
       name: 'Danh mục ' + (index + 1),

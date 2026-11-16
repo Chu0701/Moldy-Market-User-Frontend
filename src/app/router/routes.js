@@ -72,6 +72,13 @@ export const routes = [
             Component: RequireAuth,
             children: [
               {
+                path: 'my-products/new',
+                lazy: async () => ({
+                  Component: (await import('@/features/products/pages/ProductCreatePage'))
+                    .ProductCreatePage,
+                }),
+              },
+              {
                 path: 'account/settings',
                 lazy: async () => ({
                   Component: (await import('@/features/profile/pages/AccountSettingsPage'))

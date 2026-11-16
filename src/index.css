@@ -565,35 +565,43 @@
     @apply grid w-full max-w-2xl gap-6;
   }
 
-  .open-store-form {
+  .open-store-form,
+  .product-create-form {
     @apply grid w-full max-w-2xl gap-5 rounded-xl border border-border p-4 sm:p-6;
   }
 
-  .open-store-field {
+  .open-store-field,
+  .product-create-field {
     @apply grid gap-2;
   }
 
-  .open-store-field > label {
+  .open-store-field > label,
+  .product-create-field > label {
     @apply text-sm font-medium;
   }
 
-  .open-store-field > :is(input, textarea) {
+  .open-store-field > :is(input, textarea),
+  .product-create-field > :is(input, select, textarea) {
     @apply min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }
 
-  .open-store-field > textarea {
+  .open-store-field > textarea,
+  .product-create-field > textarea {
     @apply resize-y;
   }
 
-  .open-store-field > [aria-invalid='true'] {
+  .open-store-field > [aria-invalid='true'],
+  .product-create-field > [aria-invalid='true'] {
     @apply border-destructive;
   }
 
-  .open-store-error {
+  .open-store-error,
+  .product-create-error {
     @apply text-sm text-destructive;
   }
 
-  .open-store-form > button {
+  .open-store-form > button,
+  .product-create-form > button {
     @apply min-h-11 justify-self-start;
   }
 }

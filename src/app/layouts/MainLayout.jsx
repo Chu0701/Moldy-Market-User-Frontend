@@ -26,6 +26,7 @@ export function MainLayout() {
         ...navigation.filter(({ to }) => to !== '/login'),
         { to: '/profile', label: 'profile.title' },
         { to: '/open-store', label: 'stores.open.title' },
+        { to: '/my-products/new', label: 'products.create.pageTitle' },
       ]
     : navigation
 
