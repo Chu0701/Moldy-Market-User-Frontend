@@ -145,6 +145,13 @@
       "selectImage": "Xem ảnh {{number}}",
       "position": "Ảnh {{current}} / {{total}}"
     },
+    "visibility": {
+      "hide": "Ẩn tin",
+      "show": "Hiện tin",
+      "saving": "Đang cập nhật…",
+      "submitError": "Không thể đổi trạng thái tin. Vui lòng thử lại.",
+      "locked": "Trạng thái của tin đã thay đổi. Vui lòng tải lại trang."
+    },
     "statuses": {
       "active": "Đang bán",
       "hidden": "Đang ẩn",

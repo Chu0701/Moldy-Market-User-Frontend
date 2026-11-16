@@ -13,6 +13,7 @@ import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
 import { login, logout } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
 import {
+  changeProductStatus,
   createPersonal,
   getProductById,
   searchProducts,
@@ -38,6 +39,7 @@ vi.mock('@/services/categories/categoryService', () => ({
   getCategoryTree: vi.fn(),
 }))
 vi.mock('@/services/products/productService', () => ({
+  changeProductStatus: vi.fn(),
   createPersonal: vi.fn(),
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
@@ -57,6 +59,7 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({ id: 'test-user', roles: ['USER'] })
   vi.mocked(getProductById).mockReset()
+  vi.mocked(changeProductStatus).mockReset()
   vi.mocked(updateProduct).mockReset()
   vi.mocked(createPersonal).mockReset()
   vi.mocked(createStore).mockReset()
@@ -169,7 +172,7 @@ describe('user app routing', () => {
     },
   )
 
-  describe('editing a personal listing', () => {
+  describe('managing a personal listing', () => {
     const listing = {
       ...product,
       sellerId: 'test-user',
@@ -187,6 +190,38 @@ describe('user app routing', () => {
         permissions: ['PRODUCT_MANAGE_OWN'],
       })
       vi.mocked(getProductById).mockResolvedValue(listing)
+    })
+
+    test('hides and shows a listing, refreshing its status after each change', async () => {
+      vi.mocked(changeProductStatus).mockImplementation(async ({ status }) => {
+        vi.mocked(getProductById).mockResolvedValue({ ...listing, status })
+      })
+      const user = renderRoute(`/products/${listing.id}`)
+
+      await user.click(await screen.findByRole('button', { name: 'Ẩn tin' }, { timeout: 4000 }))
+      const show = await screen.findByRole('button', { name: 'Hiện tin' })
+      expect(screen.getByText('Đang ẩn')).toBeInTheDocument()
+
+      await user.click(show)
+      expect(await screen.findByRole('button', { name: 'Ẩn tin' })).toBeEnabled()
+      expect(screen.getByText('Đang bán')).toBeInTheDocument()
+      expect(changeProductStatus).toHaveBeenCalledTimes(2)
+      expect(vi.mocked(changeProductStatus).mock.calls.map(([options]) => options)).toEqual([
+        { productId: listing.id, status: 'HIDDEN' },
+        { productId: listing.id, status: 'ACTIVE' },
+      ])
+    })
+
+    test('keeps the current status and shows an error when the listing is locked', async () => {
+      vi.mocked(changeProductStatus).mockRejectedValueOnce(
+        Object.assign(new Error('Locked'), { status: 409, code: 'PRODUCT_STATUS_LOCKED' }),
+      )
+      const user = renderRoute(`/products/${listing.id}`)
+
+      await user.click(await screen.findByRole('button', { name: 'Ẩn tin' }, { timeout: 4000 }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Trạng thái của tin đã thay đổi')
+      expect(screen.getByText('Đang bán')).toBeInTheDocument()
     })
 
     test(

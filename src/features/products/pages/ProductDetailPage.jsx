@@ -11,6 +11,7 @@ import {
   canEditPersonalProduct,
   useProductDetail,
 } from '@/features/products/hooks/useProductDetail'
+import { ProductVisibilityButton } from '@/features/products/components/ProductVisibilityButton'
 
 export function ProductDetailPage() {
   const { t } = useTranslation()
@@ -85,12 +86,17 @@ export function ProductDetailPage() {
       />
 
       {canEditPersonalProduct(product, profileQuery.data) && (
-        <div className="md:col-start-2">
+        <div className="flex flex-wrap items-start gap-3 md:col-start-2">
           <Button asChild variant="outline">
             <Link to={`/my-products/${encodeURIComponent(product.id)}/edit`}>
               {t('products.edit.title')}
             </Link>
           </Button>
+          <ProductVisibilityButton
+            key={product.id}
+            productId={product.id}
+            status={product.status}
+          />
         </div>
       )}
     </article>

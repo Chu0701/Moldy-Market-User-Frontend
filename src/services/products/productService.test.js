@@ -1,7 +1,12 @@
 import { afterEach, expect, test, vi } from 'vitest'
 
 import { apiClient } from '@/services/api/client'
-import { createPersonal, searchProducts, updateProduct } from './productService'
+import {
+  changeProductStatus,
+  createPersonal,
+  searchProducts,
+  updateProduct,
+} from './productService'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -49,6 +54,24 @@ test('updates a listing with version zero and preserves cleared optional fields'
   await expect(updateProduct({ productId, ...changes })).resolves.toEqual(product)
   expect(put).toHaveBeenCalledExactlyOnceWith(`/api/v1/products/${productId}`, changes)
 })
+
+test.each(['HIDDEN', 'ACTIVE'])(
+  'changes a listing to %s using a query parameter',
+  async (status) => {
+    const productId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
+    const patch = vi.spyOn(apiClient, 'patch').mockResolvedValue({
+      status: 200,
+      data: { success: true, code: 'SUCCESS', data: null },
+    })
+
+    await expect(changeProductStatus({ productId, status })).resolves.toBeUndefined()
+    expect(patch).toHaveBeenCalledExactlyOnceWith(
+      `/api/v1/products/${productId}/status`,
+      undefined,
+      { params: { status } },
+    )
+  },
+)
 
 test.each(['storeId', 'categoryId'])(
   'sends the %s filter with search and pagination parameters',

@@ -117,3 +117,14 @@ export async function updateProduct({
 
   return unwrap(response)
 }
+
+/** @param {{ productId: string, status: 'ACTIVE' | 'HIDDEN' }} options */
+export async function changeProductStatus({ productId, status }) {
+  const response = await apiClient.patch(
+    `/api/v1/products/${encodeURIComponent(productId)}/status`,
+    undefined,
+    { params: { status } },
+  )
+
+  unwrap(response)
+}

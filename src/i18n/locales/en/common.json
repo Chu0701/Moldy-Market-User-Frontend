@@ -145,6 +145,13 @@
       "selectImage": "View image {{number}}",
       "position": "Image {{current}} of {{total}}"
     },
+    "visibility": {
+      "hide": "Hide listing",
+      "show": "Show listing",
+      "saving": "Updating…",
+      "submitError": "Could not change the listing status. Please try again.",
+      "locked": "The listing status has changed. Reload the page."
+    },
     "statuses": {
       "active": "Available",
       "hidden": "Hidden",
