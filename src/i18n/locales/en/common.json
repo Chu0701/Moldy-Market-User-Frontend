@@ -219,6 +219,15 @@
       "submit": "Create store",
       "submitting": "Creating store…",
       "submitError": "Could not create the store. Please try again."
+    },
+    "profile": {
+      "title": "Store profile",
+      "back": "Back to store",
+      "blocked": "This store is blocked. You cannot edit its profile.",
+      "nameTaken": "This store name is already in use.",
+      "submitError": "Could not save the store profile. Please try again.",
+      "saving": "Saving…",
+      "saved": "Store profile saved."
     }
   },
   "account": {

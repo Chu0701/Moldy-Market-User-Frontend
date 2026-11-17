@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate } from 'react-router'
-
+import { Link, Navigate, useLocation } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { useSession } from '@/features/auth/hooks/useSession'
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button'
 
 export function StoreOverviewPage() {
   const { t } = useTranslation()
+  const { state } = useLocation()
   const { profileQuery } = useSession()
   const userId = profileQuery.data?.id
   const storeQuery = useMyStore(userId)
@@ -44,9 +44,16 @@ export function StoreOverviewPage() {
         {store.description && <p>{store.description}</p>}
       </header>
 
-      <Button asChild variant="outline" className="mt-6">
-        <Link to="/store/products">{t('stores.productsTitle')}</Link>
-      </Button>
+      {state?.storeProfileSaved === true && <p role="status">{t('stores.profile.saved')}</p>}
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Button asChild variant="outline">
+          <Link to="/store/profile">{t('stores.profile.title')}</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/store/products">{t('stores.productsTitle')}</Link>
+        </Button>
+      </div>
     </section>
   )
 }

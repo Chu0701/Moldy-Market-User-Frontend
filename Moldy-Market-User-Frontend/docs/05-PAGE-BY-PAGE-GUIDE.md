@@ -312,9 +312,9 @@ Các trang này chỉ có khung và nhãn `TODO`, không có service.
 
 ### 7.1 Hồ sơ gian hàng `/store/profile`
 
-- API (đã xác minh): `GET`, `PUT /api/v1/stores/my-store`. Các trường chưa audit.
-- Trạng thái Backend: `IMPLEMENTED`. FE: `NOT_STARTED`.
-- Trạng thái đặc biệt: gian hàng bị chặn (`STORE_004`, 403) hiển thị khối cảnh báo và vô hiệu hóa các hành động ghi.
+- Form lấy dữ liệu từ `GET /api/v1/stores/my-store` và lưu qua `PUT` cùng đường dẫn. Tên gian hàng bắt buộc, tối đa 255 ký tự. Để trống mô tả hoặc địa chỉ lấy hàng sẽ xóa giá trị cũ.
+- Tên bị trùng (`STORE_NAME_TAKEN`, 409) hiển thị lỗi tại ô tên. Gian hàng bị khóa (`BLOCKED` hoặc `STORE_BLOCKED`, 403) hiển thị cảnh báo và chặn lưu.
+- Trạng thái Backend: `IMPLEMENTED`. Frontend có form, chờ kiểm tra với Backend thật.
 
 ### 7.2 Sản phẩm của gian hàng `/store/products`, `/new`, `/:productId/edit`
 

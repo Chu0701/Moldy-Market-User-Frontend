@@ -22,7 +22,12 @@ import {
   searchProducts,
   updateProduct,
 } from '@/services/products/productService'
-import { createStore, getMyStore, getPublicStore } from '@/services/stores/storeService'
+import {
+  createStore,
+  getMyStore,
+  getPublicStore,
+  updateMyStore,
+} from '@/services/stores/storeService'
 import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
@@ -36,6 +41,7 @@ vi.mock('@/services/stores/storeService', () => ({
   createStore: vi.fn(),
   getMyStore: vi.fn(),
   getPublicStore: vi.fn(),
+  updateMyStore: vi.fn(),
 }))
 vi.mock('@/services/categories/categoryService', () => ({
   getCategoryById: vi.fn(),
@@ -74,6 +80,7 @@ beforeEach(() => {
   vi.mocked(createStore).mockReset()
   vi.mocked(getMyStore).mockReset()
   vi.mocked(getPublicStore).mockReset()
+  vi.mocked(updateMyStore).mockReset()
   vi.mocked(getCategoryById).mockReset()
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
   vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
@@ -1227,6 +1234,98 @@ describe('user app routing', () => {
 
       expect(await screen.findByRole('heading', { name: myStore.name })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/store')
+    })
+  })
+
+  describe('editing the store profile', () => {
+    const myStore = {
+      id: 'my-store',
+      name: 'Tiệm sách cũ',
+      description: 'Sách đã qua sử dụng',
+      pickupAddress: '123 Main St',
+      status: 'ACTIVE',
+    }
+
+    beforeEach(() => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMyStore).mockResolvedValue(myStore)
+    })
+
+    test('prefills the profile, saves changes, and refreshes both store caches', async () => {
+      const changes = {
+        name: 'Tiệm sách mới',
+        description: null,
+        pickupAddress: myStore.pickupAddress,
+      }
+      vi.mocked(updateMyStore).mockResolvedValue({ ...myStore, ...changes })
+      const user = renderRoute('/store')
+      const publicStoreKey = ['stores', 'detail', myStore.id]
+      queryClient.setQueryDefaults(['stores', 'mine'], { staleTime: 30_000 })
+      queryClient.setQueryData(publicStoreKey, myStore)
+
+      await user.click(await screen.findByRole('link', { name: 'Hồ sơ gian hàng' }))
+      const name = await screen.findByRole('textbox', { name: 'Tên gian hàng' })
+      const description = screen.getByRole('textbox', { name: 'Mô tả (tùy chọn)' })
+      const save = screen.getByRole('button', { name: 'Lưu' })
+      expect(name).toHaveValue(myStore.name)
+      expect(description).toHaveValue(myStore.description)
+      expect(screen.getByRole('textbox', { name: 'Địa chỉ lấy hàng (tùy chọn)' })).toHaveValue(
+        myStore.pickupAddress,
+      )
+      expect(save).toBeDisabled()
+
+      await user.clear(name)
+      await user.type(name, ` ${changes.name} `)
+      await user.clear(description)
+      await user.click(save)
+
+      expect(await screen.findByRole('heading', { name: changes.name })).toBeInTheDocument()
+      expect(await screen.findByText('Đã lưu hồ sơ gian hàng.')).toHaveAttribute('role', 'status')
+      expect(router.state.location.pathname).toBe('/store')
+      expect(vi.mocked(updateMyStore).mock.calls[0][0]).toEqual(changes)
+      expect(updateMyStore).toHaveBeenCalledOnce()
+      expect(queryClient.getQueryState(publicStoreKey)?.isInvalidated).toBe(true)
+    })
+
+    test('shows a duplicate-name error and preserves the draft', async () => {
+      vi.mocked(updateMyStore).mockRejectedValueOnce(
+        Object.assign(new Error('Name taken'), { status: 409, code: 'STORE_NAME_TAKEN' }),
+      )
+      const user = renderRoute('/store/profile')
+      const name = await screen.findByRole('textbox', { name: 'Tên gian hàng' })
+      await user.clear(name)
+      await user.type(name, 'Tên đã được dùng')
+      await user.click(screen.getByRole('button', { name: 'Lưu' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Tên gian hàng này đã được sử dụng.',
+      )
+      expect(name).toHaveValue('Tên đã được dùng')
+      expect(name).toHaveAttribute('aria-invalid', 'true')
+      expect(router.state.location.pathname).toBe('/store/profile')
+    })
+
+    test('blocks edits when the store is locked', async () => {
+      vi.mocked(getMyStore).mockResolvedValue({ ...myStore, status: 'BLOCKED' })
+      renderRoute('/store/profile')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Gian hàng đang bị khóa.')
+      expect(screen.queryByRole('button', { name: 'Lưu' })).not.toBeInTheDocument()
+      expect(updateMyStore).not.toHaveBeenCalled()
+    })
+
+    test('can retry a failed store lookup', async () => {
+      vi.mocked(getMyStore).mockRejectedValueOnce(new Error('Store lookup failed'))
+      const user = renderRoute('/store/profile')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Chưa tải được thông tin gian hàng.',
+      )
+      await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+      expect(await screen.findByRole('textbox', { name: 'Tên gian hàng' })).toHaveValue(
+        myStore.name,
+      )
     })
   })
 

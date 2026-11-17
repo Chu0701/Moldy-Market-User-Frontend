@@ -219,6 +219,15 @@
       "submit": "Tạo gian hàng",
       "submitting": "Đang tạo gian hàng…",
       "submitError": "Không thể tạo gian hàng. Vui lòng thử lại."
+    },
+    "profile": {
+      "title": "Hồ sơ gian hàng",
+      "back": "Về gian hàng",
+      "blocked": "Gian hàng đang bị khóa. Bạn chưa thể chỉnh sửa hồ sơ.",
+      "nameTaken": "Tên gian hàng này đã được sử dụng.",
+      "submitError": "Không thể lưu hồ sơ gian hàng. Vui lòng thử lại.",
+      "saving": "Đang lưu…",
+      "saved": "Đã lưu hồ sơ gian hàng."
     }
   },
   "account": {

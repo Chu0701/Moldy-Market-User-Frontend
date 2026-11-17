@@ -258,6 +258,7 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 - `POST /api/v1/stores` nhận `name` bắt buộc, tối đa 255 ký tự, và hai trường tùy chọn `description`, `pickupAddress`. Khi thành công, API trả `201` và Backend gán role `OWNER` kèm ID gian hàng. Nếu user đã có gian hàng, API trả `409 STORE_ALREADY_EXISTS`.
 - `GET /api/v1/stores/my-store` tìm theo ID chủ gian hàng của tài khoản hiện tại. Nếu chưa có gian hàng, API trả `404 STORE_NOT_FOUND`.
 - Cả hai trả `StoreResponse` trong `ApiResponse`, gồm `id`, `ownerId`, `name`, `description`, `pickupAddress`, `status` và `createdAt`.
+- `PUT /api/v1/stores/my-store` nhận `name` bắt buộc (tối đa 255 ký tự), `description` và `pickupAddress` có thể gửi `null` để xóa giá trị cũ. API trả `200` với `StoreResponse`; tên trùng trả `409 STORE_NAME_TAKEN`, gian hàng bị khóa trả `403 STORE_BLOCKED`.
 
 ### 4.2 Chỉ có ở branch chưa merge (`IN_PROGRESS`)
 

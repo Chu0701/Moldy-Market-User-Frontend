@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 
 import { apiClient } from '@/services/api/client'
-import { createStore, getMyStore, getPublicStore } from './storeService'
+import { createStore, getMyStore, getPublicStore, updateMyStore } from './storeService'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -46,4 +46,16 @@ test('sends the store name, description and pickup address when creating a store
 
   await expect(createStore(input)).resolves.toEqual(store)
   expect(post).toHaveBeenCalledExactlyOnceWith('/api/v1/stores', input)
+})
+
+test('updates the current store and sends null to clear optional fields', async () => {
+  const changes = { name: 'New store name', description: null, pickupAddress: null }
+  const store = { id: 'my-store', ...changes }
+  const put = vi.spyOn(apiClient, 'put').mockResolvedValue({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: store },
+  })
+
+  await expect(updateMyStore(changes)).resolves.toEqual(store)
+  expect(put).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store', changes)
 })

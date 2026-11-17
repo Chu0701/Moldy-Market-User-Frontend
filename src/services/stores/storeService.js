@@ -44,3 +44,16 @@ export async function createStore({ name, description, pickupAddress }) {
 
   return unwrap(response)
 }
+
+/**
+ * @param {{ name: string, description: string | null, pickupAddress: string | null }} store
+ */
+export async function updateMyStore({ name, description, pickupAddress }) {
+  const response = await apiClient.put('/api/v1/stores/my-store', {
+    name,
+    description,
+    pickupAddress,
+  })
+
+  return unwrap(response)
+}
