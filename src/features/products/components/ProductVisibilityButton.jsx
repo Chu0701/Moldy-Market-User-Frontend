@@ -14,6 +14,7 @@ export function ProductVisibilityButton({ productId, status }) {
     mutationFn: () => changeProductStatus({ productId, status: nextStatus }),
     onSuccess: async () => {
       void queryClient.invalidateQueries({ queryKey: ['products', 'search'] })
+      void queryClient.invalidateQueries({ queryKey: ['products', 'store-mine'] })
       void queryClient.invalidateQueries({ queryKey: ['products', 'mine'] })
       await queryClient.invalidateQueries({
         queryKey: productKeys.detail(productId),

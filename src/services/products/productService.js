@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api/client'
 import { unwrap } from '@/services/api/unwrap'
-import { normalizeProductSearchPage } from '@/services/api/pagination'
+import { normalizePagedResponse, normalizeProductSearchPage } from '@/services/api/pagination'
 /**
  * Searches public products.
  * @param {{
@@ -152,13 +152,15 @@ export async function getMyProducts({ page = 1, size = 20, signal } = {}) {
     signal,
   })
 
-  const data = unwrap(response)
+  return normalizePagedResponse(unwrap(response))
+}
 
-  return {
-    items: data.content,
-    page: data.page,
-    size: data.size,
-    hasNext: data.hasNext,
-    totalElements: data.totalElements,
-  }
+/** @param {{ page?: number, size?: number, signal?: AbortSignal }} [options] */
+export async function getMyStoreProducts({ page = 1, size = 20, signal } = {}) {
+  const response = await apiClient.get('/api/v1/stores/my-store/products', {
+    params: { page, size },
+    signal,
+  })
+
+  return normalizePagedResponse(unwrap(response))
 }

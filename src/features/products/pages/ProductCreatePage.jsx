@@ -22,6 +22,7 @@ export function ProductCreatePage() {
 
   function handleCreated(product) {
     void queryClient.invalidateQueries({ queryKey: ['products', 'search'] })
+    void queryClient.invalidateQueries({ queryKey: ['products', 'store-mine'] })
     void navigate(`/products/${encodeURIComponent(product.id)}`, { replace: true })
   }
 

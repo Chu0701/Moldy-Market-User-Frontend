@@ -106,9 +106,9 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 |---|---|---|---|---|
 | `/store` | `StoreOverviewPage` | Số liệu doanh thu, đơn: không có API (`STORE_STATS_VIEW` chỉ là permission, chưa có controller). Chỉ làm skeleton | `NOT_FOUND` | `NOT_STARTED` |
 | `/store/profile` | `StoreProfilePage` | `GET`, `PUT /api/v1/stores/my-store` | `IMPLEMENTED` | `NOT_STARTED` |
-| `/store/products` | `StoreProductsPage` | Liệt kê bằng `GET /api/v1/products/search` với `storeId` | `IMPLEMENTED` | `NOT_STARTED` |
+| `/store/products` | `StoreProductsPage` | `GET /api/v1/stores/my-store/products` | Có trên Backend local, chờ kiểm tra HTTP | Có danh sách phân trang, chờ kiểm tra với Backend thật |
 | `/store/products/new` | `ProductCreatePage` | Kiểm tra `GET /api/v1/stores/my-store`, sau đó `POST /api/v1/products` kèm `storeId` | `IMPLEMENTED` | Có form, chờ kiểm tra với Backend thật |
-| `/store/products/:productId/edit` | `StoreProductEditPage` | `PUT`, `DELETE`, `PATCH /{id}/status` (xem 3.3) | `IMPLEMENTED` | `NOT_STARTED` |
+| `/store/products/:productId/edit` | `ProductEditPage` | `GET /api/v1/stores/my-store`, `GET` và `PUT /api/v1/products/{id}` (xem 3.3) | `IMPLEMENTED` | Có form sửa và kiểm tra quyền gian hàng, chờ kiểm tra với Backend thật |
 | `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | `NOT_STARTED` |
 | `/store/orders` | `StoreOrdersPage` | Không có order phía người bán (Q15) | `NOT_FOUND` | `NOT_STARTED` |
 | `/store/vouchers` | `StoreVouchersPage` | Chưa có API voucher cho người bán (`VOUCHER_SELLER_MANAGE` chỉ là permission) | `PLANNED` | `NOT_STARTED` |

@@ -2,18 +2,19 @@ import { skipToken, useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks/useSession'
-import { getMyProducts } from '@/services/products/productService'
+import { getMyProducts, getMyStoreProducts } from '@/services/products/productService'
 
-export function useMyProducts() {
+export function useMyProducts({ store = false } = {}) {
   const { profileQuery } = useSession()
   const userId = profileQuery.data?.id
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedPage = Number(searchParams.get('page'))
   const page = Number.isSafeInteger(requestedPage) && requestedPage >= 1 ? requestedPage : 1
+  const loadProducts = store ? getMyStoreProducts : getMyProducts
 
   const query = useQuery({
-    queryKey: ['products', 'mine', userId, page],
-    queryFn: userId ? ({ signal }) => getMyProducts({ page, signal }) : skipToken,
+    queryKey: ['products', store ? 'store-mine' : 'mine', userId, page],
+    queryFn: userId ? ({ signal }) => loadProducts({ page, signal }) : skipToken,
   })
 
   function changePage(nexPage) {

@@ -17,6 +17,7 @@ import {
   createStoreProduct,
   deleteProduct,
   getMyProducts,
+  getMyStoreProducts,
   getProductById,
   searchProducts,
   updateProduct,
@@ -45,6 +46,7 @@ vi.mock('@/services/products/productService', () => ({
   createStoreProduct: vi.fn(),
   deleteProduct: vi.fn(),
   getMyProducts: vi.fn(),
+  getMyStoreProducts: vi.fn(),
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
   updateProduct: vi.fn(),
@@ -66,6 +68,7 @@ beforeEach(() => {
   vi.mocked(changeProductStatus).mockReset()
   vi.mocked(deleteProduct).mockReset()
   vi.mocked(getMyProducts).mockReset()
+  vi.mocked(getMyStoreProducts).mockReset()
   vi.mocked(updateProduct).mockReset()
   vi.mocked(createStoreProduct).mockReset()
   vi.mocked(createStore).mockReset()
@@ -236,6 +239,57 @@ describe('user app routing', () => {
       expect(screen.getByRole('button', { name: 'Trước' })).toBeEnabled()
       expect(screen.getByRole('button', { name: 'Sau' })).toBeDisabled()
       expect(vi.mocked(getMyProducts).mock.calls.map(([options]) => options.page)).toEqual([1, 2])
+    },
+  )
+
+  test(
+    'opens private store listings from the store overview and paginates',
+    { timeout: 15000 },
+    async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMyStore).mockResolvedValue(store)
+      vi.mocked(getMyStoreProducts).mockImplementation(async ({ page }) => ({
+        items: [
+          {
+            ...product,
+            storeId: store.id,
+            title: page === 1 ? 'Tin gian hàng đang ẩn' : 'Tin gian hàng đang bán',
+            status: page === 1 ? 'HIDDEN' : 'ACTIVE',
+          },
+        ],
+        page,
+        size: 20,
+        hasNext: page === 1,
+        totalElements: 21,
+      }))
+      const user = renderRoute('/store')
+
+      await user.click(
+        await screen.findByRole('link', { name: 'Sản phẩm của gian hàng' }, { timeout: 4000 }),
+      )
+      const hidden = await screen.findByRole(
+        'link',
+        { name: /Tin gian hàng đang ẩn/ },
+        { timeout: 4000 },
+      )
+      expect(hidden).toHaveTextContent('Đang ẩn')
+
+      await user.click(screen.getByRole('button', { name: 'Sau' }))
+
+      const active = await screen.findByRole(
+        'link',
+        { name: /Tin gian hàng đang bán/ },
+        { timeout: 4000 },
+      )
+      expect(active).toHaveTextContent('Đang bán')
+      expect(router.state.location).toMatchObject({
+        pathname: '/store/products',
+        search: '?page=2',
+      })
+      expect(vi.mocked(getMyStoreProducts).mock.calls.map(([options]) => options.page)).toEqual([
+        1, 2,
+      ])
+      expect(getMyProducts).not.toHaveBeenCalled()
     },
   )
 
@@ -441,6 +495,73 @@ describe('user app routing', () => {
         'Không có quyền xem nội dung',
       )
       expect(screen.queryByRole('button', { name: 'Lưu' })).not.toBeInTheDocument()
+    })
+  })
+
+  describe('managing a store listing', () => {
+    const listing = {
+      ...product,
+      sellerId: 'store-staff',
+      storeId: store.id,
+      status: 'ACTIVE',
+      version: 0,
+    }
+    const editPath = `/store/products/${listing.id}/edit`
+
+    beforeEach(() => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMe).mockResolvedValue({
+        id: 'test-user',
+        roles: ['USER'],
+        permissions: ['PRODUCT_MANAGE_OWN'],
+      })
+      vi.mocked(getProductById).mockResolvedValue(listing)
+      vi.mocked(getPublicStore).mockResolvedValue(store)
+      vi.mocked(getMyStore).mockResolvedValue({ ...store, status: 'ACTIVE' })
+    })
+
+    test('lets the store owner open the edit form for a listing created by staff', async () => {
+      const user = renderRoute(`/products/${listing.id}`)
+
+      const edit = await screen.findByRole(
+        'link',
+        { name: 'Chỉnh sửa sản phẩm' },
+        { timeout: 4000 },
+      )
+      expect(edit).toHaveAttribute('href', editPath)
+      expect(screen.getByRole('button', { name: 'Ẩn tin' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Xóa tin' })).toBeEnabled()
+
+      await user.click(edit)
+
+      expect(await screen.findByRole('textbox', { name: 'Tên sản phẩm' })).toHaveValue(
+        listing.title,
+      )
+    })
+
+    test('blocks the direct edit route for a listing from another store', async () => {
+      vi.mocked(getMyStore).mockResolvedValue({ id: 'other-store', status: 'ACTIVE' })
+      renderRoute(editPath)
+
+      expect(await screen.findByRole('alert', {}, { timeout: 4000 })).toHaveTextContent(
+        'Không có quyền xem nội dung',
+      )
+      expect(getMyStore).toHaveBeenCalledOnce()
+      expect(screen.queryByRole('button', { name: 'Lưu' })).not.toBeInTheDocument()
+    })
+
+    test('shows a retry when the store lookup fails during a direct edit', async () => {
+      vi.mocked(getMyStore).mockRejectedValueOnce(new Error('Store lookup failed'))
+      const user = renderRoute(editPath)
+
+      expect(await screen.findByRole('alert', {}, { timeout: 4000 })).toHaveTextContent(
+        'Bạn có thể quay lại sau.',
+      )
+      await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+
+      expect(await screen.findByRole('textbox', { name: 'Tên sản phẩm' })).toHaveValue(
+        listing.title,
+      )
     })
   })
 

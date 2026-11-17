@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { Navigate } from 'react-router'
+import { Link, Navigate } from 'react-router'
 
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { useMyStore } from '@/features/stores/hooks/useMyStore'
+import { Button } from '@/components/ui/button'
 
 export function StoreOverviewPage() {
   const { t } = useTranslation()
@@ -42,6 +43,10 @@ export function StoreOverviewPage() {
         <h1 id="my-store-title">{store.name}</h1>
         {store.description && <p>{store.description}</p>}
       </header>
+
+      <Button asChild variant="outline" className="mt-6">
+        <Link to="/store/products">{t('stores.productsTitle')}</Link>
+      </Button>
     </section>
   )
 }

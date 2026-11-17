@@ -23,3 +23,7 @@ export function normalizeProductSearchPage(data) {
     hasNext: data.page < data.totalPages,
   }
 }
+
+export function normalizePagedResponse({ content, page, size, hasNext, totalElements }) {
+  return { items: content, page, size, hasNext, totalElements }
+}

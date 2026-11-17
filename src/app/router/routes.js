@@ -81,6 +81,13 @@ export const routes = [
                 }),
               },
               {
+                path: 'store/products',
+                lazy: async () => ({
+                  Component: (await import('@/features/stores/pages/StoreProductsPage'))
+                    .StoreProductsPage,
+                }),
+              },
+              {
                 path: 'my-products/new',
                 loader: () => redirect('/store/products/new'),
               },
@@ -89,6 +96,13 @@ export const routes = [
                 lazy: async () => ({
                   Component: (await import('@/features/products/pages/ProductCreatePage'))
                     .ProductCreatePage,
+                }),
+              },
+              {
+                path: 'store/products/:productId/edit',
+                lazy: async () => ({
+                  Component: (await import('@/features/products/pages/ProductEditPage'))
+                    .ProductEditPage,
                 }),
               },
               {

@@ -6,11 +6,9 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { ProductEditForm } from '@/features/products/components/ProductEditForm'
-import {
-  canEditPersonalProduct,
-  useProductDetail,
-} from '@/features/products/hooks/useProductDetail'
+import { useProductDetail } from '@/features/products/hooks/useProductDetail'
 import { productKeys } from '@/features/products/hooks/useProductSearch'
+import { useProductManagementAccess } from '../hooks/useProductManagementAccess'
 
 export function ProductEditPage() {
   const { t } = useTranslation()
@@ -19,6 +17,10 @@ export function ProductEditPage() {
   const { profileQuery } = useSession()
   const query = useProductDetail({ refetchOnMount: 'always' })
   const product = query.data
+  const { canManage, isCheckingStore, storeQuery } = useProductManagementAccess(
+    product,
+    profileQuery.data,
+  )
   const hasVersion = Number.isSafeInteger(product?.version) && product.version >= 0
 
   async function handleSaved() {
@@ -27,11 +29,12 @@ export function ProductEditPage() {
       exact: true,
     })
     void queryClient.invalidateQueries({ queryKey: ['products', 'search'] })
+    void queryClient.invalidateQueries({ queryKey: ['products', 'store-mine'] })
     void queryClient.invalidateQueries({ queryKey: ['products', 'mine'] })
     void navigate(`/products/${encodeURIComponent(product.id)}`, { replace: true })
   }
 
-  if (query.isPending || (product && !hasVersion && query.isFetching)) {
+  if (query.isPending || isCheckingStore || (product && !hasVersion && query.isFetching)) {
     return <p role="status">{t('products.loading')}</p>
   }
 
@@ -39,12 +42,25 @@ export function ProductEditPage() {
     return <p role="alert">{t('products.detail.unavailableTitle')}</p>
   }
 
-  if (
-    query.error?.status === 403 ||
-    (product && !canEditPersonalProduct(product, profileQuery.data))
-  ) {
+  if (query.error?.status === 403 || storeQuery.error?.status === 403) {
     return <ForbiddenState />
   }
+
+  if (storeQuery.isError) {
+    return (
+      <ErrorState
+        title={t('stores.loadError')}
+        description={t('feedback.checkBack')}
+        onRetry={() => void storeQuery.refetch()}
+        isRetrying={storeQuery.isFetching}
+      />
+    )
+  }
+
+  if (product && !canManage) {
+    return <ForbiddenState />
+  }
+
   return (
     <section className="profile-page" aria-labelledby="product-edit-heading">
       <h1 id="product-edit-heading">{t('products.edit.title')}</h1>

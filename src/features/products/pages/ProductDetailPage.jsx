@@ -7,17 +7,16 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { ProductGallery } from '@/features/products/components/ProductGallery'
 import { ProductInfo } from '@/features/products/components/ProductInfo'
 import { useSession } from '@/features/auth/hooks/useSession'
-import {
-  canEditPersonalProduct,
-  useProductDetail,
-} from '@/features/products/hooks/useProductDetail'
 import { ProductVisibilityButton } from '@/features/products/components/ProductVisibilityButton'
 import { ProductDeleteButton } from '@/features/products/components/ProductDeleteButton'
+import { useProductDetail } from '@/features/products/hooks/useProductDetail'
+import { useProductManagementAccess } from '@/features/products/hooks/useProductManagementAccess'
 
 export function ProductDetailPage() {
   const { t } = useTranslation()
   const query = useProductDetail()
   const { profileQuery } = useSession()
+  const { canManage } = useProductManagementAccess(query.data, profileQuery.data)
 
   if (query.isPending) {
     return (
@@ -86,10 +85,12 @@ export function ProductDetailPage() {
         storeId={product.storeId}
       />
 
-      {canEditPersonalProduct(product, profileQuery.data) && (
+      {canManage && (
         <div className="flex flex-wrap items-start gap-3 md:col-start-2">
           <Button asChild variant="outline">
-            <Link to={`/my-products/${encodeURIComponent(product.id)}/edit`}>
+            <Link
+              to={`${product.storeId ? '/store/products' : '/my-products'}/${encodeURIComponent(product.id)}/edit`}
+            >
               {t('products.edit.title')}
             </Link>
           </Button>

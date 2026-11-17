@@ -6,6 +6,7 @@ import {
   createStoreProduct,
   deleteProduct,
   getMyProducts,
+  getMyStoreProducts,
   searchProducts,
   updateProduct,
 } from './productService'
@@ -116,6 +117,31 @@ test.each([
     })
   },
 )
+
+test('reads paged store listings without sending a store ID', async () => {
+  const { signal } = new AbortController()
+  const content = [{ id: 'store-product', status: 'HIDDEN' }]
+  const get = vi.spyOn(apiClient, 'get').mockResolvedValue({
+    status: 200,
+    data: {
+      success: true,
+      code: 'SUCCESS',
+      data: { content, page: 2, size: 5, hasNext: false, totalElements: 6 },
+    },
+  })
+
+  await expect(getMyStoreProducts({ page: 2, size: 5, signal })).resolves.toEqual({
+    items: content,
+    page: 2,
+    size: 5,
+    hasNext: false,
+    totalElements: 6,
+  })
+  expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store/products', {
+    params: { page: 2, size: 5 },
+    signal,
+  })
+})
 
 test.each(['storeId', 'categoryId'])(
   'sends the %s filter with search and pagination parameters',

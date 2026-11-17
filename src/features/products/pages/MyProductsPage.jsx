@@ -7,6 +7,7 @@ import { ProductGrid } from '@/features/marketplace/components/ProductGrid'
 import { ProductSkeleton } from '@/features/marketplace/components/ProductSkeleton'
 import { ProductCard } from '@/features/products/components/ProductCard'
 import { useMyProducts } from '@/features/products/hooks/useMyProducts'
+import { Navigate } from 'react-router'
 
 const conditionKeys = {
   NEW: 'products.conditions.new',
@@ -15,10 +16,14 @@ const conditionKeys = {
   DAMAGED: 'products.conditions.damaged',
 }
 
-export function MyProductsPage() {
+export function MyProductsPage({ store = false } = {}) {
   const { t } = useTranslation()
-  const { query, changePage } = useMyProducts()
+  const { query, changePage } = useMyProducts({ store })
   const result = query.data
+
+  if (store && query.error?.status === 404 && query.error.code === 'STORE_NOT_FOUND') {
+    return <Navigate to="/open-store" replace />
+  }
 
   let content
   if (query.isPending) {
@@ -29,14 +34,18 @@ export function MyProductsPage() {
         <ForbiddenState />
       ) : (
         <ErrorState
-          title={t('products.mine.loadError')}
+          title={t(store ? 'products.search.errorTitle' : 'products.mine.loadError')}
           description={t('feedback.checkBack')}
           onRetry={() => void query.refetch()}
           isRetrying={query.isFetching}
         />
       )
   } else if (result.items.length === 0) {
-    content = <p className="product-search-empty">{t('products.mine.empty')}</p>
+    content = (
+      <p className="product-search-empty">
+        {t(store ? 'stores.emptyProducts' : 'products.mine.empty')}
+      </p>
+    )
   } else {
     content = (
       <ProductGrid>
@@ -59,7 +68,7 @@ export function MyProductsPage() {
 
   return (
     <section className="product-list-page">
-      <h1>{t('products.mine.title')}</h1>
+      <h1>{t(store ? 'stores.productsTitle' : 'products.mine.title')}</h1>
       {content}
 
       {query.isSuccess && (result.page > 1 || result.hasNext) && (

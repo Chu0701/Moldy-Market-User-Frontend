@@ -318,10 +318,11 @@ Các trang này chỉ có khung và nhãn `TODO`, không có service.
 
 ### 7.2 Sản phẩm của gian hàng `/store/products`, `/new`, `/:productId/edit`
 
-- Liệt kê: `GET /api/v1/products/search` với `storeId` của gian hàng.
-- Tạo, sửa, xóa, đổi trạng thái: dùng cùng contract với mục 3.4, thêm `storeId`.
+- Liệt kê cho chủ gian hàng bằng `GET /api/v1/stores/my-store/products` trên Backend local. Danh sách phân trang gồm tin `ACTIVE` và `HIDDEN`.
+- Tạo tin gửi `storeId` của gian hàng. Sửa, xóa và đổi trạng thái dùng contract mục 3.4; form sửa gửi `version` từ chi tiết sản phẩm.
+- Chủ gian hàng mở chi tiết từ danh sách để sửa, ẩn/hiện hoặc xóa tin. Trang chi tiết và route sửa đối chiếu `storeId` của tin với gian hàng của tài khoản đang đăng nhập.
 - Quyền Backend: `PRODUCT_CREATE`, `PRODUCT_MANAGE_OWN`. Lỗi `STORE_015` (403): không có quyền với tài nguyên của gian hàng này.
-- Backend `IMPLEMENTED`; FE `NOT_STARTED`.
+- Frontend đã có danh sách và các thao tác quản lý. Test tự động dùng mock service, chờ kiểm tra với Backend thật.
 
 ### 7.3 Nhân viên `/store/staff`
 
