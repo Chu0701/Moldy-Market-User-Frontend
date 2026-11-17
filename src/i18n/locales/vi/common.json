@@ -203,6 +203,8 @@
   },
   "stores": {
     "title": "Gian hàng",
+    "myStoreTitle": "Gian hàng của tôi",
+    "workspaceTitle": "Gian hàng làm việc",
     "loading": "Đang tải thông tin gian hàng…",
     "loadError": "Chưa tải được thông tin gian hàng.",
     "unavailableTitle": "Gian hàng tạm không khả dụng",

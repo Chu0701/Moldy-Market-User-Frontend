@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 import { useSession } from '@/features/auth/hooks/useSession'
+import { getStoreContext } from '@/features/stores/getStoreContext'
 
 const navigation = [
   { to: '/', label: 'navigation.home' },
@@ -19,15 +20,34 @@ export function MainLayout() {
   const { t } = useTranslation()
   const { state } = useNavigation()
   const { signOut, isSigningOut } = useLogout()
-  const { hasAccessToken } = useSession()
+  const { hasAccessToken, profileQuery } = useSession()
   const showLogout = hasAccessToken || isSigningOut
+  const storeNavigation = []
+
+  if (hasAccessToken && profileQuery.isSuccess && !isSigningOut) {
+    const store = getStoreContext(profileQuery.data)
+
+    if (store.kind === 'owner') {
+      storeNavigation.push({ to: '/store', label: 'stores.myStoreTitle' })
+    } else if (store.kind === 'staff') {
+      if (store.storeId) {
+        storeNavigation.push({ to: '/store', label: 'stores.workspaceTitle' })
+      }
+    } else {
+      storeNavigation.push({ to: '/open-store', label: 'stores.open.title' })
+    }
+
+    if (store.kind !== 'staff' || store.canCreateProduct) {
+      storeNavigation.push({ to: '/store/products/new', label: 'products.create.pageTitle' })
+    }
+  }
+
   const visibleNavigation = showLogout
     ? [
         ...navigation.filter(({ to }) => to !== '/login'),
         { to: '/profile', label: 'profile.title' },
         { to: '/my-products', label: 'products.mine.title' },
-        { to: '/open-store', label: 'stores.open.title' },
-        { to: '/store/products/new', label: 'products.create.pageTitle' },
+        ...storeNavigation,
       ]
     : navigation
 

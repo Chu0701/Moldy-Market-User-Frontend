@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
@@ -149,61 +149,93 @@ describe('user app routing', () => {
     description: 'Test store description',
   }
 
-  test(
-    'creates a listing for the current user’s store from the header',
-    { timeout: 15000 },
-    async () => {
-      setAccessToken('test-access-token')
-      vi.mocked(getMyStore).mockResolvedValue({ ...store, status: 'ACTIVE' })
-      vi.mocked(getPublicStore).mockResolvedValue(store)
-      const categoryId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
-      const listing = {
-        ...product,
-        title: 'Sách cũ',
-        price: 45000.5,
-        condition: 'USED',
-        status: 'ACTIVE',
-        storeId: store.id,
-      }
-      vi.mocked(getCategoryTree).mockResolvedValue([
-        { id: 'root', name: 'Sách', children: [{ id: categoryId, name: 'Văn học' }] },
-        { id: 'empty', name: 'Đồ điện tử', children: [] },
-      ])
-      vi.mocked(createStoreProduct).mockResolvedValue(listing)
-      vi.mocked(getProductById).mockResolvedValue(listing)
-      const user = renderRoute('/')
+  test.each([
+    { role: 'OWNER', isStaff: false },
+    { role: 'STAFF', isStaff: true },
+  ])('creates a listing for a store as $role', { timeout: 15000 }, async ({ role, isStaff }) => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMe).mockResolvedValue({
+      id: 'test-user',
+      roles: ['USER', role],
+      permissions: isStaff ? ['STORE_WORKSPACE_ACCESS', 'PRODUCT_CREATE'] : ['PRODUCT_CREATE'],
+      storeId: store.id,
+    })
+    if (!isStaff) vi.mocked(getMyStore).mockResolvedValue({ ...store, status: 'ACTIVE' })
+    vi.mocked(getPublicStore).mockResolvedValue(store)
+    const categoryId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
+    const listing = {
+      ...product,
+      title: 'Sách cũ',
+      price: 45000.5,
+      condition: 'USED',
+      status: 'ACTIVE',
+      storeId: store.id,
+    }
+    vi.mocked(getCategoryTree).mockResolvedValue([
+      { id: 'root', name: 'Sách', children: [{ id: categoryId, name: 'Văn học' }] },
+      { id: 'empty', name: 'Đồ điện tử', children: [] },
+    ])
+    vi.mocked(createStoreProduct).mockResolvedValue(listing)
+    vi.mocked(getProductById).mockResolvedValue(listing)
+    const user = renderRoute('/')
 
-      const listingLink = await screen.findByRole(
-        'link',
-        { name: 'Đăng sản phẩm' },
-        { timeout: 4000 },
+    const listingLink = await screen.findByRole(
+      'link',
+      { name: 'Đăng sản phẩm' },
+      { timeout: 4000 },
+    )
+    expect(listingLink).toHaveAttribute('href', '/store/products/new')
+    if (isStaff) {
+      await user.click(screen.getByRole('link', { name: 'Gian hàng làm việc' }))
+      await user.click(
+        await within(screen.getByRole('main')).findByRole('link', { name: 'Đăng sản phẩm' }),
       )
+    } else {
       await user.click(listingLink)
-      const category = await screen.findByRole('combobox', { name: 'Danh mục' }, { timeout: 4000 })
-      expect(router.state.location.pathname).toBe('/store/products/new')
-      expect(screen.queryByRole('option', { name: 'Sách' })).not.toBeInTheDocument()
-      expect(screen.queryByRole('group', { name: 'Đồ điện tử' })).not.toBeInTheDocument()
-      await user.selectOptions(category, categoryId)
-      await user.type(screen.getByRole('textbox', { name: 'Tên sản phẩm' }), ' Sách cũ ')
-      await user.type(screen.getByRole('textbox', { name: 'Giá (₫)' }), '45000,50')
-      await user.selectOptions(screen.getByRole('combobox', { name: 'Tình trạng' }), 'USED')
-      await user.click(screen.getByRole('button', { name: 'Đăng sản phẩm' }))
+    }
+    const category = await screen.findByRole('combobox', { name: 'Danh mục' }, { timeout: 4000 })
+    expect(router.state.location.pathname).toBe('/store/products/new')
+    expect(screen.queryByRole('option', { name: 'Sách' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Đồ điện tử' })).not.toBeInTheDocument()
+    await user.selectOptions(category, categoryId)
+    await user.type(screen.getByRole('textbox', { name: 'Tên sản phẩm' }), ' Sách cũ ')
+    await user.type(screen.getByRole('textbox', { name: 'Giá (₫)' }), '45000,50')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Tình trạng' }), 'USED')
+    await user.click(screen.getByRole('button', { name: 'Đăng sản phẩm' }))
 
-      expect(
-        await screen.findByRole('heading', { name: listing.title }, { timeout: 4000 }),
-      ).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe(`/products/${listing.id}`)
-      expect(createStoreProduct).toHaveBeenCalledExactlyOnceWith({
-        storeId: store.id,
-        categoryId,
-        title: listing.title,
-        description: undefined,
-        price: listing.price,
-        condition: 'USED',
-        images: [],
-      })
-    },
-  )
+    expect(
+      await screen.findByRole('heading', { name: listing.title }, { timeout: 4000 }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(`/products/${listing.id}`)
+    expect(createStoreProduct).toHaveBeenCalledExactlyOnceWith({
+      storeId: store.id,
+      categoryId,
+      title: listing.title,
+      description: undefined,
+      price: listing.price,
+      condition: 'USED',
+      images: [],
+    })
+    if (isStaff) expect(getMyStore).not.toHaveBeenCalled()
+  })
+
+  test('blocks direct access to the product form for staff without PRODUCT_CREATE', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMe).mockResolvedValue({
+      id: 'staff-user',
+      roles: ['USER', 'STAFF'],
+      permissions: ['STORE_WORKSPACE_ACCESS'],
+      storeId: store.id,
+    })
+    renderRoute('/store/products/new')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không có quyền xem nội dung')
+    expect(screen.queryByRole('link', { name: 'Đăng sản phẩm' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Đăng sản phẩm' })).not.toBeInTheDocument()
+    expect(getMyStore).not.toHaveBeenCalled()
+    expect(getPublicStore).not.toHaveBeenCalled()
+    expect(createStoreProduct).not.toHaveBeenCalled()
+  })
 
   test('requires a store even when entering the former personal listing URL', async () => {
     setAccessToken('test-access-token')
@@ -1246,6 +1278,89 @@ describe('user app routing', () => {
 
       expect(await screen.findByRole('heading', { name: myStore.name })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/store')
+    })
+  })
+
+  describe('navigating to a linked store', () => {
+    const staffProfile = {
+      id: 'staff-user',
+      roles: ['USER', 'STAFF'],
+      permissions: ['STORE_WORKSPACE_ACCESS'],
+      storeId: store.id,
+    }
+
+    beforeEach(() => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMe).mockResolvedValue(staffProfile)
+      vi.mocked(getPublicStore).mockResolvedValue(store)
+    })
+
+    test('shows the linked store in the staff workspace without looking up an owned store', async () => {
+      const user = renderRoute('/')
+      const workspace = await screen.findByRole('link', { name: 'Gian hàng làm việc' })
+      expect(workspace).toHaveAttribute('href', '/store')
+      expect(screen.queryByRole('link', { name: 'Mở gian hàng' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Đăng sản phẩm' })).not.toBeInTheDocument()
+      await user.click(workspace)
+
+      expect(await screen.findByRole('region', { name: store.name })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Xem gian hàng' })).toHaveAttribute(
+        'href',
+        `/stores/${store.id}`,
+      )
+      expect(screen.queryByRole('link', { name: 'Nhân viên gian hàng' })).not.toBeInTheDocument()
+      expect(getPublicStore).toHaveBeenCalledWith(expect.objectContaining({ storeId: store.id }))
+      expect(getMyStore).not.toHaveBeenCalled()
+    })
+
+    test('redirects a staff member from the open-store page to the workspace', async () => {
+      renderRoute('/open-store')
+
+      expect(await screen.findByRole('heading', { name: store.name })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/store')
+      expect(screen.queryByRole('button', { name: 'Tạo gian hàng' })).not.toBeInTheDocument()
+      expect(getMyStore).not.toHaveBeenCalled()
+    })
+
+    test('shows an unavailable message when the linked store is blocked', async () => {
+      vi.mocked(getPublicStore).mockRejectedValueOnce(
+        Object.assign(new Error('Store blocked'), { status: 403, code: 'STORE_BLOCKED' }),
+      )
+      renderRoute('/store')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Gian hàng tạm không khả dụng')
+      expect(router.state.location.pathname).toBe('/store')
+      expect(getMyStore).not.toHaveBeenCalled()
+    })
+
+    test('does not offer store creation when a staff member lacks workspace permission', async () => {
+      vi.mocked(getMe).mockResolvedValue({ ...staffProfile, permissions: [] })
+      renderRoute('/open-store')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Không có quyền xem nội dung')
+      expect(screen.queryByRole('link', { name: 'Mở gian hàng' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Gian hàng làm việc' })).not.toBeInTheDocument()
+      expect(getPublicStore).not.toHaveBeenCalled()
+      expect(getMyStore).not.toHaveBeenCalled()
+    })
+
+    test('opens the owned store when the account has both owner and staff roles', async () => {
+      const ownedStore = { id: 'owned-store', name: 'Tiệm của tôi', status: 'ACTIVE' }
+      vi.mocked(getMe).mockResolvedValue({
+        ...staffProfile,
+        roles: [...staffProfile.roles, 'OWNER'],
+        permissions: [...staffProfile.permissions, 'STORE_STAFF_MANAGE'],
+      })
+      vi.mocked(getMyStore).mockResolvedValue(ownedStore)
+      const user = renderRoute('/')
+
+      await user.click(await screen.findByRole('link', { name: 'Gian hàng của tôi' }))
+
+      expect(await screen.findByRole('heading', { name: ownedStore.name })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Nhân viên gian hàng' })).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Gian hàng làm việc' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Mở gian hàng' })).not.toBeInTheDocument()
+      expect(getPublicStore).not.toHaveBeenCalled()
     })
   })
 

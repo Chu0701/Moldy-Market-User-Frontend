@@ -9,16 +9,29 @@ import { Button } from '@/components/ui/button'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { ProductCreateForm } from '@/features/products/components/ProductCreateForm'
 import { useProductCategoryOptions } from '@/features/products/hooks/useProductCategoryOptions'
+import { getStoreContext } from '@/features/stores/getStoreContext'
 import { useMyStore } from '@/features/stores/hooks/useMyStore'
+import { usePublicStore } from '@/features/stores/hooks/usePublicStore'
 
 export function ProductCreatePage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { profileQuery } = useSession()
-  const storeQuery = useMyStore(profileQuery.data?.id)
+  const profile = profileQuery.data
+  const storeContext = getStoreContext(profile)
+  const isStaff = storeContext.kind === 'staff'
+  const staffStoreId = isStaff && storeContext.canCreateProduct ? storeContext.storeId : undefined
+  const ownedStoreQuery = useMyStore(isStaff ? undefined : profile?.id)
+  const linkedStoreQuery = usePublicStore(staffStoreId)
+  const storeQuery = isStaff ? linkedStoreQuery : ownedStoreQuery
   const store = storeQuery.data
   const { query, groups } = useProductCategoryOptions()
+  const isForbidden =
+    !profile?.id ||
+    (isStaff && !staffStoreId) ||
+    store?.status === 'BLOCKED' ||
+    storeQuery.error?.status === 403
 
   function handleCreated(product) {
     void queryClient.invalidateQueries({ queryKey: ['products', 'search'] })
@@ -30,7 +43,7 @@ export function ProductCreatePage() {
     <section className="profile-page" aria-labelledby="product-create-heading">
       <h1 id="product-create-heading">{t('products.create.pageTitle')}</h1>
 
-      {!profileQuery.data?.id || store?.status === 'BLOCKED' || storeQuery.error?.status === 403 ? (
+      {isForbidden ? (
         <ForbiddenState />
       ) : storeQuery.isPending ? (
         <p role="status">{t('stores.loading')}</p>
@@ -41,7 +54,9 @@ export function ProductCreatePage() {
           onRetry={() => void storeQuery.refetch()}
           isRetrying={storeQuery.isFetching}
         />
-      ) : store === null ? (
+      ) : !store && isStaff ? (
+        <p role="alert">{t('stores.unavailableTitle')}</p>
+      ) : !store ? (
         <>
           <p>{t('products.create.storeRequired')}</p>
           <Button asChild>

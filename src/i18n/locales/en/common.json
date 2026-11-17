@@ -203,6 +203,8 @@
   },
   "stores": {
     "title": "Store",
+    "myStoreTitle": "My store",
+    "workspaceTitle": "Store workspace",
     "loading": "Loading store information…",
     "loadError": "Unable to load store information.",
     "unavailableTitle": "Store temporarily unavailable",

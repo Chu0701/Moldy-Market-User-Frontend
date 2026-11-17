@@ -104,10 +104,10 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 
 | Path | Page | Phụ thuộc Backend | Backend | FE |
 |---|---|---|---|---|
-| `/store` | `StoreOverviewPage` | Số liệu doanh thu, đơn: không có API (`STORE_STATS_VIEW` chỉ là permission, chưa có controller). Chỉ làm skeleton | `NOT_FOUND` | `NOT_STARTED` |
+| `/store` | `StoreOverviewPage` | Chủ gian hàng dùng `GET /api/v1/stores/my-store`. Nhân viên có `STORE_WORKSPACE_ACCESS` dùng `GET /api/v1/stores/{id}` với `storeId` từ hồ sơ phiên | `IMPLEMENTED` cho thông tin gian hàng | Có tổng quan chủ gian hàng và màn hình gian hàng liên kết cho nhân viên |
 | `/store/profile` | `StoreProfilePage` | `GET`, `PUT /api/v1/stores/my-store` | `IMPLEMENTED` | Có form chỉnh sửa, chờ kiểm tra với Backend thật |
 | `/store/products` | `StoreProductsPage` | `GET /api/v1/stores/my-store/products` | Có trên Backend local, chờ kiểm tra HTTP | Có danh sách phân trang, chờ kiểm tra với Backend thật |
-| `/store/products/new` | `ProductCreatePage` | Kiểm tra `GET /api/v1/stores/my-store`, sau đó `POST /api/v1/products` kèm `storeId` | `IMPLEMENTED` | Có form, chờ kiểm tra với Backend thật |
+| `/store/products/new` | `ProductCreatePage` | Chủ gian hàng dùng `GET /api/v1/stores/my-store`. Nhân viên có `PRODUCT_CREATE` dùng gian hàng liên kết từ hồ sơ phiên. Cả hai gửi `storeId` qua `POST /api/v1/products` | `IMPLEMENTED` | Có form cho chủ gian hàng và nhân viên được cấp quyền |
 | `/store/products/:productId/edit` | `ProductEditPage` | `GET /api/v1/stores/my-store`, `GET` và `PUT /api/v1/products/{id}` (xem 3.3) | `IMPLEMENTED` | Có form sửa và kiểm tra quyền gian hàng, chờ kiểm tra với Backend thật |
 | `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | Có danh sách, thêm bằng email, đổi quyền và xóa, chờ kiểm tra với Backend thật |
 | `/store/orders` | `StoreOrdersPage` | Không có order phía người bán (Q15) | `NOT_FOUND` | `NOT_STARTED` |

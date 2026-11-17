@@ -5,15 +5,30 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { useMyStore } from '@/features/stores/hooks/useMyStore'
 import { Button } from '@/components/ui/button'
+import { StaffStoreOverview } from '@/features/stores/components/StaffStoreOverview'
+import { getStoreContext } from '@/features/stores/getStoreContext'
 
 export function StoreOverviewPage() {
+  const { profileQuery } = useSession()
+  const profile = profileQuery.data
+  const store = getStoreContext(profile)
+
+  if (store.kind === 'staff') {
+    if (!store.storeId) return <ForbiddenState />
+
+    return <StaffStoreOverview storeId={store.storeId} canCreateProduct={store.canCreateProduct} />
+  }
+
+  return <OwnerStoreOverview profile={profile} />
+}
+
+function OwnerStoreOverview({ profile }) {
   const { t } = useTranslation()
   const { state } = useLocation()
-  const { profileQuery } = useSession()
-  const userId = profileQuery.data?.id
+  const userId = profile?.id
   const storeQuery = useMyStore(userId)
   const store = storeQuery.data
-  const canManageStaff = profileQuery.data?.permissions?.includes('STORE_STAFF_MANAGE')
+  const canManageStaff = profile?.permissions?.includes('STORE_STAFF_MANAGE')
 
   if (!userId || storeQuery.error?.status === 403) {
     return <ForbiddenState />

@@ -6,13 +6,19 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { OpenStoreForm } from '@/features/stores/components/OpenStoreForm'
 import { useMyStore } from '@/features/stores/hooks/useMyStore'
+import { getStoreContext } from '@/features/stores/getStoreContext'
 
 export function OpenStorePage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { profileQuery } = useSession()
   const userId = profileQuery.data?.id
-  const storeQuery = useMyStore(userId)
+  const store = getStoreContext(profileQuery.data)
+  const storeQuery = useMyStore(store.kind === 'staff' ? undefined : userId)
+
+  if (store.kind === 'staff') {
+    return store.storeId ? <Navigate to="/store" replace /> : <ForbiddenState />
+  }
 
   function goToStore() {
     void navigate('/store', { replace: true })

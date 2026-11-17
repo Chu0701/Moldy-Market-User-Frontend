@@ -308,7 +308,7 @@ Các trang này chỉ có khung và nhãn `TODO`, không có service.
 
 ## 7. Store Dashboard (`/store/*`)
 
-Điều kiện chung: người dùng là chủ gian hàng (xác định được qua `GET /api/v1/stores/my-store`) hoặc nhân viên. **Chưa xác định được trường hợp nhân viên** (Q1). Menu hiển thị theo quyền chỉ ở mức tên role; `403` là quyết định thật.
+Tại `/store`, chủ gian hàng dùng `GET /api/v1/stores/my-store` để mở phần quản lý. Nhân viên có `STORE_WORKSPACE_ACCESS` xem thông tin gian hàng theo `storeId` từ `GET /api/v1/users/me`. Nhân viên mở thẳng `/open-store` sẽ được chuyển về `/store` nếu có quyền và liên kết. Tài khoản có cả hai role ưu tiên gian hàng do họ sở hữu. Backend xác minh quyền cho từng request.
 
 ### 7.1 Hồ sơ gian hàng `/store/profile`
 
@@ -319,7 +319,7 @@ Các trang này chỉ có khung và nhãn `TODO`, không có service.
 ### 7.2 Sản phẩm của gian hàng `/store/products`, `/new`, `/:productId/edit`
 
 - Liệt kê cho chủ gian hàng bằng `GET /api/v1/stores/my-store/products` trên Backend local. Danh sách phân trang gồm tin `ACTIVE` và `HIDDEN`.
-- Tạo tin gửi `storeId` của gian hàng. Sửa, xóa và đổi trạng thái dùng contract mục 3.4; form sửa gửi `version` từ chi tiết sản phẩm.
+- Tạo tin gửi `storeId` của gian hàng. Chủ gian hàng lấy ID từ `my-store`; nhân viên có `PRODUCT_CREATE` dùng gian hàng liên kết từ hồ sơ phiên. Sửa, xóa và đổi trạng thái dùng contract mục 3.4; form sửa gửi `version` từ chi tiết sản phẩm.
 - Chủ gian hàng mở chi tiết từ danh sách để sửa, ẩn/hiện hoặc xóa tin. Trang chi tiết và route sửa đối chiếu `storeId` của tin với gian hàng của tài khoản đang đăng nhập.
 - Quyền Backend: `PRODUCT_CREATE`, `PRODUCT_MANAGE_OWN`. Lỗi `STORE_015` (403): không có quyền với tài nguyên của gian hàng này.
 - Frontend đã có danh sách và các thao tác quản lý. Test tự động dùng mock service, chờ kiểm tra với Backend thật.
@@ -339,7 +339,7 @@ Các trang này chỉ có khung và nhãn `TODO`, không có service.
 
 | Route | Lý do | Trạng thái |
 |---|---|---|
-| `/store` (tổng quan) | Chưa có API thống kê | `NOT_FOUND`, skeleton |
+| Thống kê ở `/store` | Chưa có API thống kê | `NOT_FOUND` |
 | `/store/orders` | Chưa có order phía người bán (Q15) | `NOT_FOUND`, skeleton |
 | `/store/vouchers` | Chưa có API voucher cho người bán | `PLANNED`, skeleton |
 | `/store/offers` | Chưa có code offer (Q8) | `NOT_FOUND`, skeleton |
