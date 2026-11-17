@@ -13,6 +13,7 @@ export function StoreOverviewPage() {
   const userId = profileQuery.data?.id
   const storeQuery = useMyStore(userId)
   const store = storeQuery.data
+  const canManageStaff = profileQuery.data?.permissions?.includes('STORE_STAFF_MANAGE')
 
   if (!userId || storeQuery.error?.status === 403) {
     return <ForbiddenState />
@@ -53,6 +54,12 @@ export function StoreOverviewPage() {
         <Button asChild variant="outline">
           <Link to="/store/products">{t('stores.productsTitle')}</Link>
         </Button>
+
+        {canManageStaff && store.status !== 'BLOCKED' && (
+          <Button asChild variant="outline">
+            <Link to="/store/staff">{t('stores.staff.title')}</Link>
+          </Button>
+        )}
       </div>
     </section>
   )

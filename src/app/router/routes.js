@@ -88,6 +88,13 @@ export const routes = [
                 }),
               },
               {
+                path: 'store/staff',
+                lazy: async () => ({
+                  Component: (await import('@/features/stores/pages/StoreStaffPage'))
+                    .StoreStaffPage,
+                }),
+              },
+              {
                 path: 'store/products',
                 lazy: async () => ({
                   Component: (await import('@/features/stores/pages/StoreProductsPage'))

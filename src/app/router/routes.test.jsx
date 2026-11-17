@@ -23,10 +23,14 @@ import {
   updateProduct,
 } from '@/services/products/productService'
 import {
+  addStoreStaff,
   createStore,
   getMyStore,
   getPublicStore,
+  getStoreStaff,
+  removeStoreStaff,
   updateMyStore,
+  updateStoreStaffPermissions,
 } from '@/services/stores/storeService'
 import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
 
@@ -38,10 +42,14 @@ vi.mock('@/services/users/userService', () => ({
   updateMyProfile: vi.fn(),
 }))
 vi.mock('@/services/stores/storeService', () => ({
+  addStoreStaff: vi.fn(),
   createStore: vi.fn(),
   getMyStore: vi.fn(),
   getPublicStore: vi.fn(),
+  getStoreStaff: vi.fn(),
+  removeStoreStaff: vi.fn(),
   updateMyStore: vi.fn(),
+  updateStoreStaffPermissions: vi.fn(),
 }))
 vi.mock('@/services/categories/categoryService', () => ({
   getCategoryById: vi.fn(),
@@ -78,9 +86,13 @@ beforeEach(() => {
   vi.mocked(updateProduct).mockReset()
   vi.mocked(createStoreProduct).mockReset()
   vi.mocked(createStore).mockReset()
+  vi.mocked(addStoreStaff).mockReset()
   vi.mocked(getMyStore).mockReset()
   vi.mocked(getPublicStore).mockReset()
+  vi.mocked(getStoreStaff).mockReset()
+  vi.mocked(removeStoreStaff).mockReset()
   vi.mocked(updateMyStore).mockReset()
+  vi.mocked(updateStoreStaffPermissions).mockReset()
   vi.mocked(getCategoryById).mockReset()
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
   vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
@@ -1326,6 +1338,234 @@ describe('user app routing', () => {
       expect(await screen.findByRole('textbox', { name: 'Tên gian hàng' })).toHaveValue(
         myStore.name,
       )
+    })
+  })
+
+  describe('listing store staff', () => {
+    beforeEach(() => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMe).mockResolvedValue({
+        id: 'test-user',
+        roles: ['OWNER'],
+        permissions: ['STORE_STAFF_MANAGE'],
+      })
+    })
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    test('opens the staff list from the store overview and shows member details', async () => {
+      vi.mocked(getMyStore).mockResolvedValue({ ...store, status: 'ACTIVE' })
+      vi.mocked(getStoreStaff).mockResolvedValue([
+        {
+          id: 'staff-1',
+          fullName: 'Nguyễn An',
+          email: 'staff@example.com',
+          permissions: ['PRODUCT_CREATE', 'STORE_WORKSPACE_ACCESS'],
+        },
+      ])
+      const user = renderRoute('/store')
+
+      await user.click(await screen.findByRole('link', { name: 'Nhân viên gian hàng' }))
+
+      expect(await screen.findByRole('heading', { name: 'Nguyễn An' })).toBeInTheDocument()
+      expect(screen.getByText('staff@example.com')).toBeInTheDocument()
+      expect(screen.getByText('PRODUCT_CREATE, STORE_WORKSPACE_ACCESS')).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/store/staff')
+    })
+
+    test('shows an empty state when there are no staff members', async () => {
+      vi.mocked(getStoreStaff).mockResolvedValue([])
+      renderRoute('/store/staff')
+
+      expect(await screen.findByRole('heading', { name: 'Chưa có nhân viên' })).toBeInTheDocument()
+    })
+
+    test('adds a staff member and reloads the list', async () => {
+      const member = {
+        id: 'staff-1',
+        fullName: 'Nguyễn An',
+        email: 'staff@example.com',
+        permissions: ['STORE_WORKSPACE_ACCESS'],
+      }
+      vi.mocked(getStoreStaff).mockResolvedValueOnce([]).mockResolvedValue([member])
+      vi.mocked(addStoreStaff).mockResolvedValueOnce(member)
+      const user = renderRoute('/store/staff')
+
+      const email = await screen.findByRole('textbox', { name: 'Email tài khoản nhân viên' })
+      await user.type(email, member.email)
+      await user.click(screen.getByRole('button', { name: 'Thêm nhân viên' }))
+
+      expect(await screen.findByRole('heading', { name: member.fullName })).toBeInTheDocument()
+      expect(await screen.findByText('Đã thêm nhân viên.')).toHaveAttribute('role', 'status')
+      expect(email).toHaveValue('')
+      expect(vi.mocked(addStoreStaff).mock.calls[0][0]).toEqual({ email: member.email })
+      expect(addStoreStaff).toHaveBeenCalledOnce()
+      expect(getStoreStaff).toHaveBeenCalledTimes(2)
+    })
+
+    test('rejects an invalid email before sending an add-staff request', async () => {
+      vi.mocked(getStoreStaff).mockResolvedValue([])
+      const user = renderRoute('/store/staff')
+      const email = await screen.findByRole('textbox', { name: 'Email tài khoản nhân viên' })
+
+      await user.type(email, 'invalid-email')
+      await user.click(screen.getByRole('button', { name: 'Thêm nhân viên' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Vui lòng nhập email hợp lệ.')
+      expect(addStoreStaff).not.toHaveBeenCalled()
+    })
+
+    test.each([
+      { grantChat: true, permissions: ['CHAT_SEND'] },
+      { grantChat: false, permissions: [] },
+    ])(
+      'saves the selected permissions and reloads the staff list ($permissions)',
+      async ({ grantChat, permissions }) => {
+        const member = {
+          id: 'staff-1',
+          fullName: 'Nguyễn An',
+          email: 'staff@example.com',
+          permissions: ['PRODUCT_CREATE', 'STORE_WORKSPACE_ACCESS'],
+        }
+        const updated = { ...member, permissions: [...permissions, 'STORE_WORKSPACE_ACCESS'] }
+        vi.mocked(getStoreStaff).mockResolvedValueOnce([member]).mockResolvedValue([updated])
+        vi.mocked(updateStoreStaffPermissions).mockResolvedValueOnce(updated)
+        const user = renderRoute('/store/staff')
+
+        await user.click(await screen.findByRole('button', { name: 'Đổi quyền' }))
+        expect(screen.getByRole('group', { name: 'Đổi quyền' })).toBeInTheDocument()
+        const createListings = screen.getByRole('checkbox', { name: 'Đăng sản phẩm' })
+        const sendMessages = screen.getByRole('checkbox', { name: 'Gửi tin nhắn' })
+        const save = screen.getByRole('button', { name: 'Lưu' })
+        expect(createListings).toBeChecked()
+        expect(sendMessages).not.toBeChecked()
+        expect(save).toBeDisabled()
+
+        await user.click(createListings)
+        await user.click(screen.getByRole('button', { name: 'Hủy' }))
+        expect(updateStoreStaffPermissions).not.toHaveBeenCalled()
+        await user.click(screen.getByRole('button', { name: 'Đổi quyền' }))
+        expect(screen.getByRole('checkbox', { name: 'Đăng sản phẩm' })).toBeChecked()
+
+        await user.click(screen.getByRole('checkbox', { name: 'Đăng sản phẩm' }))
+        if (grantChat) await user.click(screen.getByRole('checkbox', { name: 'Gửi tin nhắn' }))
+        await user.click(screen.getByRole('button', { name: 'Lưu' }))
+
+        expect(await screen.findByText('Đã cập nhật quyền nhân viên.')).toHaveAttribute(
+          'role',
+          'status',
+        )
+        expect(screen.getByText(updated.permissions.join(', '))).toBeInTheDocument()
+        expect(screen.queryByRole('group', { name: 'Đổi quyền' })).not.toBeInTheDocument()
+        expect(vi.mocked(updateStoreStaffPermissions).mock.calls[0][0]).toEqual({
+          staffId: member.id,
+          permissions,
+        })
+        expect(updateStoreStaffPermissions).toHaveBeenCalledOnce()
+        expect(getStoreStaff).toHaveBeenCalledTimes(2)
+      },
+    )
+
+    test('shows a field error and keeps the email when the account is already employed', async () => {
+      vi.mocked(getStoreStaff).mockResolvedValue([])
+      vi.mocked(addStoreStaff).mockRejectedValueOnce(
+        Object.assign(new Error('Already employed'), {
+          status: 409,
+          code: 'STAFF_ALREADY_EMPLOYED',
+        }),
+      )
+      const user = renderRoute('/store/staff')
+      const email = await screen.findByRole('textbox', { name: 'Email tài khoản nhân viên' })
+
+      await user.type(email, 'staff@example.com')
+      await user.click(screen.getByRole('button', { name: 'Thêm nhân viên' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Tài khoản này đã là nhân viên của một gian hàng.',
+      )
+      expect(email).toHaveAttribute('aria-invalid', 'true')
+      expect(email).toHaveValue('staff@example.com')
+      expect(getStoreStaff).toHaveBeenCalledOnce()
+    })
+
+    test('blocks a user without staff management permission before making a request', async () => {
+      vi.mocked(getMe).mockResolvedValue({ id: 'test-user', roles: ['USER'], permissions: [] })
+      renderRoute('/store/staff')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Không có quyền xem nội dung')
+      expect(getStoreStaff).not.toHaveBeenCalled()
+    })
+
+    test('handles a backend denial even when the session has staff management permission', async () => {
+      vi.mocked(getStoreStaff).mockRejectedValueOnce(
+        Object.assign(new Error('Forbidden'), {
+          status: 403,
+        }),
+      )
+      renderRoute('/store/staff')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Không có quyền xem nội dung')
+      expect(getStoreStaff).toHaveBeenCalledOnce()
+    })
+
+    test('removes a staff member only after confirmation and reloads the list', async () => {
+      const member = {
+        id: 'staff-1',
+        fullName: 'Nguyễn An',
+        email: 'staff@example.com',
+        permissions: ['STORE_WORKSPACE_ACCESS'],
+      }
+      vi.mocked(getStoreStaff).mockResolvedValueOnce([member]).mockResolvedValue([])
+      vi.mocked(removeStoreStaff).mockResolvedValueOnce(undefined)
+      const confirm = vi
+        .spyOn(window, 'confirm')
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true)
+      const user = renderRoute('/store/staff')
+      const button = await screen.findByRole('button', { name: 'Xóa nhân viên' })
+
+      await user.click(button)
+      expect(removeStoreStaff).not.toHaveBeenCalled()
+      expect(screen.getByRole('heading', { name: member.fullName })).toBeInTheDocument()
+
+      await user.click(button)
+      expect(await screen.findByRole('heading', { name: 'Chưa có nhân viên' })).toBeInTheDocument()
+      expect(confirm).toHaveBeenCalledWith(expect.stringContaining(member.fullName))
+      expect(vi.mocked(removeStoreStaff).mock.calls[0][0]).toEqual({ staffId: member.id })
+      expect(removeStoreStaff).toHaveBeenCalledOnce()
+      expect(getStoreStaff).toHaveBeenCalledTimes(2)
+    })
+
+    test('keeps the staff member visible when removal fails', async () => {
+      const member = {
+        id: 'staff-1',
+        fullName: 'Nguyễn An',
+        email: 'staff@example.com',
+        permissions: ['STORE_WORKSPACE_ACCESS'],
+      }
+      vi.mocked(getStoreStaff).mockResolvedValue([member])
+      vi.mocked(removeStoreStaff).mockRejectedValueOnce(new Error('Removal failed'))
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      const user = renderRoute('/store/staff')
+      const button = await screen.findByRole('button', { name: 'Xóa nhân viên' })
+
+      await user.click(button)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xóa nhân viên.')
+      expect(screen.getByRole('heading', { name: member.fullName })).toBeInTheDocument()
+      expect(button).toBeEnabled()
+      expect(getStoreStaff).toHaveBeenCalledOnce()
+    })
+
+    test('shows the locked store warning for STORE_BLOCKED', async () => {
+      vi.mocked(getStoreStaff).mockRejectedValueOnce(
+        Object.assign(new Error('Blocked'), { status: 403, code: 'STORE_BLOCKED' }),
+      )
+      renderRoute('/store/staff')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Gian hàng tạm không khả dụng')
     })
   })
 

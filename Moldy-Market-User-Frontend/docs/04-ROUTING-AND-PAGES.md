@@ -109,7 +109,7 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 | `/store/products` | `StoreProductsPage` | `GET /api/v1/stores/my-store/products` | Có trên Backend local, chờ kiểm tra HTTP | Có danh sách phân trang, chờ kiểm tra với Backend thật |
 | `/store/products/new` | `ProductCreatePage` | Kiểm tra `GET /api/v1/stores/my-store`, sau đó `POST /api/v1/products` kèm `storeId` | `IMPLEMENTED` | Có form, chờ kiểm tra với Backend thật |
 | `/store/products/:productId/edit` | `ProductEditPage` | `GET /api/v1/stores/my-store`, `GET` và `PUT /api/v1/products/{id}` (xem 3.3) | `IMPLEMENTED` | Có form sửa và kiểm tra quyền gian hàng, chờ kiểm tra với Backend thật |
-| `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | `NOT_STARTED` |
+| `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | Có danh sách, thêm bằng email, đổi quyền và xóa, chờ kiểm tra với Backend thật |
 | `/store/orders` | `StoreOrdersPage` | Không có order phía người bán (Q15) | `NOT_FOUND` | `NOT_STARTED` |
 | `/store/vouchers` | `StoreVouchersPage` | Chưa có API voucher cho người bán (`VOUCHER_SELLER_MANAGE` chỉ là permission) | `PLANNED` | `NOT_STARTED` |
 | `/store/offers` | `StoreOffersPage` | Không có code offer (Q8) | `NOT_FOUND` | `NOT_STARTED` |

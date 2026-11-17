@@ -220,6 +220,49 @@
       "submitting": "Đang tạo gian hàng…",
       "submitError": "Không thể tạo gian hàng. Vui lòng thử lại."
     },
+    "staff": {
+      "title": "Nhân viên gian hàng",
+      "loading": "Đang tải danh sách nhân viên…",
+      "loadError": "Chưa tải được danh sách nhân viên.",
+      "emptyTitle": "Chưa có nhân viên",
+      "emptyDescription": "Danh sách sẽ hiển thị khi có nhân viên được thêm vào gian hàng.",
+      "permissions": "Quyền được cấp",
+      "noPermissions": "Chưa có quyền được cấp.",
+      "remove": {
+        "action": "Xóa nhân viên",
+        "confirm": "Bạn có chắc muốn xóa {{name}} khỏi gian hàng? Quyền nhân viên tại gian hàng này sẽ bị thu hồi.",
+        "pending": "Đang xóa…",
+        "submitError": "Không thể xóa nhân viên. Vui lòng thử lại."
+      },
+      "editPermissions": {
+        "title": "Đổi quyền",
+        "saving": "Đang lưu quyền…",
+        "saved": "Đã cập nhật quyền nhân viên.",
+        "submitError": "Không thể lưu quyền nhân viên. Vui lòng thử lại.",
+        "staffNotFound": "Nhân viên này không còn trong gian hàng. Vui lòng tải lại trang.",
+        "options": {
+          "PRODUCT_CREATE": "Đăng sản phẩm",
+          "APPRAISAL_REQUEST_CREATE": "Tạo yêu cầu thẩm định",
+          "ORDER_PROCESS": "Xử lý đơn hàng",
+          "ORDER_CANCEL": "Hủy đơn hàng",
+          "OFFER_HANDLE": "Xử lý đề nghị",
+          "CHAT_SEND": "Gửi tin nhắn"
+        }
+      },
+      "add": {
+        "title": "Thêm nhân viên",
+        "email": "Email tài khoản nhân viên",
+        "emailInvalid": "Vui lòng nhập email hợp lệ.",
+        "accountNotFound": "Không tìm thấy tài khoản với email này.",
+        "accountNotActive": "Tài khoản này chưa ở trạng thái hoạt động.",
+        "alreadyEmployed": "Tài khoản này đã là nhân viên của một gian hàng.",
+        "ineligibleAccount": "Tài khoản này không đủ điều kiện làm nhân viên gian hàng.",
+        "limitReached": "Gian hàng đã đạt giới hạn 10 nhân viên.",
+        "submitError": "Không thể thêm nhân viên. Vui lòng thử lại.",
+        "submitting": "Đang thêm…",
+        "success": "Đã thêm nhân viên."
+      }
+    },
     "profile": {
       "title": "Hồ sơ gian hàng",
       "back": "Về gian hàng",

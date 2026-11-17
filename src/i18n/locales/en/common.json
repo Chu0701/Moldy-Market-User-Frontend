@@ -220,6 +220,49 @@
       "submitting": "Creating store…",
       "submitError": "Could not create the store. Please try again."
     },
+    "staff": {
+      "title": "Store staff",
+      "loading": "Loading store staff…",
+      "loadError": "Unable to load store staff.",
+      "emptyTitle": "No staff members yet",
+      "emptyDescription": "Staff members will appear here once they are added to the store.",
+      "permissions": "Assigned permissions",
+      "noPermissions": "No permissions assigned.",
+      "remove": {
+        "action": "Remove staff member",
+        "confirm": "Remove {{name}} from this store? Their staff access to this store will be revoked.",
+        "pending": "Removing…",
+        "submitError": "Could not remove the staff member. Please try again."
+      },
+      "editPermissions": {
+        "title": "Edit permissions",
+        "saving": "Saving permissions…",
+        "saved": "Staff permissions updated.",
+        "submitError": "Could not save staff permissions. Please try again.",
+        "staffNotFound": "This person is no longer on the store staff. Please reload the page.",
+        "options": {
+          "PRODUCT_CREATE": "Create listings",
+          "APPRAISAL_REQUEST_CREATE": "Request appraisals",
+          "ORDER_PROCESS": "Process orders",
+          "ORDER_CANCEL": "Cancel orders",
+          "OFFER_HANDLE": "Handle offers",
+          "CHAT_SEND": "Send messages"
+        }
+      },
+      "add": {
+        "title": "Add staff member",
+        "email": "Staff account email",
+        "emailInvalid": "Enter a valid email address.",
+        "accountNotFound": "No account was found with this email.",
+        "accountNotActive": "This account is not active.",
+        "alreadyEmployed": "This account is already a staff member at a store.",
+        "ineligibleAccount": "This account is not eligible to join as a staff member.",
+        "limitReached": "This store has reached the limit of 10 staff members.",
+        "submitError": "Could not add the staff member. Please try again.",
+        "submitting": "Adding…",
+        "success": "Staff member added."
+      }
+    },
     "profile": {
       "title": "Store profile",
       "back": "Back to store",

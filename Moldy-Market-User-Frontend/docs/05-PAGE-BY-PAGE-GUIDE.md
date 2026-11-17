@@ -329,8 +329,11 @@ Các trang này chỉ có khung và nhãn `TODO`, không có service.
 - API (đã xác minh) dưới `/api/v1/stores/my-store/staff`: thêm (`POST`, trực tiếp bằng email), danh sách (`GET`), đổi permission (`PUT /{staffId}/permissions`), xóa (`DELETE /{staffId}`), `GET /me`. Quyền: `STORE_STAFF_MANAGE`.
 - Điều kiện: người được thêm phải có tài khoản `ACTIVE` (liên quan B10).
 - **Mời** nhân viên là `PLANNED`: giao diện không có bước "gửi lời mời", chỉ có "thêm trực tiếp".
-- Danh sách permission chọn được lấy từ đâu chưa rõ (doc 14 chỉ liệt kê vài mã ví dụ); cần danh mục permission từ team trước khi dựng giao diện chọn quyền.
-- Backend `IMPLEMENTED`; FE `NOT_STARTED`.
+- Form đổi quyền dùng sáu mã đã đối chiếu với `StoreStaffService`: `PRODUCT_CREATE`, `APPRAISAL_REQUEST_CREATE`, `ORDER_PROCESS`, `ORDER_CANCEL`, `OFFER_HANDLE`, `CHAT_SEND`.
+- Frontend có danh sách tên, email, quyền được cấp và form thêm nhân viên bằng email. Form gửi `permissions: []`; Backend tự cấp `STORE_WORKSPACE_ACCESS`. Sau khi thêm thành công, danh sách tải lại.
+- Đổi quyền gửi toàn bộ danh sách được chọn qua `PUT` và tải lại danh sách nhân viên. Bỏ chọn hết gửi `[]`; Backend giữ `STORE_WORKSPACE_ACCESS`.
+- Xóa nhân viên yêu cầu xác nhận trước khi gọi `DELETE`. Sau khi Backend thu hồi role `STAFF` tại gian hàng và trả thành công, Frontend tải lại danh sách.
+- Danh sách, thêm, đổi quyền và xóa chờ kiểm tra với Backend thật.
 
 ### 7.4 Các trang chưa có Backend
 

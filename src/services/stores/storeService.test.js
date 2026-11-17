@@ -1,7 +1,16 @@
 import { afterEach, expect, test, vi } from 'vitest'
 
 import { apiClient } from '@/services/api/client'
-import { createStore, getMyStore, getPublicStore, updateMyStore } from './storeService'
+import {
+  addStoreStaff,
+  createStore,
+  getMyStore,
+  getPublicStore,
+  getStoreStaff,
+  removeStoreStaff,
+  updateMyStore,
+  updateStoreStaffPermissions,
+} from './storeService'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -58,4 +67,70 @@ test('updates the current store and sends null to clear optional fields', async 
 
   await expect(updateMyStore(changes)).resolves.toEqual(store)
   expect(put).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store', changes)
+})
+
+test('requests the current store staff and unwraps the array response', async () => {
+  const staff = [{ id: 'staff-1', email: 'staff@example.com', permissions: ['PRODUCT_CREATE'] }]
+  const { signal } = new AbortController()
+  const get = vi.spyOn(apiClient, 'get').mockResolvedValue({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: staff },
+  })
+
+  await expect(getStoreStaff({ signal })).resolves.toEqual(staff)
+  expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store/staff', { signal })
+})
+
+test('adds a staff member by email without assigning business permissions', async () => {
+  const email = 'staff@example.com'
+  const staff = { id: 'staff-1', email, permissions: ['STORE_WORKSPACE_ACCESS'] }
+  const post = vi.spyOn(apiClient, 'post').mockResolvedValue({
+    status: 201,
+    data: { success: true, code: 'SUCCESS', data: staff },
+  })
+
+  await expect(addStoreStaff({ email })).resolves.toEqual(staff)
+  expect(post).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store/staff', {
+    email,
+    permissions: [],
+  })
+})
+
+test('encodes the staff ID and sends the complete permissions selection', async () => {
+  const staff = { id: 'staff/1', permissions: ['STORE_WORKSPACE_ACCESS'] }
+  const put = vi.spyOn(apiClient, 'put').mockResolvedValue({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: staff },
+  })
+
+  await expect(
+    updateStoreStaffPermissions({ staffId: staff.id, permissions: [] }),
+  ).resolves.toEqual(staff)
+  expect(put).toHaveBeenCalledExactlyOnceWith(
+    '/api/v1/stores/my-store/staff/staff%2F1/permissions',
+    {
+      permissions: [],
+    },
+  )
+})
+
+test('removes a staff member by encoded ID and accepts the null success payload', async () => {
+  const remove = vi.spyOn(apiClient, 'delete').mockResolvedValue({
+    status: 200,
+    data: { success: true, code: 'SUCCESS', data: null },
+  })
+
+  await expect(removeStoreStaff({ staffId: 'staff/1' })).resolves.toBeUndefined()
+  expect(remove).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store/staff/staff%2F1')
+})
+
+test('rejects a failed remove-staff response envelope', async () => {
+  vi.spyOn(apiClient, 'delete').mockResolvedValue({
+    status: 200,
+    data: { success: false, code: 'STAFF_NOT_FOUND', data: null },
+  })
+
+  await expect(removeStoreStaff({ staffId: 'staff-1' })).rejects.toMatchObject({
+    code: 'STAFF_NOT_FOUND',
+  })
 })
