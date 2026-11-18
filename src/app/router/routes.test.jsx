@@ -10,7 +10,13 @@ import { routes } from '@/app/router/routes'
 import i18n from '@/i18n'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
-import { login, logout } from '@/services/auth/authService'
+import {
+  login,
+  logout,
+  registerAccount,
+  resendVerification,
+  verifyEmail,
+} from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
 import {
   changeProductStatus,
@@ -35,7 +41,13 @@ import {
 import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
-vi.mock('@/services/auth/authService', () => ({ login: vi.fn(), logout: vi.fn() }))
+vi.mock('@/services/auth/authService', () => ({
+  login: vi.fn(),
+  logout: vi.fn(),
+  registerAccount: vi.fn(),
+  resendVerification: vi.fn(),
+  verifyEmail: vi.fn(),
+}))
 vi.mock('@/services/users/userService', () => ({
   changePassword: vi.fn(),
   getMe: vi.fn(),
@@ -73,6 +85,9 @@ beforeEach(() => {
   vi.mocked(waitForPendingRefresh).mockReset().mockResolvedValue(undefined)
   vi.mocked(login).mockReset()
   vi.mocked(logout).mockReset()
+  vi.mocked(registerAccount).mockReset()
+  vi.mocked(resendVerification).mockReset()
+  vi.mocked(verifyEmail).mockReset()
   vi.mocked(changePassword).mockReset()
   vi.mocked(updateMyProfile).mockReset()
   vi.mocked(getMe)
@@ -1166,7 +1181,154 @@ describe('user app routing', () => {
     )
   })
 
-  test('uses the auth layout and navigates to the register placeholder', async () => {
+  describe('registering an account', () => {
+    async function fillRegistration(user, confirmPassword = ' password ') {
+      await user.type(await screen.findByLabelText('Họ và tên'), ' Chu ')
+      await user.type(screen.getByLabelText('Email'), ' chu@example.com ')
+      await user.type(screen.getByLabelText('Số điện thoại (tùy chọn)'), '0901234567')
+      await user.type(screen.getByLabelText('Mật khẩu'), ' password ')
+      await user.type(screen.getByLabelText('Nhập lại mật khẩu'), confirmPassword)
+      await user.click(screen.getByRole('button', { name: 'Đăng ký' }))
+    }
+
+    test('creates a pending account and clears the password form without signing in', async () => {
+      vi.mocked(registerAccount).mockResolvedValue({
+        userId: 'new-user',
+        email: 'chu@example.com',
+        fullName: 'Chu',
+        status: 'PENDING_VERIFICATION',
+      })
+      const user = renderRoute('/register')
+      await fillRegistration(user)
+
+      expect(await screen.findByRole('status')).toHaveTextContent(
+        'Hoàn tất xác nhận tài khoản cho chu@example.com',
+      )
+      expect(registerAccount).toHaveBeenCalledExactlyOnceWith({
+        fullName: 'Chu',
+        email: 'chu@example.com',
+        phone: '0901234567',
+        password: ' password ',
+      })
+      expect(screen.getByLabelText('Mật khẩu')).toHaveValue('')
+      expect(screen.getByLabelText('Email')).toHaveValue('chu@example.com')
+      expect(screen.getByRole('button', { name: 'Gửi lại sau 60 giây' })).toBeDisabled()
+      expect(getAccessToken()).toBeNull()
+      expect(login).not.toHaveBeenCalled()
+    })
+
+    test('rejects mismatched confirmation before sending the request', async () => {
+      const user = renderRoute('/register')
+      await fillRegistration(user, 'different-password')
+      expect(await screen.findByRole('alert')).toHaveTextContent('Hai mật khẩu không khớp.')
+      expect(registerAccount).not.toHaveBeenCalled()
+    })
+
+    test('resumes verification for a pending email and allows requesting a new OTP', async () => {
+      vi.mocked(registerAccount).mockRejectedValueOnce(
+        Object.assign(new Error('Pending verification'), {
+          status: 403,
+          code: 'EMAIL_NOT_VERIFIED',
+        }),
+      )
+      vi.mocked(resendVerification).mockResolvedValueOnce(undefined)
+      const user = renderRoute('/register')
+      await fillRegistration(user)
+
+      expect(await screen.findByLabelText('Mã OTP')).toHaveValue('')
+      expect(screen.getByLabelText('Email')).toHaveValue('chu@example.com')
+      expect(screen.getByLabelText('Mật khẩu')).toHaveValue('')
+      await user.click(screen.getByRole('button', { name: 'Gửi lại mã' }))
+      expect(resendVerification).toHaveBeenCalledExactlyOnceWith({ email: 'chu@example.com' })
+      expect(login).not.toHaveBeenCalled()
+    })
+
+    test.each([
+      ['EMAIL_ALREADY_EXISTS', 'Email', 'Email này đã được đăng ký.'],
+      ['PHONE_ALREADY_EXISTS', 'Số điện thoại (tùy chọn)', 'Số điện thoại này đã được sử dụng.'],
+    ])('maps %s to the appropriate input', async (code, label, message) => {
+      vi.mocked(registerAccount).mockRejectedValueOnce(
+        Object.assign(new Error('Duplicate'), { status: 409, code }),
+      )
+      const user = renderRoute('/register')
+      await fillRegistration(user)
+      expect(await screen.findByRole('alert')).toHaveTextContent(message)
+      expect(screen.getByLabelText(label)).toHaveAttribute('aria-invalid', 'true')
+    })
+  })
+
+  describe('verifying an email', () => {
+    async function fillVerification(user, code = '012345', confirmation = ' final-password ') {
+      await user.type(await screen.findByLabelText('Email'), ' chu@example.com ')
+      await user.type(screen.getByLabelText('Mã OTP'), code)
+      await user.type(screen.getByLabelText('Mật khẩu'), ' final-password ')
+      await user.type(screen.getByLabelText('Nhập lại mật khẩu'), confirmation)
+      await user.click(screen.getByRole('button', { name: 'Xác nhận email' }))
+    }
+
+    test('verifies the email and lets the user proceed to login', async () => {
+      vi.mocked(verifyEmail).mockResolvedValueOnce(undefined)
+      const user = renderRoute('/verify-email')
+      await fillVerification(user)
+
+      expect(await screen.findByRole('status')).toHaveTextContent('Email đã được xác nhận.')
+      expect(verifyEmail).toHaveBeenCalledExactlyOnceWith({
+        email: 'chu@example.com',
+        code: '012345',
+        password: ' final-password ',
+        confirmPassword: ' final-password ',
+      })
+      expect(screen.queryByLabelText('Mã OTP')).not.toBeInTheDocument()
+      expect(getAccessToken()).toBeNull()
+      await user.click(screen.getByRole('link', { name: 'Đăng nhập' }))
+      expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+    })
+
+    test('rejects an incomplete code before sending the request', async () => {
+      const user = renderRoute('/verify-email')
+      await fillVerification(user, '12345')
+      expect(await screen.findByRole('alert')).toHaveTextContent('Vui lòng nhập mã gồm 6 chữ số.')
+      expect(verifyEmail).not.toHaveBeenCalled()
+    })
+
+    test('rejects mismatched final passwords before sending the OTP', async () => {
+      const user = renderRoute('/verify-email')
+      await fillVerification(user, '012345', 'different-password')
+      expect(await screen.findByRole('alert')).toHaveTextContent('Hai mật khẩu không khớp.')
+      expect(verifyEmail).not.toHaveBeenCalled()
+    })
+
+    test.each([
+      ['OTP_INVALID', 'Mã xác nhận không đúng.'],
+      ['OTP_EXPIRED', 'Mã đã hết hạn'],
+      ['OTP_ATTEMPTS_EXCEEDED', 'Bạn đã nhập sai quá nhiều lần.'],
+    ])('handles %s and keeps the verification form available', async (code, message) => {
+      vi.mocked(verifyEmail).mockRejectedValueOnce(
+        Object.assign(new Error('Verification failed'), {
+          status: 400,
+          code,
+        }),
+      )
+      const user = renderRoute('/verify-email')
+      await fillVerification(user)
+      expect(await screen.findByRole('alert')).toHaveTextContent(message)
+      expect(screen.getByLabelText('Email')).toHaveValue('chu@example.com')
+    })
+
+    test('resends using the email without requiring an OTP and starts cooldown', async () => {
+      vi.mocked(resendVerification).mockResolvedValueOnce(undefined)
+      const user = renderRoute('/verify-email')
+      await user.type(await screen.findByLabelText('Email'), ' chu@example.com ')
+      await user.click(screen.getByRole('button', { name: 'Gửi lại mã' }))
+
+      expect(await screen.findByRole('status')).toHaveTextContent('mã mới đã được gửi.')
+      expect(resendVerification).toHaveBeenCalledExactlyOnceWith({ email: 'chu@example.com' })
+      expect(screen.getByRole('button', { name: 'Gửi lại sau 60 giây' })).toBeDisabled()
+      expect(verifyEmail).not.toHaveBeenCalled()
+    })
+  })
+
+  test('uses the auth layout and navigates to registration', async () => {
     const user = renderRoute('/login')
     await screen.findByRole('heading', { name: 'Đăng nhập' })
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument()

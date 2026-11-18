@@ -41,3 +41,35 @@ export async function logout() {
   const response = await apiClient.post('/api/v1/auth/logout', undefined, authRequestConfig)
   unwrap(response)
 }
+
+/**
+ * @param {{ email: string, password: string, fullName: string, phone?: string }} account
+ * @returns {Promise<{ userId: string, email: string, fullName: string, status: string }>}
+ */
+export async function registerAccount({ email, password, fullName, phone }) {
+  const response = await apiClient.post('/api/v1/auth/register', {
+    email,
+    password,
+    fullName,
+    phone,
+  })
+
+  return unwrap(response)
+}
+
+/** @param {{ email: string, code: string, password: string }} verification */
+export async function verifyEmail({ email, code, password }) {
+  const response = await apiClient.post('/api/v1/auth/verify-email', {
+    email,
+    code,
+    password,
+  })
+  unwrap(response)
+}
+
+/** @param {{ email: string }} account */
+export async function resendVerification({ email }) {
+  const response = await apiClient.post('/api/v1/auth/resend-verification', { email })
+
+  unwrap(response)
+}

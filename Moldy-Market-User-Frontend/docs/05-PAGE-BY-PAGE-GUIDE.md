@@ -146,10 +146,10 @@ Lỗi hay gặp: dùng một thông báo duy nhất "đăng nhập thất bại"
 | API (đã xác minh) | `POST /api/v1/auth/register` với `{ email, password, fullName, phone }` |
 | Response | `{ userId, email, fullName, status }` (status là `PENDING_VERIFICATION`) |
 | Validation | Mật khẩu 8 đến 100 ký tự; `fullName` tối đa 100 ký tự (đã xác minh). Định dạng email và `phone`: **chưa audit** quy tắc cụ thể, Frontend chỉ kiểm tra định dạng cơ bản và để Backend trả `COMMON_001`. Ô "nhập lại mật khẩu" là kiểm tra thuần Frontend |
-| Sau thành công | **Chưa thể** mô tả luồng đầy đủ: tài khoản ở `PENDING_VERIFICATION` và không đăng nhập được (B10, Q14). Trang kết quả dùng thông báo trung tính ("Tài khoản đã được tạo, đang chờ kích hoạt") cho đến khi team quyết định luồng kích hoạt. Không tự động đăng nhập sau khi đăng ký |
+| Sau thành công | Hiển thị form OTP với email đã đăng ký. Người dùng nhập mã và đặt mật khẩu cuối cùng; Backend kiểm tra OTP trước khi lưu mật khẩu và chuyển sang `ACTIVE`. Đăng ký lại email pending trả `EMAIL_NOT_VERIFIED` và mở form tiếp tục xác nhận với nút xin mã mới. Email đã kích hoạt vẫn bị chặn đăng ký trùng. Có thể quay lại `/verify-email` để tiếp tục. |
 | Trạng thái giao diện | Như trang đăng nhập; lỗi email trùng: mã lỗi cụ thể **chưa đọc**, xử lý theo `code` thật khi test |
 | Quyền | Khách |
-| Trạng thái triển khai | Backend `IMPLEMENTED` (có chặn B10); FE `NOT_STARTED` |
+| Trạng thái triển khai | Có form đăng ký, xử lý email và số điện thoại trùng, xác nhận và gửi lại OTP. Backend local đã qua test; Chu đã xác nhận gửi OTP qua Gmail thật. Bước đặt mật khẩu cuối cùng khi xác nhận OTP chờ kiểm thử lại toàn luồng. |
 
 ### 2.3 Không tìm thấy `*` (`NotFoundPage`)
 

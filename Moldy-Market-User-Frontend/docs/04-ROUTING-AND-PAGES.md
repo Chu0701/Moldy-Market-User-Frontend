@@ -65,7 +65,8 @@ Ghi chú các cột:
 | Path | Page | Quyền truy cập | Phụ thuộc Backend | Backend | FE |
 |---|---|---|---|---|---|
 | `/login` | `LoginPage` | Khách | `POST /api/v1/auth/login` | `IMPLEMENTED` | `NOT_STARTED` |
-| `/register` | `RegisterPage` | Khách | `POST /api/v1/auth/register`. Lưu ý B10 và Q14: tài khoản mới ở `PENDING_VERIFICATION`, chưa đăng nhập được | `IMPLEMENTED` (có chặn B10) | `NOT_STARTED` |
+| `/register` | `RegisterPage` | Khách | `POST /api/v1/auth/register`, sau đó xác nhận OTP email | Có trên Backend local | INTEGRATED local; Chu đã xác nhận gửi OTP qua Gmail thật |
+| `/verify-email` | `VerifyEmailPage` | Khách | `POST /api/v1/auth/verify-email`, `POST /api/v1/auth/resend-verification` | Có trên Backend local | Có xác nhận và gửi lại OTP |
 | `*` | `NotFoundPage` | Công khai | Không có | Không áp dụng | `NOT_STARTED` |
 
 ### 3.3 Cần đăng nhập (`MainLayout`)

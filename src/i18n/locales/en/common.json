@@ -44,6 +44,37 @@
     "signingOut": "Signing out…"
   },
   "auth": {
+    "verify": {
+      "title": "Verify email",
+      "code": "Verification code",
+      "codeInvalid": "Enter a six-digit code.",
+      "invalid": "The verification code is incorrect.",
+      "expired": "The code has expired or has not been requested. Please request another code.",
+      "attemptsExceeded": "Too many incorrect attempts. Please request another code.",
+      "tooSoon": "Please wait 60 seconds before requesting another code.",
+      "deliveryFailed": "Unable to send the email. Please try again later.",
+      "rateLimited": "Too many attempts. Please try again later.",
+      "submitError": "Unable to process the request. Please try again.",
+      "verifying": "Verifying…",
+      "success": "Email verified. You can now sign in.",
+      "resend": "Resend code",
+      "sending": "Sending…",
+      "wait": "Resend in {{seconds}} seconds",
+      "resent": "If this email belongs to an account awaiting verification, a new code has been sent.",
+      "passwordHint": "Choose the password you want to use to sign in. It will be saved when the OTP is successfully verified."
+    },
+    "register": {
+      "phone": "Phone number (optional)",
+      "confirmPassword": "Confirm password",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordTooLong": "Password must be 100 characters or fewer.",
+      "passwordMismatch": "The passwords do not match.",
+      "emailTaken": "This email address is already registered.",
+      "rateLimited": "Too many registration attempts. Please try again later.",
+      "submitError": "Unable to register. Please try again.",
+      "submitting": "Creating account…",
+      "pending": "Complete verification for {{email}}. Request another code if the previous code has expired."
+    },
     "login": {
       "email": "Email",
       "password": "Password",

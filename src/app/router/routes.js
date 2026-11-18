@@ -172,6 +172,12 @@ export const routes = [
             }),
           },
           {
+            path: 'verify-email',
+            lazy: async () => ({
+              Component: (await import('@/features/auth/pages/VerifyEmailPage')).VerifyEmailPage,
+            }),
+          },
+          {
             // The wildcard is a real 404 page, rather than a silent redirect home.
             path: '*',
             lazy: async () => ({

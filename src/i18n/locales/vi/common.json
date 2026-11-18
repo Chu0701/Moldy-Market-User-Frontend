@@ -44,6 +44,37 @@
     "signingOut": "Đang đăng xuất…"
   },
   "auth": {
+    "verify": {
+      "title": "Xác nhận email",
+      "code": "Mã OTP",
+      "codeInvalid": "Vui lòng nhập mã gồm 6 chữ số.",
+      "invalid": "Mã xác nhận không đúng.",
+      "expired": "Mã đã hết hạn hoặc chưa được yêu cầu. Vui lòng gửi lại mã.",
+      "attemptsExceeded": "Bạn đã nhập sai quá nhiều lần. Vui lòng gửi lại mã.",
+      "tooSoon": "Vui lòng chờ đủ 60 giây trước khi gửi lại.",
+      "deliveryFailed": "Chưa thể gửi email. Vui lòng thử lại sau.",
+      "rateLimited": "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.",
+      "submitError": "Chưa thể xử lý yêu cầu. Vui lòng thử lại.",
+      "verifying": "Đang xác nhận…",
+      "success": "Email đã được xác nhận. Bạn có thể đăng nhập.",
+      "resend": "Gửi lại mã",
+      "sending": "Đang gửi…",
+      "wait": "Gửi lại sau {{seconds}} giây",
+      "resent": "Nếu email thuộc tài khoản đang chờ xác nhận, mã mới đã được gửi.",
+      "passwordHint": "Đặt mật khẩu bạn muốn dùng để đăng nhập. Mật khẩu này được lưu khi OTP được xác nhận thành công."
+    },
+    "register": {
+      "phone": "Số điện thoại (tùy chọn)",
+      "confirmPassword": "Nhập lại mật khẩu",
+      "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự.",
+      "passwordTooLong": "Mật khẩu tối đa 100 ký tự.",
+      "passwordMismatch": "Hai mật khẩu không khớp.",
+      "emailTaken": "Email này đã được đăng ký.",
+      "rateLimited": "Bạn đã thử đăng ký quá nhiều lần. Vui lòng thử lại sau.",
+      "submitError": "Chưa thể đăng ký. Vui lòng thử lại.",
+      "submitting": "Đang đăng ký…",
+      "pending": "Hoàn tất xác nhận tài khoản cho {{email}}. Nếu mã cũ đã hết hạn, hãy gửi lại mã."
+    },
     "login": {
       "email": "Email",
       "password": "Mật khẩu",
