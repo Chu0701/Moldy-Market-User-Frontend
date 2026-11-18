@@ -505,7 +505,7 @@ OrderResponse {
 | Q4 | Ai gọi escrow `hold` / `capture` / `release`: service order nội bộ hay Frontend? | Frontend có cần các endpoint này không. |
 | Q5 | Ảnh product upload bằng cách nào (API chỉ nhận URL HTTPS)? Pre-signed URL? Dịch vụ bên thứ ba? | Trang tạo/sửa product. |
 | Q6 | Chat có gắn với offer, order hay product không? Hiện conversation chỉ là `(participant1, participant2)`. | Điểm vào chat trên giao diện. |
-| Q7 | `listingId` trong cart có đúng là `Product.id` không? | Liên kết cart với product. |
+| Q7 | Chu đã chốt `listingId = Product.id`. Backend local đọc Product để lấy seller, giá và kiểm tra ACTIVE. Mỗi dòng có quantity 1; thêm lại giữ một dòng. `GET /api/v1/carts`, `POST /api/v1/carts/items`, `DELETE /api/v1/carts/items/{listingId}` đã được sửa và test local, được dùng cho tích hợp Frontend. Chu đã xác nhận flow thêm → xem → tải lại → xóa với Backend thật ngày 2026-11-18. Cả ba trả `CartResponse` trong ApiResponse. Giỏ chưa tồn tại trả id null, items [], subtotal 0, totalItems 0. Chủ hoặc staff cùng gian hàng và người bán của tin cá nhân bị chặn thêm bằng `403 CART_OWN_PRODUCT`. | Liên kết cart với product. |
 | Q8 | Thương lượng offer: số vòng, thời hạn, ai được counter? | Quy tắc giao diện offer. `REQUIRES_BUSINESS_CLARIFICATION`. |
 | Q9 | Refund: ai được yêu cầu, có những trạng thái nào, có hoàn một phần không? Requirements nói Admin xử lý refund thủ công; hiện chưa có API. | Các trang refund. |
 | Q10 | Quy trình dispute chưa được định nghĩa. | Các trang dispute giữ ở `PLANNED`. |

@@ -74,6 +74,12 @@ export const routes = [
             Component: RequireAuth,
             children: [
               {
+                path: 'cart',
+                lazy: async () => ({
+                  Component: (await import('@/features/cart/pages/CartPage')).CartPage,
+                }),
+              },
+              {
                 path: 'my-products',
                 lazy: async () => ({
                   Component: (await import('@/features/products/pages/MyProductsPage'))

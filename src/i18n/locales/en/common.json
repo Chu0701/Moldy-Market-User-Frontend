@@ -232,6 +232,24 @@
       "categoryLimit": "Select up to 20 categories."
     }
   },
+  "cart": {
+    "title": "Cart",
+    "add": "Add to cart",
+    "adding": "Adding…",
+    "added": "Added to cart.",
+    "addError": "Could not add this product. Its availability or your access may have changed.",
+    "ownProduct": "You cannot add your own products or products from a store where you work.",
+    "loading": "Loading cart…",
+    "loadError": "Unable to load the cart.",
+    "emptyTitle": "Your cart is empty",
+    "emptyDescription": "Add products from their detail pages to see them here.",
+    "sellerGroup": "Products from the same seller",
+    "subtotal": "Subtotal for {{count}} products",
+    "unavailable": "Product information is currently unavailable.",
+    "remove": "Remove",
+    "removing": "Removing…",
+    "removeError": "Could not remove this product. Please try again."
+  },
   "stores": {
     "title": "Store",
     "myStoreTitle": "My store",

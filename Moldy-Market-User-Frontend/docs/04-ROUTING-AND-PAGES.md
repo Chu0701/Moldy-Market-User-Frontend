@@ -80,7 +80,7 @@ Ghi chú các cột:
 | `/my-products` | `MyProductsPage` | `GET /api/v1/products/me` (Q19), danh sách tin cá nhân đã đăng | Có trên Backend local, chờ kiểm tra HTTP | Đã thêm service |
 | `/my-products/new` | Chuyển hướng sang `/store/products/new` | Áp dụng luồng đăng bán qua gian hàng | — | Có chuyển hướng |
 | `/my-products/:productId/edit` | `ProductEditPage` | `GET /api/v1/products/{id}`, `PUT /api/v1/products/{id}` (bắt buộc `version`), `DELETE`, `PATCH /{id}/status?status=` | `IMPLEMENTED` | `NOT_STARTED` |
-| `/cart` | `CartPage` | Các endpoint `/api/v1/carts...` (branch `feature/cart`) | `IN_PROGRESS` | `NOT_STARTED` |
+| `/cart` | `CartPage` | GET `/api/v1/carts`, POST `/items`, DELETE `/items/{listingId}` (Q7 doc 14) | Ba endpoint đã sửa và test Backend local | INTEGRATED local; Chu xác nhận thêm, xem, tải lại và xóa ngày 2026-11-18 |
 | `/checkout` | `CheckoutPage` | `POST /api/v1/checkout-groups` (branch `feature/order`). Bỏ `quantity` theo quyết định team (Q17) | `IN_PROGRESS` | `NOT_STARTED` |
 | `/checkout/:checkoutGroupId` | `CheckoutPaymentPage` | `GET /api/v1/checkout-groups/{id}`, polling `GET /api/v1/payments/{id}`. Chỉ tin `paymentStatus` (B12) | `IN_PROGRESS` | `NOT_STARTED` |
 | `/orders` | `OrderListPage` | `GET /api/v1/orders/me` (404 `ORDER_003` là trạng thái rỗng, B13) | `IN_PROGRESS` | `NOT_STARTED` |

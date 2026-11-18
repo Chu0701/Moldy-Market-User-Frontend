@@ -18,6 +18,7 @@ import {
   verifyEmail,
 } from '@/services/auth/authService'
 import { getCategoryById, getCategoryTree } from '@/services/categories/categoryService'
+import { addCartItem, getCart, removeCartItem } from '@/services/cart/cartService'
 import {
   changeProductStatus,
   createStoreProduct,
@@ -41,6 +42,11 @@ import {
 import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
+vi.mock('@/services/cart/cartService', () => ({
+  addCartItem: vi.fn(),
+  getCart: vi.fn(),
+  removeCartItem: vi.fn(),
+}))
 vi.mock('@/services/auth/authService', () => ({
   login: vi.fn(),
   logout: vi.fn(),
@@ -82,6 +88,9 @@ let router
 let queryClient
 
 beforeEach(() => {
+  vi.mocked(addCartItem).mockReset()
+  vi.mocked(getCart).mockReset()
+  vi.mocked(removeCartItem).mockReset()
   vi.mocked(waitForPendingRefresh).mockReset().mockResolvedValue(undefined)
   vi.mocked(login).mockReset()
   vi.mocked(logout).mockReset()
@@ -150,6 +159,136 @@ const routesWithPrivatePage = [
 ]
 
 describe('user app routing', () => {
+  const emptyCart = { id: null, items: [], subtotal: 0, totalItems: 0 }
+  const cartProduct = {
+    id: 'cart-product',
+    title: 'Cart product',
+    status: 'ACTIVE',
+    price: 300000,
+    sellerId: 'other-seller',
+    condition: 'USED',
+    images: [],
+  }
+  const filledCart = {
+    id: 'cart-id',
+    totalItems: 1,
+    subtotal: 120000,
+    items: [
+      {
+        listingId: cartProduct.id,
+        sellerId: 'other-seller',
+        quantity: 1,
+        priceAtAddTime: 120000,
+        totalPrice: 120000,
+      },
+    ],
+  }
+
+  test('adds a product, displays the server cart price and removes the final item', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getProductById).mockResolvedValue(cartProduct)
+    vi.mocked(addCartItem).mockResolvedValue(filledCart)
+    vi.mocked(getCart).mockResolvedValue(filledCart)
+    vi.mocked(removeCartItem).mockResolvedValue(emptyCart)
+    const user = renderRoute('/products/cart-product')
+
+    await user.click(await screen.findByRole('button', { name: 'Thêm vào giỏ' }))
+    expect(addCartItem).toHaveBeenCalledExactlyOnceWith(
+      { productId: cartProduct.id },
+      expect.any(Object),
+    )
+    const added = await screen.findByText('Đã thêm vào giỏ.', { exact: false })
+    await user.click(within(added).getByRole('link', { name: 'Giỏ hàng' }))
+    const main = screen.getByRole('main')
+    await within(main).findByRole('link', { name: cartProduct.title })
+    expect(within(main).getByText('Tạm tính cho 1 sản phẩm')).toBeInTheDocument()
+    expect(within(main).getAllByText(/120[.,]000/)).toHaveLength(2)
+    expect(within(main).queryByText(/300[.,]000/)).not.toBeInTheDocument()
+    await user.click(within(main).getByRole('button', { name: 'Xóa khỏi giỏ' }))
+    await within(main).findByText('Giỏ hàng đang trống')
+    expect(removeCartItem).toHaveBeenCalledExactlyOnceWith(
+      { productId: cartProduct.id },
+      expect.any(Object),
+    )
+  })
+
+  test('redirects a guest cart request to login without loading cart data', async () => {
+    renderRoute('/cart')
+    await screen.findByRole('button', { name: 'Đăng nhập' })
+    expect(router.state.location.pathname).toBe('/login')
+    expect(router.state.location.state.from).toBe('/cart')
+    expect(getCart).not.toHaveBeenCalled()
+  })
+
+  test('keeps the product return path when a guest wants to add to cart', async () => {
+    vi.mocked(getProductById).mockResolvedValue(cartProduct)
+    const user = renderRoute('/products/cart-product')
+    await user.click(await screen.findByRole('link', { name: 'Thêm vào giỏ' }))
+    await screen.findByRole('button', { name: 'Đăng nhập' })
+    expect(router.state.location.state.from).toBe('/products/cart-product')
+    expect(addCartItem).not.toHaveBeenCalled()
+  })
+
+  test.each([
+    { sellerId: 'test-user', storeId: null },
+    { sellerId: 'other-seller', storeId: 'linked-store' },
+  ])('hides add to cart for an owned or linked store product: %j', async (ownership) => {
+    setAccessToken('test-access-token')
+    vi.mocked(getMe).mockResolvedValue({
+      id: 'test-user',
+      roles: ['USER'],
+      storeId: 'linked-store',
+    })
+    vi.mocked(getProductById).mockResolvedValue({ ...cartProduct, ...ownership })
+    renderRoute('/products/cart-product')
+    await screen.findByRole('heading', { name: cartProduct.title })
+    await waitFor(() => expect(getMe).toHaveBeenCalled())
+    expect(screen.queryByRole('button', { name: 'Thêm vào giỏ' })).not.toBeInTheDocument()
+  })
+
+  test('shows the backend membership rejection when local profile cannot determine it', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getProductById).mockResolvedValue(cartProduct)
+    vi.mocked(addCartItem).mockRejectedValue({ status: 403, code: 'CART_OWN_PRODUCT' })
+    const user = renderRoute('/products/cart-product')
+    await user.click(await screen.findByRole('button', { name: 'Thêm vào giỏ' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Bạn không thể thêm sản phẩm của mình hoặc gian hàng mình làm việc vào giỏ.',
+    )
+  })
+
+  test('allows removing a cart item whose product is no longer accessible', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getCart).mockResolvedValue(filledCart)
+    vi.mocked(getProductById).mockRejectedValue({ status: 404 })
+    vi.mocked(removeCartItem).mockResolvedValue(emptyCart)
+    const user = renderRoute('/cart')
+    await screen.findByText('Thông tin sản phẩm hiện không khả dụng.')
+    await user.click(screen.getByRole('button', { name: 'Xóa khỏi giỏ' }))
+    await screen.findByText('Giỏ hàng đang trống')
+  })
+
+  test('does not restore private cart cache when an add request finishes after logout', async () => {
+    setAccessToken('test-access-token')
+    vi.mocked(getProductById).mockResolvedValue(cartProduct)
+    let finishAdd
+    vi.mocked(addCartItem).mockReturnValue(
+      new Promise((resolve) => {
+        finishAdd = resolve
+      }),
+    )
+    vi.mocked(logout).mockResolvedValue(undefined)
+    const user = renderRoute('/products/cart-product')
+    await user.click(await screen.findByRole('button', { name: 'Thêm vào giỏ' }))
+    await waitFor(() => expect(addCartItem).toHaveBeenCalled())
+    await user.click(screen.getByRole('button', { name: 'Đăng xuất' }))
+    await screen.findByRole('button', { name: 'Đăng nhập' })
+    await act(async () => {
+      finishAdd(filledCart)
+    })
+    expect(queryClient.getQueryData(['cart', 'test-user'])).toBeUndefined()
+  })
+
   const product = {
     id: 'a8098c1a-f86e-11da-bd1a-00112444be1e',
     title: 'Test product',

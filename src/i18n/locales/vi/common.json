@@ -232,6 +232,24 @@
       "categoryLimit": "Chọn tối đa 20 danh mục."
     }
   },
+  "cart": {
+    "title": "Giỏ hàng",
+    "add": "Thêm vào giỏ",
+    "adding": "Đang thêm…",
+    "added": "Đã thêm vào giỏ.",
+    "addError": "Không thể thêm sản phẩm. Sản phẩm hoặc quyền truy cập có thể đã thay đổi.",
+    "ownProduct": "Bạn không thể thêm sản phẩm của mình hoặc gian hàng mình làm việc vào giỏ.",
+    "loading": "Đang tải giỏ hàng…",
+    "loadError": "Chưa tải được giỏ hàng.",
+    "emptyTitle": "Giỏ hàng đang trống",
+    "emptyDescription": "Thêm sản phẩm từ trang chi tiết để xem tại đây.",
+    "sellerGroup": "Các sản phẩm cùng người bán",
+    "subtotal": "Tạm tính cho {{count}} sản phẩm",
+    "unavailable": "Thông tin sản phẩm hiện không khả dụng.",
+    "remove": "Xóa khỏi giỏ",
+    "removing": "Đang xóa…",
+    "removeError": "Không thể xóa sản phẩm khỏi giỏ. Vui lòng thử lại."
+  },
   "stores": {
     "title": "Gian hàng",
     "myStoreTitle": "Gian hàng của tôi",

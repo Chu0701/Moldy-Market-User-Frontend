@@ -214,11 +214,13 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 | Mục | Nội dung |
 |---|---|
 | Mục đích | Gom sản phẩm cần mua trước khi thanh toán |
-| Trạng thái | Backend `IN_PROGRESS` (branch `feature/cart`); **chưa được viết service** theo quy tắc 1.2 doc 14. Phần mô tả dưới đây là ý định, chưa phải contract cuối |
-| Dữ liệu dự kiến | `CartResponse { id, userId, status, items[], subtotal, totalItems, ... }` với mỗi item có `listingId`, `sellerId`, `quantity`, `priceAtAddTime`, `totalPrice`, `note` |
-| Điểm cần làm rõ trước khi dựng | Q7 (`listingId` có phải `Product.id`), Q16 (checkout không đọc từ cart; sau checkout có xóa item không), Q17 (bỏ `quantity` cho đồ cũ nhưng cart hiện vẫn có `quantity >= 1`) |
-| Giao diện | Nhóm theo người bán (endpoint `/by-seller` tồn tại); không có ô chọn số lượng theo quyết định Q17 |
-| FE | `NOT_STARTED`, chỉ skeleton |
+| Trạng thái | Q7 doc 14 đã chốt và cho phép tích hợp GET cart, POST item, DELETE item đã sửa và test Backend local. Các endpoint khác của cart chưa nằm trong flow này |
+| Dữ liệu | `CartResponse { id, userId, status, items[], subtotal, totalItems, ... }`; item có `listingId = Product.id`, `sellerId`, `quantity = 1`, `priceAtAddTime`, `totalPrice`, `note`. Giỏ chưa tồn tại trả items rỗng và subtotal 0 |
+| Thêm sản phẩm | Từ chi tiết sản phẩm ACTIVE; khách chuyển đăng nhập và giữ đường dẫn quay lại. Ẩn nút với tin của mình hoặc storeId liên kết; Backend kiểm tra chủ và mọi staff, trả `403 CART_OWN_PRODUCT` khi không được phép |
+| Giao diện | Nhóm `items` theo sellerId tại Frontend; tên và link lấy từ chi tiết sản phẩm. Giá dòng và subtotal dùng snapshot Backend. Sản phẩm không còn truy cập được vẫn xóa khỏi giỏ được. Có loading, empty, error/retry, forbidden và lỗi xóa |
+| Cache | Query key theo userId, mutations cùng tài khoản thực hiện tuần tự. Dùng CartResponse sau mutation để cập nhật cache, bỏ response đến muộn nếu tài khoản đã đổi/đăng xuất |
+| Phạm vi tiếp theo | Chưa có checkout; Q16 (xóa cart sau checkout) và Q17 (giữ hàng) cần chốt trước khi triển khai flow mua hàng |
+| FE | INTEGRATED local; service và routing tests đã pass. Chu xác nhận thêm, xem, tải lại và xóa với Backend thật ngày 2026-11-18 |
 
 ---
 

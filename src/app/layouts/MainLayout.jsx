@@ -46,6 +46,7 @@ export function MainLayout() {
     ? [
         ...navigation.filter(({ to }) => to !== '/login'),
         { to: '/profile', label: 'profile.title' },
+        { to: '/cart', label: 'cart.title' },
         { to: '/my-products', label: 'products.mine.title' },
         ...storeNavigation,
       ]

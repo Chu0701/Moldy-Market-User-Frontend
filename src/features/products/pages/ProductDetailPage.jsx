@@ -11,6 +11,7 @@ import { ProductVisibilityButton } from '@/features/products/components/ProductV
 import { ProductDeleteButton } from '@/features/products/components/ProductDeleteButton'
 import { useProductDetail } from '@/features/products/hooks/useProductDetail'
 import { useProductManagementAccess } from '@/features/products/hooks/useProductManagementAccess'
+import { AddToCartButton } from '@/features/cart/components/AddToCartButton'
 
 export function ProductDetailPage() {
   const { t } = useTranslation()
@@ -85,6 +86,9 @@ export function ProductDetailPage() {
         storeId={product.storeId}
       />
 
+      <div className="md:col-start-2">
+        <AddToCartButton key={product.id} product={product} />
+      </div>
       {canManage && (
         <div className="flex flex-wrap items-start gap-3 md:col-start-2">
           <Button asChild variant="outline">
