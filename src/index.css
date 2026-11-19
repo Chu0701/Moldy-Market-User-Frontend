@@ -605,3 +605,75 @@
     @apply min-h-11 justify-self-start;
   }
 }
+
+@layer components {
+  .cart-page,
+  .checkout-page {
+    @apply grid w-full gap-6;
+  }
+
+  .cart-page {
+    @apply max-w-4xl;
+  }
+
+  .cart-selection-controls {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .cart-item-row {
+    @apply grid grid-cols-[auto_1fr] items-start gap-4 p-4 sm:grid-cols-[auto_1fr_auto] sm:p-6;
+  }
+
+  .cart-item-row > div:last-child {
+    @apply col-start-2 sm:col-start-auto;
+  }
+
+  .cart-item-select {
+    @apply flex min-h-11 min-w-6 cursor-pointer items-center justify-center;
+  }
+
+  .cart-item-select > input,
+  .checkout-panel input[type='radio'] {
+    @apply size-5 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed;
+  }
+
+  .cart-selection-panel {
+    @apply flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-secondary p-5;
+  }
+
+  .checkout-grid {
+    @apply grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem];
+  }
+
+  .checkout-panel {
+    @apply grid min-w-0 gap-5 rounded-xl border border-border p-5 sm:p-7;
+  }
+
+  .checkout-field {
+    @apply grid gap-2;
+  }
+
+  .checkout-field > label {
+    @apply text-sm font-medium;
+  }
+
+  .checkout-field > :is(input, textarea) {
+    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .checkout-field > textarea {
+    @apply resize-y;
+  }
+
+  .checkout-field > [aria-invalid='true'] {
+    @apply border-destructive;
+  }
+
+  .checkout-error {
+    @apply text-sm text-destructive;
+  }
+
+  .checkout-notice {
+    @apply rounded-md bg-secondary p-4 text-sm leading-6 text-muted-foreground;
+  }
+}

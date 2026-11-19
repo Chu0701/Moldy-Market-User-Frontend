@@ -219,7 +219,7 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 | Thêm sản phẩm | Từ chi tiết sản phẩm ACTIVE; khách chuyển đăng nhập và giữ đường dẫn quay lại. Ẩn nút với tin của mình hoặc storeId liên kết; Backend kiểm tra chủ và mọi staff, trả `403 CART_OWN_PRODUCT` khi không được phép |
 | Giao diện | Nhóm `items` theo sellerId tại Frontend; tên và link lấy từ chi tiết sản phẩm. Giá dòng và subtotal dùng snapshot Backend. Sản phẩm không còn truy cập được vẫn xóa khỏi giỏ được. Có loading, empty, error/retry, forbidden và lỗi xóa |
 | Cache | Query key theo userId, mutations cùng tài khoản thực hiện tuần tự. Dùng CartResponse sau mutation để cập nhật cache, bỏ response đến muộn nếu tài khoản đã đổi/đăng xuất |
-| Phạm vi tiếp theo | Chưa có checkout; Q16 (xóa cart sau checkout) và Q17 (giữ hàng) cần chốt trước khi triển khai flow mua hàng |
+| Phạm vi tiếp theo | Q16/Q17 đã chốt trong doc 14. Đã có UI chọn tối đa 20 món ACTIVE, bỏ chọn và chuyển productId trên URL sang form checkout. Chu đã chép code và được sửa lỗi gõ; 251 test pass trên repo chính. Chưa gọi API tạo đơn |
 | FE | INTEGRATED local; service và routing tests đã pass. Chu xác nhận thêm, xem, tải lại và xóa với Backend thật ngày 2026-11-18 |
 
 ---
@@ -231,13 +231,15 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 | Mục | Nội dung |
 |---|---|
 | Mục đích | Người mua nhập thông tin nhận hàng, chọn phương thức thanh toán, tạo đơn |
-| Trạng thái | Backend `IN_PROGRESS` (`feature/order`); **chưa viết service** cho đến khi branch merge và doc 14 cập nhật |
-| Request hiện tại trên branch (có thể đổi) | `orderItems` (1 đến 20 phần tử, mỗi phần tử có `productId` UUID), `receiverName` (tối đa 255), `phoneNumber` (regex `^(\+84|0)\d{9,10}$`), `shippingAddress` (tối đa 500), `method` (`COD` hoặc `ONLINE_BANKING`), `note` (tùy chọn, tối đa 500). Branch hiện còn `quantity` 1 đến 100 nhưng team đã quyết định bỏ (Q17); form **không có ô số lượng** |
+| Trạng thái | Theo quyết định của Chu ngày 2026-11-19, dựng Frontend trước và tạm dừng sửa Backend để thống nhất với bản của bạn cùng nhóm. Chưa có service gọi API checkout |
+| Dữ liệu theo contract đã audit | `orderItems` (1 đến 20 phần tử, mỗi phần tử có `productId` UUID), `receiverName` (tối đa 255), `phoneNumber` (regex `^(\+84|0)\d{9,10}$`), `shippingAddress` (tối đa 500), `method` (`COD` hoặc `ONLINE_BANKING`), `note` (tùy chọn, tối đa 500). Backend local đã giới hạn quantity đúng 1; form không có ô số lượng. Khi tích hợp cần đối chiếu contract cuối cùng |
 | Quy tắc đã xác minh | Giá do Backend tính; Frontend không gửi giá. Không trùng `productId` (`ORDER_005`). Sản phẩm phải `ACTIVE` (`PROD_010`). Một lần checkout có thể tách thành nhiều order theo cặp `(sellerId, storeId)`. Phí ship luôn 0, voucher chưa áp dụng |
 | Validation giao diện | Dùng đúng các ràng buộc trên (schema Zod ở `features/products/schemas` hoặc module checkout khi tạo) |
 | Sau thành công | `CheckoutResponse { id, totalAmount, expiredAt, orders[], status, paymentResponse }`. Chuyển tới `/checkout/:checkoutGroupId`. `COD`: `expiredAt = null`, `qrBankUrl = null` |
-| Điểm chưa rõ | Giữ hàng khi checkout chờ thanh toán (Q17 phần còn mở, B14): hai người có thể đặt cùng một sản phẩm. Giao diện chưa thể hứa "đã giữ hàng" |
-| FE | `NOT_STARTED` |
+| Điền sẵn thông tin | Chu đã duyệt lấy fullName và phone của session, cho sửa người nhận, giữ nguyên field đã sửa khi profile tải về muộn. Địa chỉ vẫn nhập riêng; không cập nhật profile. Trợ lý đã sửa trực tiếp theo yêu cầu của Chu. Năm regression tests pass, gồm nhập rồi xóa trắng trước khi profile về; tổng 256 test pass |
+| UI chuẩn bị | URL chứa productId đã chọn; kiểm tra từ 1–20 ID không trùng, tất cả còn trong giỏ hiện tại và product ACTIVE. Nếu giỏ thay đổi hoặc sản phẩm không sẵn sàng thì yêu cầu kiểm tra lại. Giá là snapshot tạm tính. Form kiểm tra khi rời ô, có COD/chuyển khoản; nút Đặt hàng tắt và thông báo chưa gửi thông tin |
+| Giữ hàng và payment | Q15–Q17 đã chốt nhưng Backend chưa nối đủ vòng đời. UI hiện không giữ hàng, không tạo order và không báo thanh toán thành công |
+| FE | `IMPLEMENTED_UI_LOCAL`: Chu đã chép đủ source/route/i18n; format, lint, build và 256/256 test pass trên repo chính. Hướng dẫn học ở docs/learning/checkout-ui.md. Chờ thử giao diện thực tế, chưa tích hợp HTTP checkout |
 
 ### 4.2 Thanh toán `/checkout/:checkoutGroupId` (`CheckoutPaymentPage`)
 

@@ -248,7 +248,41 @@
     "unavailable": "Thông tin sản phẩm hiện không khả dụng.",
     "remove": "Xóa khỏi giỏ",
     "removing": "Đang xóa…",
-    "removeError": "Không thể xóa sản phẩm khỏi giỏ. Vui lòng thử lại."
+    "removeError": "Không thể xóa sản phẩm khỏi giỏ. Vui lòng thử lại.",
+    "selectItem": "Chọn sản phẩm: {{title}}",
+    "selectAll": "Chọn tất cả (tối đa 20)",
+    "clearSelection": "Bỏ chọn tất cả",
+    "selectionLimit": "Mỗi lần đặt hàng chọn tối đa 20 sản phẩm.",
+    "selectedCount": "Đã chọn {{count}} sản phẩm",
+    "continue": "Tiếp tục đặt hàng"
+  },
+  "checkout": {
+    "title": "Thông tin đặt hàng",
+    "backToCart": "Quay lại giỏ hàng",
+    "deliveryTitle": "Thông tin nhận hàng",
+    "receiverName": "Họ tên người nhận",
+    "phoneNumber": "Số điện thoại người nhận",
+    "shippingAddress": "Địa chỉ nhận hàng",
+    "note": "Ghi chú (tùy chọn)",
+    "paymentTitle": "Phương thức thanh toán",
+    "methods": {
+      "COD": "Thanh toán khi nhận hàng (COD)",
+      "ONLINE_BANKING": "Chuyển khoản ngân hàng"
+    },
+    "summaryTitle": "Sản phẩm đã chọn",
+    "priceHint": "Giá tạm tính theo giỏ hàng. Giá cuối cùng sẽ được xác nhận khi đặt hàng.",
+    "unavailable": "Bạn có thể chuẩn bị thông tin nhận hàng tại đây. Chức năng đặt hàng hiện chưa mở; thông tin chưa được gửi.",
+    "placeOrder": "Đặt hàng",
+    "required": "Vui lòng nhập thông tin này.",
+    "nameTooLong": "Họ tên tối đa 255 ký tự.",
+    "phoneInvalid": "Vui lòng nhập số điện thoại Việt Nam hợp lệ.",
+    "addressTooLong": "Địa chỉ tối đa 500 ký tự.",
+    "noteTooLong": "Ghi chú tối đa 500 ký tự.",
+    "selectionTitle": "Chọn lại sản phẩm",
+    "selectionDescription": "Chọn từ 1 đến 20 sản phẩm còn trong giỏ để tiếp tục. Giỏ hàng có thể đã thay đổi.",
+    "checking": "Đang kiểm tra sản phẩm đã chọn…",
+    "unavailableProduct": "Có sản phẩm chưa sẵn sàng để đặt hàng",
+    "reviewCart": "Vui lòng kiểm tra lại sản phẩm trong giỏ hàng."
   },
   "stores": {
     "title": "Gian hàng",

@@ -80,6 +80,12 @@ export const routes = [
                 }),
               },
               {
+                path: 'checkout',
+                lazy: async () => ({
+                  Component: (await import('@/features/checkout/pages/CheckoutPage')).CheckoutPage,
+                }),
+              },
+              {
                 path: 'my-products',
                 lazy: async () => ({
                   Component: (await import('@/features/products/pages/MyProductsPage'))

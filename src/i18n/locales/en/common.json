@@ -248,7 +248,41 @@
     "unavailable": "Product information is currently unavailable.",
     "remove": "Remove",
     "removing": "Removing…",
-    "removeError": "Could not remove this product. Please try again."
+    "removeError": "Could not remove this product. Please try again.",
+    "selectItem": "Select product: {{title}}",
+    "selectAll": "Select all (up to 20)",
+    "clearSelection": "Clear selection",
+    "selectionLimit": "Select up to 20 products per checkout.",
+    "selectedCount": "{{count}} products selected",
+    "continue": "Continue to checkout"
+  },
+  "checkout": {
+    "title": "Checkout details",
+    "backToCart": "Back to cart",
+    "deliveryTitle": "Delivery information",
+    "receiverName": "Recipient name",
+    "phoneNumber": "Recipient phone number",
+    "shippingAddress": "Shipping address",
+    "note": "Note (optional)",
+    "paymentTitle": "Payment method",
+    "methods": {
+      "COD": "Cash on delivery (COD)",
+      "ONLINE_BANKING": "Bank transfer"
+    },
+    "summaryTitle": "Selected products",
+    "priceHint": "Estimate based on your cart. The final price will be confirmed when placing the order.",
+    "unavailable": "You can prepare your delivery information here. Ordering is not available yet; your details have not been sent.",
+    "placeOrder": "Place order",
+    "required": "Please enter this information.",
+    "nameTooLong": "Name must be 255 characters or fewer.",
+    "phoneInvalid": "Enter a valid Vietnamese phone number.",
+    "addressTooLong": "Address must be 500 characters or fewer.",
+    "noteTooLong": "Note must be 500 characters or fewer.",
+    "selectionTitle": "Select your products again",
+    "selectionDescription": "Select 1 to 20 products still in your cart to continue. Your cart may have changed.",
+    "checking": "Checking selected products…",
+    "unavailableProduct": "Some products are not ready to order",
+    "reviewCart": "Please review the products in your cart."
   },
   "stores": {
     "title": "Store",

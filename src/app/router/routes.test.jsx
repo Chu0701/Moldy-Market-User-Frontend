@@ -10,6 +10,7 @@ import { routes } from '@/app/router/routes'
 import i18n from '@/i18n'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
+import { apiClient } from '@/services/api/client'
 import {
   login,
   logout,
@@ -183,6 +184,144 @@ describe('user app routing', () => {
       },
     ],
   }
+
+  describe('preparing checkout from cart', () => {
+    test('carries only selected products to the delivery form and sends no order request', async () => {
+      setAccessToken('test-access-token')
+      const otherProduct = { ...cartProduct, id: 'other-product', title: 'Other product' }
+      vi.mocked(getCart).mockResolvedValue({
+        ...filledCart,
+        totalItems: 2,
+        subtotal: 240000,
+        items: [...filledCart.items, { ...filledCart.items[0], listingId: otherProduct.id }],
+      })
+      vi.mocked(getProductById).mockImplementation(async ({ productId }) =>
+        productId === cartProduct.id ? cartProduct : otherProduct,
+      )
+      const post = vi
+        .spyOn(apiClient, 'post')
+        .mockRejectedValue(new Error('Unexpected order request'))
+      try {
+        const user = renderRoute('/cart')
+        expect(
+          await screen.findByRole('button', { name: 'Tiếp tục đặt hàng' }, { timeout: 4000 }),
+        ).toBeDisabled()
+        await user.click(
+          await screen.findByRole('checkbox', { name: 'Chọn sản phẩm: Cart product' }),
+        )
+        const next = screen.getByRole('link', { name: 'Tiếp tục đặt hàng' })
+        expect(new URL(next.href).searchParams.getAll('productId')).toEqual([cartProduct.id])
+        await user.click(next)
+        await screen.findByRole('heading', { name: 'Thông tin đặt hàng' })
+        const main = screen.getByRole('main')
+        expect(within(main).getByRole('link', { name: cartProduct.title })).toBeInTheDocument()
+        expect(within(main).getByRole('link', { name: cartProduct.title })).toHaveAttribute(
+          'href',
+          '/products/' + cartProduct.id,
+        )
+        expect(screen.getByLabelText('Địa chỉ nhận hàng').tagName).toBe('TEXTAREA')
+        expect(
+          within(main).queryByRole('link', { name: otherProduct.title }),
+        ).not.toBeInTheDocument()
+        await user.type(screen.getByLabelText('Họ tên người nhận'), 'Chu')
+        await user.type(screen.getByLabelText('Số điện thoại người nhận'), '123')
+        await user.tab()
+        expect(await screen.findByRole('alert')).toHaveTextContent('số điện thoại Việt Nam hợp lệ')
+        await user.click(screen.getByRole('radio', { name: 'Chuyển khoản ngân hàng' }))
+        expect(screen.getByRole('radio', { name: 'Chuyển khoản ngân hàng' })).toBeChecked()
+        expect(screen.getByRole('button', { name: 'Đặt hàng' })).toBeDisabled()
+        await user.click(screen.getByLabelText('Họ tên người nhận'))
+        await user.keyboard('{Enter}')
+        expect(post).not.toHaveBeenCalled()
+        expect(addCartItem).not.toHaveBeenCalled()
+        expect(removeCartItem).not.toHaveBeenCalled()
+      } finally {
+        post.mockRestore()
+      }
+    })
+
+    test('opens a bookmarked selection using current cart data', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getCart).mockResolvedValue(filledCart)
+      vi.mocked(getProductById).mockResolvedValue(cartProduct)
+      renderRoute('/checkout?productId=cart-product')
+      expect(await screen.findByLabelText('Địa chỉ nhận hàng', {}, { timeout: 4000 })).toHaveValue(
+        '',
+      )
+      expect(screen.getByRole('link', { name: cartProduct.title })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Đặt hàng' })).toBeDisabled()
+    })
+
+    test.each([
+      '/checkout',
+      '/checkout?productId=removed-product',
+      '/checkout?productId=cart-product&productId=cart-product',
+    ])('asks to select again for a missing, stale or duplicate selection: %s', async (path) => {
+      setAccessToken('test-access-token')
+      vi.mocked(getCart).mockResolvedValue(filledCart)
+      renderRoute(path)
+      await screen.findByText('Chọn lại sản phẩm', {}, { timeout: 4000 })
+      expect(screen.queryByLabelText('Họ tên người nhận')).not.toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Quay lại giỏ hàng' })).toHaveAttribute(
+        'href',
+        '/cart',
+      )
+    })
+
+    test('does not select a sold product when selecting all', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getCart).mockResolvedValue(filledCart)
+      vi.mocked(getProductById).mockResolvedValue({ ...cartProduct, status: 'SOLD' })
+      renderRoute('/cart')
+      const checkbox = await screen.findByRole(
+        'checkbox',
+        { name: 'Chọn sản phẩm: Cart product' },
+        { timeout: 4000 },
+      )
+      expect(checkbox).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Chọn tất cả (tối đa 20)' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Tiếp tục đặt hàng' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Xóa khỏi giỏ' })).toBeEnabled()
+    })
+
+    test('limits selection to twenty and lets the buyer deselect at the limit', async () => {
+      setAccessToken('test-access-token')
+      const items = Array.from({ length: 21 }, (_, index) => ({
+        ...filledCart.items[0],
+        listingId: 'selected-product-' + index,
+      }))
+      vi.mocked(getCart).mockResolvedValue({
+        ...filledCart,
+        items,
+        totalItems: 21,
+        subtotal: 2520000,
+      })
+      vi.mocked(getProductById).mockImplementation(async ({ productId }) => ({
+        ...cartProduct,
+        id: productId,
+        title: productId,
+      }))
+      const user = renderRoute('/cart')
+      await screen.findByRole(
+        'checkbox',
+        { name: 'Chọn sản phẩm: selected-product-20' },
+        { timeout: 4000 },
+      )
+      await user.click(screen.getByRole('button', { name: 'Chọn tất cả (tối đa 20)' }))
+      const next = screen.getByRole('link', { name: 'Tiếp tục đặt hàng' })
+      expect(new URL(next.href).searchParams.getAll('productId')).toHaveLength(20)
+      const last = screen.getByRole('checkbox', { name: 'Chọn sản phẩm: selected-product-20' })
+      expect(last).toBeDisabled()
+      await user.click(screen.getByRole('checkbox', { name: 'Chọn sản phẩm: selected-product-0' }))
+      expect(last).toBeEnabled()
+      await user.click(last)
+      expect(
+        new URL(screen.getByRole('link', { name: 'Tiếp tục đặt hàng' }).href).searchParams.getAll(
+          'productId',
+        ),
+      ).toHaveLength(20)
+    })
+  })
 
   test('adds a product, displays the server cart price and removes the final item', async () => {
     setAccessToken('test-access-token')

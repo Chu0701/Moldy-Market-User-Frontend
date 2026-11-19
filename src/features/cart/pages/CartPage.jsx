@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -7,78 +7,33 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { Button } from '@/components/ui/button'
-import { useCart, useRemoveCartItem } from '@/features/cart/hooks/useCart'
-import { productKeys } from '@/features/products/hooks/useProductSearch'
-import { getProductById } from '@/services/products/productService'
-
-function CartItemRow({ item }) {
-  const { t } = useTranslation()
-  const removal = useRemoveCartItem()
-  const productQuery = useQuery({
-    queryKey: productKeys.detail(item.listingId),
-    queryFn: ({ signal }) => getProductById({ productId: item.listingId, signal }),
-    retry: false,
-  })
-
-  const product = productQuery.data
-  const unavailable =
-    productQuery.error?.status === 403 ||
-    productQuery.error?.status === 404 ||
-    (product && product.status !== 'ACTIVE')
-
-  return (
-    <li className="grid gap-4 p-4 sm:grid-cols-[1fr_auto] sm:p-6">
-      <div className="grid min-w-0 gap-2">
-        {productQuery.isPending ? (
-          <p role="status">{t('products.loading')}</p>
-        ) : product && !unavailable ? (
-          <Link
-            to={`/products/${encodeURIComponent(item.listingId)}`}
-            className="font-medium break-words underline-offset-4 hover:underline"
-          >
-            {product.title}
-          </Link>
-        ) : (
-          <p>{t('cart.unavailable')}</p>
-        )}
-
-        {productQuery.isError && !unavailable && (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={productQuery.isFetching}
-            onClick={() => void productQuery.refetch()}
-          >
-            {t('actions.retry')}
-          </Button>
-        )}
-
-        <ProductPrice value={item.totalPrice} className="font-semibold" />
-        {item.note && <p className="text-sm text-muted-foreground">{item.note}</p>}
-      </div>
-
-      <div className="grid content-start justify-items-start gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={removal.isPending}
-          onClick={() => removal.mutate({ productId: item.listingId })}
-        >
-          {t(removal.isPending ? 'cart.removing' : 'cart.remove')}
-        </Button>
-        {removal.error && (
-          <p role="alert" className="text-sm text-destructive">
-            {t('cart.removeError')}
-          </p>
-        )}
-      </div>
-    </li>
-  )
-}
+import { CartItemRow } from '@/features/cart/components/CartItemRow'
+import { useCart } from '@/features/cart/hooks/useCart'
+import { useCartProducts } from '@/features/cart/hooks/useCartProducts'
 
 export function CartPage() {
   const { t } = useTranslation()
   const query = useCart()
+  const [selectedIds, setSelectedIds] = useState([])
+  const items = query.data?.items ?? []
+  const productQueries = useCartProducts(items)
+  const availableItems = items.filter(
+    (_, index) =>
+      productQueries[index].isSuccess && productQueries[index].data?.status === 'ACTIVE',
+  )
+  const selectedItems = availableItems.filter((item) => selectedIds.includes(item.listingId))
+  const selectedTotal = selectedItems.reduce((total, item) => total + Number(item.totalPrice), 0)
+  const checkoutParams = new URLSearchParams()
+  selectedItems.forEach((item) => checkoutParams.append('productId', item.listingId))
+
+  function toggleItem(productId) {
+    const currentIds = selectedItems.map((item) => item.listingId)
+    setSelectedIds(
+      currentIds.includes(productId)
+        ? currentIds.filter((id) => id !== productId)
+        : [...currentIds, productId].slice(0, 20),
+    )
+  }
 
   if (query.isPending) return <p role="status">{t('cart.loading')}</p>
   if (query.error?.status === 403) return <ForbiddenState />
@@ -94,38 +49,91 @@ export function CartPage() {
     )
   }
 
-  const cart = query.data
   const groups = new Map()
-
-  for (const item of cart.items) {
+  items.forEach((item, index) => {
     const group = groups.get(item.sellerId) ?? []
-    group.push(item)
+    group.push({ item, productQuery: productQueries[index] })
     groups.set(item.sellerId, group)
-  }
+  })
 
   return (
-    <section className="grid w-full max-w-4xl gap-6" aria-labelledby="cart-title">
+    <section className="cart-page" aria-labelledby="cart-title">
       <h1 id="cart-title">{t('cart.title')}</h1>
 
-      {cart.items.length === 0 ? (
+      {items.length === 0 ? (
         <EmptyState title={t('cart.emptyTitle')} description={t('cart.emptyDescription')} />
       ) : (
         <>
-          {[...groups].map(([sellerId, items]) => (
+          <div className="cart-selection-controls">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={availableItems.length === 0}
+              onClick={() =>
+                setSelectedIds(availableItems.slice(0, 20).map((item) => item.listingId))
+              }
+            >
+              {t('cart.selectAll')}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={selectedItems.length === 0}
+              onClick={() => setSelectedIds([])}
+            >
+              {t('cart.clearSelection')}
+            </Button>
+            <p className="text-sm text-muted-foreground">{t('cart.selectionLimit')}</p>
+          </div>
+
+          {[...groups].map(([sellerId, rows]) => (
             <ul
               key={sellerId}
               aria-label={t('cart.sellerGroup')}
               className="divide-y divide-border overflow-hidden rounded-xl border border-border"
             >
-              {items.map((item) => (
-                <CartItemRow key={item.listingId} item={item} />
-              ))}
+              {rows.map(({ item, productQuery }) => {
+                const selected = selectedItems.some(
+                  (selectedItem) => selectedItem.listingId === item.listingId,
+                )
+                const available = availableItems.some(
+                  (availableItem) => availableItem.listingId === item.listingId,
+                )
+                return (
+                  <CartItemRow
+                    key={item.listingId}
+                    item={item}
+                    productQuery={productQuery}
+                    selected={selected}
+                    canSelect={available && (selected || selectedItems.length < 20)}
+                    onToggle={() => toggleItem(item.listingId)}
+                    onRemoved={() =>
+                      setSelectedIds((ids) => ids.filter((id) => id !== item.listingId))
+                    }
+                  />
+                )
+              })}
             </ul>
           ))}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-            <p>{t('cart.subtotal', { count: cart.totalItems })}</p>
-            <ProductPrice value={cart.subtotal} className="text-xl font-semibold" />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p>{t('cart.subtotal', { count: query.data.totalItems })}</p>
+            <ProductPrice value={query.data.subtotal} className="font-semibold" />
+          </div>
+
+          <div className="cart-selection-panel">
+            <div className="grid gap-1">
+              <p role="status">{t('cart.selectedCount', { count: selectedItems.length })}</p>
+              <ProductPrice value={selectedTotal} className="text-xl font-semibold" />
+              <p className="text-sm text-muted-foreground">{t('checkout.priceHint')}</p>
+            </div>
+            {selectedItems.length > 0 ? (
+              <Button asChild>
+                <Link to={'/checkout?' + checkoutParams.toString()}>{t('cart.continue')}</Link>
+              </Button>
+            ) : (
+              <Button disabled>{t('cart.continue')}</Button>
+            )}
           </div>
         </>
       )}
