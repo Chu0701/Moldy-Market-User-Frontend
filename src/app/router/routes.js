@@ -106,6 +106,18 @@ export const routes = [
                 }),
               },
               {
+                path: 'chat',
+                lazy: async () => ({
+                  Component: (await import('@/features/chat/pages/ChatPage')).ChatPage,
+                }),
+              },
+              {
+                path: 'chat/:conversationId',
+                lazy: async () => ({
+                  Component: (await import('@/features/chat/pages/ChatPage')).ChatPage,
+                }),
+              },
+              {
                 path: 'my-products',
                 lazy: async () => ({
                   Component: (await import('@/features/products/pages/MyProductsPage'))

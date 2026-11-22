@@ -10,6 +10,10 @@ import { useLogout } from '@/features/auth/hooks/useLogout'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { getStoreContext } from '@/features/stores/getStoreContext'
 import { useMyStaffProfile } from '@/features/stores/hooks/useMyStaffProfile'
+import { useConversations } from '@/features/chat/hooks/useChat'
+import { useChatRealtime } from '@/features/chat/hooks/useChatRealtime'
+import { UnreadBadge } from '@/features/chat/components/UnreadBadge'
+import { ChatRealtimeContext } from '@/features/chat/chatRealtimeContext'
 
 const navigation = [
   { to: '/', label: 'navigation.home' },
@@ -22,6 +26,17 @@ export function MainLayout() {
   const { state } = useNavigation()
   const { signOut, isSigningOut } = useLogout()
   const { hasAccessToken, profileQuery } = useSession()
+  const inbox = useConversations({ poll: true, enabled: !isSigningOut })
+  const chatRealtime = useChatRealtime(inbox.userId, inbox.query.isSuccess)
+  const unreadCount =
+    inbox.userId && inbox.query.isSuccess
+      ? inbox.query.data.reduce(
+          (total, room) =>
+            total +
+            (Number.isSafeInteger(room.unreadCount) && room.unreadCount > 0 ? room.unreadCount : 0),
+          0,
+        )
+      : 0
   const staffQuery = useMyStaffProfile(
     hasAccessToken && getStoreContext(profileQuery.data).kind === 'staff'
       ? profileQuery.data?.id
@@ -57,6 +72,7 @@ export function MainLayout() {
         { to: '/profile', label: 'profile.title' },
         { to: '/cart', label: 'cart.title' },
         { to: '/orders', label: 'orders.title' },
+        { to: '/chat', label: 'chat.title' },
         { to: '/my-products', label: 'products.mine.title' },
         ...storeNavigation,
       ]
@@ -91,6 +107,7 @@ export function MainLayout() {
                 }
               >
                 {t(label)}
+                {to === '/chat' && <UnreadBadge count={unreadCount} />}
               </NavLink>
             ))}
 
@@ -114,7 +131,9 @@ export function MainLayout() {
         aria-busy={state !== 'idle'}
         className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 outline-none sm:px-8 sm:py-16"
       >
-        <Outlet />
+        <ChatRealtimeContext value={chatRealtime}>
+          <Outlet />
+        </ChatRealtimeContext>
       </main>
       <footer className="border-t border-border px-4 py-6 text-center text-sm leading-6 text-muted-foreground">
         {t('app.tagline')}

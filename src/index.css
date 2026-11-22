@@ -733,6 +733,61 @@
   }
 }
 
+@layer components {
+  .chat-page {
+    @apply grid w-full gap-6;
+  }
+
+  .chat-layout {
+    @apply grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)];
+  }
+
+  .chat-sidebar {
+    @apply grid content-start gap-4 rounded-xl border border-border p-4;
+  }
+
+  .chat-room-link {
+    @apply grid gap-1 rounded-lg px-3 py-3 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .chat-thread {
+    @apply grid min-w-0 content-start gap-5 rounded-xl border border-border p-5 sm:p-7;
+  }
+
+  .chat-messages {
+    @apply grid gap-4;
+  }
+
+  .chat-message {
+    @apply grid w-fit max-w-full gap-2 rounded-xl border border-border px-4 py-3 sm:max-w-[85%];
+    overflow-wrap: anywhere;
+  }
+
+  .chat-message-own {
+    @apply justify-self-end bg-secondary text-secondary-foreground;
+  }
+
+  .chat-message-peer {
+    @apply justify-self-start bg-background text-foreground;
+  }
+
+  .chat-compose {
+    @apply grid gap-3 border-t border-border pt-5;
+  }
+
+  .chat-compose > label {
+    @apply text-sm font-medium;
+  }
+
+  .chat-compose > textarea {
+    @apply min-h-20 w-full resize-y rounded-md border border-input bg-secondary px-3 py-2 text-muted-foreground disabled:cursor-not-allowed;
+  }
+
+  .chat-compose > button {
+    @apply min-h-11 justify-self-start;
+  }
+}
+
 /* Checkout payment uses backend-provided QR images. */
 .checkout-qr {
   @apply mx-auto aspect-square w-full max-w-xs rounded-xl border border-border bg-background object-contain;

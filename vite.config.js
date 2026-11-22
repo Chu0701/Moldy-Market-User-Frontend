@@ -30,6 +30,12 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        // Keep SPA /chat and /chat/:conversationId routes outside the SockJS proxy.
+        '^/chat/(info|[0-9]{3}/)': {
+          target: env.API_PROXY_TARGET || 'http://localhost:8080',
+          changeOrigin: true,
+          ws: true,
+        },
         '/api': {
           target: env.API_PROXY_TARGET || 'http://localhost:8080',
           changeOrigin: true,

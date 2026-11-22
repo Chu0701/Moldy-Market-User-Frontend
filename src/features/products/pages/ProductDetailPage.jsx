@@ -12,6 +12,7 @@ import { ProductDeleteButton } from '@/features/products/components/ProductDelet
 import { useProductDetail } from '@/features/products/hooks/useProductDetail'
 import { useProductManagementAccess } from '@/features/products/hooks/useProductManagementAccess'
 import { AddToCartButton } from '@/features/cart/components/AddToCartButton'
+import { StoreChatButton } from '@/features/chat/components/StoreChatButton'
 
 export function ProductDetailPage() {
   const { t } = useTranslation()
@@ -88,6 +89,9 @@ export function ProductDetailPage() {
 
       <div className="flex flex-wrap items-start gap-3 md:col-start-2">
         <AddToCartButton key={product.id} product={product} />
+        {product.storeId && (
+          <StoreChatButton key={`chat-${product.id}`} storeId={product.storeId} />
+        )}
       </div>
       {canManage && (
         <div className="flex flex-wrap items-start gap-3 md:col-start-2">

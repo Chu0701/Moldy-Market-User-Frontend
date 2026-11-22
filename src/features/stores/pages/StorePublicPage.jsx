@@ -5,6 +5,7 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { Button } from '@/components/ui/button'
 import { usePublicStore } from '@/features/stores/hooks/usePublicStore'
 import { ProductSearchPanel } from '@/features/products/components/ProductSearchPanel'
+import { StoreChatButton } from '@/features/chat/components/StoreChatButton'
 
 export function StorePublicPage() {
   const { t } = useTranslation()
@@ -52,7 +53,9 @@ export function StorePublicPage() {
       <header className="store-public-header">
         <h1>{store.name}</h1>
         {description && <p>{description}</p>}
-        <div className="mt-4"></div>
+        <div className="mt-4">
+          <StoreChatButton key={store.id} storeId={store.id} storeQuery={query} />
+        </div>
       </header>
       <section className="store-public-products">
         <h2>{t('stores.productsTitle')}</h2>

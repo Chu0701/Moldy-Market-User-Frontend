@@ -8,6 +8,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RequireAuth } from '@/app/router/RequireAuth'
 import { routes } from '@/app/router/routes'
 
+vi.mock('@/services/chat/chatService', () => ({
+  getConversations: vi.fn().mockResolvedValue([]),
+}))
+vi.mock('@/services/chat/chatConnection', () => ({
+  connectChat: vi.fn(() => ({ close: vi.fn(), sendText: vi.fn() })),
+}))
 import i18n from '@/i18n'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'

@@ -6,6 +6,12 @@ import { RouterProvider } from 'react-router/dom'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { routes } from '@/app/router/routes'
 
+vi.mock('@/services/chat/chatService', () => ({
+  getConversations: vi.fn().mockResolvedValue([]),
+}))
+vi.mock('@/services/chat/chatConnection', () => ({
+  connectChat: vi.fn(() => ({ close: vi.fn(), sendText: vi.fn() })),
+}))
 import i18n from '@/i18n'
 import { clearAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { getStoreOrders, confirmStoreOrder } from '@/services/orders/storeOrderService'
