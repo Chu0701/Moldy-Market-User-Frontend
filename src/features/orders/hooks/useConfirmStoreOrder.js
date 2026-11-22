@@ -37,6 +37,8 @@ export function useConfirmStoreOrder({ userId, storeId, queryKey }) {
         !order ||
         order.storeId !== targetStoreId ||
         order.status !== 'PENDING_CONFIRMED' ||
+        order.paymentMethod !== 'COD' ||
+        order.paymentStatus !== 'PENDING' ||
         client.getQueryState(pageKey)?.error
       ) {
         throw new ApiError({

@@ -4,6 +4,46 @@ import { getStoreOrders, confirmStoreOrder } from './storeOrderService'
 
 afterEach(() => vi.restoreAllMocks())
 
+test('preserves per-order payment metadata without deriving it from order status', async () => {
+  const content = [
+    {
+      id: 'order',
+      storeId: 'store',
+      items: [],
+      status: 'CONFIRMED',
+      paymentMethod: 'COD',
+      paymentStatus: 'PENDING',
+      paidAt: null,
+    },
+  ]
+  vi.spyOn(apiClient, 'get').mockResolvedValue({
+    data: {
+      success: true,
+      code: 'SUCCESS',
+      data: { content, page: 1, size: 20, hasNext: false, totalElements: 1 },
+    },
+  })
+  expect((await getStoreOrders({ storeId: 'store' })).items[0]).toEqual(content[0])
+})
+
+test('rejects a malformed payment object while allowing missing metadata on old data', async () => {
+  const row = { id: 'order', storeId: 'store', items: [] }
+  const body = (content) => ({
+    data: {
+      success: true,
+      code: 'SUCCESS',
+      data: { content, page: 1, size: 20, hasNext: false, totalElements: 1 },
+    },
+  })
+  vi.spyOn(apiClient, 'get')
+    .mockResolvedValueOnce(body([{ ...row, paymentStatus: { status: 'SUCCESSFUL' } }]))
+    .mockResolvedValueOnce(body([row]))
+  await expect(getStoreOrders({ storeId: 'store' })).rejects.toMatchObject({
+    code: 'FE_UNKNOWN_ERROR',
+  })
+  await expect(getStoreOrders({ storeId: 'store' })).resolves.toMatchObject({ items: [row] })
+})
+
 test('reads a one-based store page, forwards abort and normalizes the existing PagedResponse', async () => {
   const content = [{ id: 'order', storeId: 'store/id', items: [] }]
   const get = vi.spyOn(apiClient, 'get').mockResolvedValue({

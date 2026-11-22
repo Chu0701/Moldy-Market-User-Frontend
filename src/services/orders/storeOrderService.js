@@ -21,7 +21,13 @@ export async function getStoreOrders({ storeId, page = 1, status, signal }) {
     !Number.isSafeInteger(data.totalElements) ||
     data.totalElements < 0 ||
     data.content.some(
-      (order) => !order?.id || order.storeId !== storeId || !Array.isArray(order.items),
+      (order) =>
+        !order?.id ||
+        order.storeId !== storeId ||
+        !Array.isArray(order.items) ||
+        ['paymentMethod', 'paymentStatus', 'paidAt'].some(
+          (field) => order[field] != null && typeof order[field] !== 'string',
+        ),
     )
   ) {
     throw new ApiError({

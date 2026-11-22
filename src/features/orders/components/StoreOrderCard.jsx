@@ -4,6 +4,8 @@ import { OrderDate } from '@/features/orders/components/OrderDate'
 import { OrderItems } from '@/features/orders/components/OrderItems'
 import { OrderStatusLabel } from '@/features/orders/components/OrderStatusLabel'
 import { ConfirmStoreOrderButton } from '@/features/orders/components/ConfirmStoreOrderButton'
+import { StoreOrderProgress } from '@/features/orders/components/StoreOrderProgress'
+import { StoreOrderPayment } from '@/features/orders/components/StoreOrderPayment'
 
 /** @param {{ order: object, mutation: object, canConfirm: boolean, disabled?: boolean }} props */
 export function StoreOrderCard({ order, mutation, canConfirm, disabled }) {
@@ -19,6 +21,8 @@ export function StoreOrderCard({ order, mutation, canConfirm, disabled }) {
         </div>
         <OrderStatusLabel status={order.status} />
       </div>
+      <StoreOrderPayment order={order} />
+      <StoreOrderProgress order={order} canConfirm={canConfirm} />
       <details className="store-order-details">
         <summary>{t('storeOrders.details')}</summary>
         <div className="grid gap-5 pt-5">

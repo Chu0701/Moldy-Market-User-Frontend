@@ -80,6 +80,13 @@ export const routes = [
                 }),
               },
               {
+                path: 'notifications',
+                lazy: async () => ({
+                  Component: (await import('@/features/notifications/pages/NotificationsPage'))
+                    .NotificationsPage,
+                }),
+              },
+              {
                 path: 'checkout',
                 lazy: async () => ({
                   Component: (await import('@/features/checkout/pages/CheckoutPage')).CheckoutPage,

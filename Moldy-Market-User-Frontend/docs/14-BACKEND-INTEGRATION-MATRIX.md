@@ -267,7 +267,7 @@ Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. 
 
 | Tính năng | Controller | Endpoint | Xác thực quan sát được & Lưu ý | Dùng bởi | FE |
 |---|---|---|---|---|---|
-| Notification (DynamoDB) | `NotificationController` | `GET /api/v1/notifications?limit&token`, `GET /{id}`, `PATCH /{id}/read`, `DELETE /{id}`, `PATCH /{id}/restore` | đã đăng nhập, phân trang cursor | U | `NOT_STARTED` |
+| Notification (DynamoDB) | `NotificationController` | `GET /api/v1/notifications?limit&token`, `GET /{id}`, `PATCH /{id}/read`, `DELETE /{id}`, `PATCH /{id}/restore` | đã đăng nhập, phân trang cursor theo caller | U | `IMPLEMENTED_LOCAL`; chờ cấu hình DynamoDB/Lambda thật và kiểm thử UI |
 | Xem payment riêng lẻ | `PaymentController` | `GET /api/v1/payments/my-payments`, `GET /api/v1/payments/{id}` | đã đăng nhập, chỉ payer (`method`, `paymentStatus`, `qrBankUrl`) | U | `NOT_STARTED` |
 | Webhook SePay | `PaymentTransactionController` | `POST /api/v1/payment_transactions/webhook/{provider}` | công khai, HMAC verified, RAW JSON. **Chỉ SePay gọi.** | không ai | không áp dụng |
 | Số dư ví / Escrow / Rút tiền | `WalletController`, `EscrowController`, `WithdrawalController` | `GET /api/v1/wallets/{userId}/balance`; `/api/v1/escrows/{hold,orders/{id}/capture,orders/{id}/release}`; `/api/v1/withdrawals/**` | **B2 MỞ:** chỉ yêu cầu `authenticated()`, chưa có `@PreAuthorize` | U, A | `NOT_STARTED` |
@@ -298,20 +298,25 @@ Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. 
 
 ### 5.1 Notification
 
+> Audit và bản sửa local 22/11/2026: service trên main là stub (GET list luôn rỗng, các mutation không ghi dữ liệu). Chu cho phép sửa rồi yêu cầu tiếp tục gửi Backend code để tự chép. Bản sửa đã có local trước yêu cầu này; không commit/push. 5 HTTP integration tests với PostgreSQL + DynamoDB Local pass, dùng đúng schema Lambda. Frontend có inbox `/notifications`, nút Tải thêm/Làm mới, đọc/xóa; chưa xác minh AWS pipeline thật. Xem [code Backend và hướng dẫn](NOTIFICATIONS-BACKEND-COPY.md).
+
 ```text
 NotificationRecord {
-  notificationId: string, userId: string, type: string,
-  referenceType: string, referenceId: string,
-  title: string, content: string, isRead: boolean,
-  createdAt: string, deletedAt: string | null
+  id: string, userId: string, type?: string,
+  relatedEntityType?: string, relatedEntityId?: string,
+  title?: string, message?: string, read: boolean, deleted: boolean,
+  createdAt?: string, readAt?: string
 }
-NotificationPageResponse { items: NotificationRecord[], nextToken: string | null, pageSize: number }
+NotificationPageResponse { items: NotificationRecord[], nextToken?: string, limit: number, hasMore: boolean }
 ```
 
-- `type` và `referenceType` là chuỗi thường. **Không có enum liệt kê giá trị trong code**, nên Frontend phải có cách hiển thị dự phòng cho type chưa biết.
-- Trường cờ đã đọc có thể được serialize thành `read` hoặc `isRead` tùy cấu hình Jackson với record component tên `isRead`. Phải kiểm tra bằng response thật trước khi code.
-- Các thao tác `PATCH` và `DELETE` trả body rỗng.
-- ID của notification là chuỗi (không phải kiểu UUID).
+- REST field là `read` (HTTP test đã xác nhận), không phải `isRead`. `createdAt`/`readAt` dùng Instant UTC ISO-8601. Null fields có thể bị omit.
+- Storage Lambda: `PK=USER#<caller>`, `SK=NOTIFICATION#<Instant>#<eventId>`, `content`, `referenceId`, `referenceType`, `isRead`, `expiresAt` (epoch seconds). Service chuyển sang DTO REST ở trên; `deletedAt` chỉ dùng nội bộ cho soft delete.
+- REST `id` là base64url không padding của SK, **opaque**, không phải UUID/event ID. Chỉ dùng ID từ response; không tự dựng. `GET /{id}` và thao tác ghi giới hạn PK của caller; ID của người khác là 404.
+- Cursor `{userId,key}` được encode base64url; token của tài khoản khác trả 400 `PAGINATION_TOKEN_USER_MISMATCH`, token hỏng trả 400 `INVALID_PAGINATION_TOKEN`. Không gửi userId trên request. Dùng `hasMore` + `nextToken`; một trang rỗng vẫn có thể còn trang tiếp do DynamoDB filter sau Limit.
+- Các thao tác `PATCH` và `DELETE` trả **204 body rỗng**. Mark read idempotent và giữ `readAt` đầu tiên. Delete lặp: 409 `NOTIFICATION_ALREADY_DELETED`; restore khi chưa xóa: 409 `NOTIFICATION_NOT_DELETED`; missing/deleted read/expired: 404 `NOTIFICATION_NOT_FOUND`. Restore vẫn có API nhưng chưa có UI thùng rác.
+- `type`/`relatedEntityType` là chuỗi; UI hiển thị title/message dưới dạng text kể cả type mới. Chưa nối reference links: chưa có producer mapping xác minh, buyer order route không phù hợp cho seller. Chưa realtime/polling/badge tổng chưa đọc (không có count API).
+- Lỗi DynamoDB/credentials/table phải hiển thị lỗi, không giả thành inbox rỗng. Chưa tìm thấy producer `NotificationEvent` trong main app; chưa thể khẳng định đặt hàng tự sinh thông báo. Đây là phần nối nghiệp vụ tiếp theo, không phát event giả từ frontend.
 
 ### 5.2 Chat và WebSocket
 
@@ -544,7 +549,12 @@ Trạng thái Backend: **IMPLEMENTED_LOCAL** sau khi Chu chép ngày 2026-11-21.
 - GET /api/v1/stores/{storeId}/orders?page=1&size=20&status=PENDING_CONFIRMED. Cần đăng nhập. Chu chốt owner và staff cùng store có ORDER_PROCESS được xem; quyền xem không cấp quyền xác nhận COD. Tái sử dụng StoreAccessGuard, bao gồm STORE_BLOCKED.
 - page từ 1, mặc định 1; size 1–100, mặc định 20. status tùy chọn theo OrderStatus. Sort cố định createdAt DESC, id DESC; sai UUID/int/enum/bounds/offset trả INVALID_REQUEST (400).
 - ApiResponse<PagedResponse<OrderResponse>>, data có content/page/size/hasNext/totalElements. Trang rỗng trả 200, không dùng lỗi rỗng legacy của /orders/me. Filter bằng Order.storeId, không dùng sellerId; owner thấy đơn từ mọi staff đúng shop, không lấy đơn shop khác hoặc đơn cá nhân cũ.
-- OrderResponse giữ nguyên, chưa có paymentMethod/paymentStatus. UI không được coi CONFIRMED là đã thu tiền COD. POST /api/v1/orders/seller/{orderId}/confirm hiện có vẫn chỉ owner; admin shipping/delivery/collection giữ nguyên.
+- OrderResponse bổ sung local ngày 22/11 `paymentMethod: COD|ONLINE_BANKING|null`, `paymentStatus: PENDING|PROCESSING|SUCCESSFUL|FAILED|null`, `paidAt: Instant|null` của từng Order; xem cập nhật bên dưới. UI không coi CONFIRMED là đã thu tiền COD. POST /api/v1/orders/seller/{orderId}/confirm vẫn chỉ owner; admin shipping/delivery/collection giữ nguyên.
+- Rà flow User FE 22/11/2026: đã thêm hướng dẫn bước tiếp theo theo status/owner và lịch sử xử lý ngay trong card gian hàng. Lịch sử chỉ dùng `createdAt`, `confirmedAt`, `shippedAt`, `deliveredAt`, `completedAt`, `cancelledAt` của OrderResponse (đã đối chiếu source), lọc timestamp thiếu/sai và sắp theo thời gian; không suy mốc từ status, không dùng `returnDeadline` làm mốc đã xảy ra. Staff không được nút xác nhận; giao/đã giao/thu COD vẫn Admin. Không thay endpoint hoặc source Backend. Cần bổ sung payment metadata qua một task Backend gửi code cho Chu chép nếu muốn phân biệt COD/online trên đơn CONFIRMED; hiện chưa đoán hoặc lấy checkout buyer-only từ màn hình seller.
+- Kiểm chứng phần tiến trình 22/11: format/lint/format:check/build pass; full Frontend 52 files / 473 tests pass (gồm 16 tests notification đang tạm dừng, 8 tests mới cho tiến trình). Chưa mở browser kiểm thử UI; không đổi Backend trong task này, không commit/push.
+- Payment metadata được Chu chép ngày 22/11: [code đủ 6 file Backend](ORDER-PAYMENT-METADATA-BACKEND-COPY.md), **IMPLEMENTED_LOCAL** sau kiểm tra full Maven verify/package 329 tests (328 pass, 1 disabled có sẵn). COD đã thu một đơn trả SUCCESSFUL dù payment chung còn PENDING; đơn khác chưa thu vẫn PENDING; COD hủy chưa thu là FAILED (không còn thu, không có nghĩa refund). Online dùng payment chung khi chưa có paidAt riêng; thiếu payment là unknown/null. Assembler batch tải một lần cho cả page/list; duplicate payment cho một checkout bị từ chối thay vì chọn tùy tiện. Các endpoint trả OrderResponse qua OrderService và StoreOrderService đã dùng assembler; CheckoutSummary/PaymentResponse QR giữ nguyên. Có 8 assembler tests và 2 HTTP/PostgreSQL tests mới, giữ kiểm tra scope/quyền và cập nhật mock tests cũ.
+- Frontend hiển thị riêng phương thức, trạng thái tiền và paidAt trên card gian hàng; giá trị thiếu/type mới là chưa có thông tin, không suy paid từ order.status. COD FAILED với order CANCELLED/EXPIRED hiển thị không tiếp tục thu tiền, không báo refund. Field payment sai kiểu object bị boundary từ chối. Nút confirm và hook chỉ cho owner + PENDING_CONFIRMED + COD + payment PENDING, kiểm tra lại cache sau dialog; các quyền Backend vẫn là quyết định cuối. Chưa kiểm thử UI thủ công, cần restart Backend sau khi chép.
+- Kiểm chứng Frontend metadata 22/11: format/lint/format:check/build pass, 53 files / 485 tests pass. Có 12 tests FE mới (8 payment view, 2 route/confirmation guard, 2 service boundary); 3 regression tests đã tái hiện lỗi trước khi implementation. Không commit/push; notification vẫn tạm dừng độc lập.
 - Chu duyệt sửa CustomAuthenticationEntryPoint và CustomAccessDeniedHandler: dùng Jackson 3 ObjectMapper được Spring inject, giữ status/code/message. Test anonymous tái hiện lỗi mapper Jackson 2 không serialize được Instant của ApiResponse.timestamp.
 - Bản review riêng (từ working tree Backend hiện tại, không phải committed ref) pass full Maven verify/package: 283 tests, 282 pass và 1 auth QA-010 disabled có sẵn; 19 test mới, gồm 11 PostgreSQL/HTTP và 8 unit. Tests mới không skip, fixtures tự rollback. Hibernate 7.4.1.Final đã được đối chiếu; pagination với nhiều items và count được kiểm tra trên PostgreSQL.
 

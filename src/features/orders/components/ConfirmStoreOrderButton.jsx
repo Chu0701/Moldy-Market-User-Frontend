@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button'
 export function ConfirmStoreOrderButton({ order, mutation, canConfirm, disabled = false }) {
   const { t } = useTranslation()
   const locked = useRef(false)
-  if (!canConfirm || order.status !== 'PENDING_CONFIRMED') return null
+  if (
+    !canConfirm ||
+    order.status !== 'PENDING_CONFIRMED' ||
+    order.paymentMethod !== 'COD' ||
+    order.paymentStatus !== 'PENDING'
+  )
+    return null
   const sameOrder = mutation.variables?.orderId === order.id
   async function confirm() {
     if (locked.current || disabled || mutation.isPending) return

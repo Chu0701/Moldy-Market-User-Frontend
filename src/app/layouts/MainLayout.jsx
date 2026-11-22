@@ -73,6 +73,7 @@ export function MainLayout() {
         { to: '/cart', label: 'cart.title' },
         { to: '/orders', label: 'orders.title' },
         { to: '/chat', label: 'chat.title' },
+        { to: '/notifications', label: 'notifications.title' },
         { to: '/my-products', label: 'products.mine.title' },
         ...storeNavigation,
       ]

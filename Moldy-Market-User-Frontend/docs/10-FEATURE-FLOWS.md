@@ -1,40 +1,34 @@
 # 10 - Feature Flows (Luồng nghiệp vụ theo tính năng)
 
-> **Trạng thái:** BẢN NHÁP v0.1
-> **Cập nhật:** 2026-11-08
+> **Trạng thái:** v0.2 (cập nhật 2026-11-22: cập nhật bảng tổng hợp trạng thái thực tế của 12 luồng)
+> **Cập nhật:** 2026-11-22
 > **Áp dụng cho:** `Moldy-Market-User-Frontend`
-> **Mục đích:** Mô tả từng luồng nghiệp vụ chính của người dùng cuối từ góc nhìn Frontend: ai làm gì, Frontend gọi gì, Backend trả gì, lỗi nào phải xử lý. Mỗi luồng ghi rõ phần nào đã xác minh với Backend, phần nào mới là kế hoạch.
+> **Mục đích:** Mô tả từng luồng nghiệp vụ chính của người dùng cuối từ góc nhìn Frontend: ai làm gì, Frontend gọi gì, Backend trả gì, lỗi nào phải xử lý.
 
 ---
 
 ## 0. Cách đọc tài liệu này
 
-Mọi luồng bên dưới đều thuộc loại `[ĐỀ XUẤT]` về phía Frontend, vì **Frontend chưa có code ứng dụng nào** (mọi tính năng ở trạng thái `NOT_STARTED`). Các sơ đồ mô tả cách Frontend **sẽ** hoạt động, không phải cách nó đang hoạt động.
+Các luồng 1, 2, 3, 4, 5, 10 và 12 đã được triển khai thực tế tại User Frontend (các chi tiết hợp đồng mới nhất về OTP, HttpOnly cookie, checkout/COD, chat STOMP/read cursors xem thêm ở doc 04, 07, 08, 14 và `docs/learning/*`). Các luồng còn lại là `[ĐỀ XUẤT]` hoặc chờ audit Backend.
 
-Phần Backend được gắn nhãn:
+Tài liệu này **không lặp lại bảng route**. Route, layout và quyền truy cập của từng trang nằm ở [04-ROUTING-AND-PAGES.md](./04-ROUTING-AND-PAGES.md); chi tiết từng màn hình nằm ở [05-PAGE-BY-PAGE-GUIDE.md](./05-PAGE-BY-PAGE-GUIDE.md).
 
-- `[ĐÃ XÁC MINH BACKEND]`: có trong doc 14.
-- `[ĐỀ XUẤT]`: thiết kế Frontend dự kiến.
-- `NOT_FOUND`, `PLANNED`, `IN_PROGRESS`, `REQUIRES_BUSINESS_CLARIFICATION`: trạng thái Backend theo doc 14 mục 1.1.
+### Bảng tổng hợp (2026-11-22)
 
-Tài liệu này **không lặp lại bảng route**. Route, layout và quyền truy cập của từng trang nằm ở [04-ROUTING-AND-PAGES.md](./04-ROUTING-AND-PAGES.md); chi tiết từng màn hình nằm ở [05-PAGE-BY-PAGE-GUIDE.md](./05-PAGE-BY-PAGE-GUIDE.md). Ở đây chỉ nhắc tên trang hoặc path khi cần để hiểu luồng.
-
-### Bảng tổng hợp
-
-| # | Luồng | Backend | Frontend | Chặn bởi |
+| # | Luồng | Backend | Frontend | Ghi chú / Điểm chặn |
 |---|---|---|---|---|
-| 1 | Đăng ký và đăng nhập | `IMPLEMENTED` | `NOT_STARTED` | B10, Q14, Q2 |
-| 2 | Tạo gian hàng | `IMPLEMENTED` | `NOT_STARTED` | Không |
-| 3 | Đăng và sửa sản phẩm | `IMPLEMENTED` (định giá `PARTIALLY_IMPLEMENTED`) | `NOT_STARTED` | Q5 (ảnh) |
-| 4 | Mua hàng (checkout) | `IN_PROGRESS` (`feature/order`) | `NOT_STARTED` | Q12, Q16, Q17, B14 |
-| 5 | Thanh toán chuyển khoản qua SePay | `IN_PROGRESS` (`feature/order`) | `NOT_STARTED` | B12, Q11 |
-| 6 | Offer (trả giá) | `NOT_FOUND` | `NOT_STARTED` | Q8 |
-| 7 | Escrow | `IN_PROGRESS` (chưa mở cho người dùng) | `NOT_STARTED` | B2, Q4, Q18 |
-| 8 | Refund | `NOT_FOUND` | `NOT_STARTED` | Q9, Q10 |
-| 9 | Thẩm định giá | `IN_PROGRESS` (`feature/pricing`) | `NOT_STARTED` | DTO chưa audit, Q12 |
-| 10 | Quản lý gian hàng và staff | `IMPLEMENTED` (mời staff `PLANNED`) | `NOT_STARTED` | Q1 |
-| 11 | Notification | `IN_PROGRESS` | `NOT_STARTED` | Q12, Q13 |
-| 12 | Chat | `IN_PROGRESS` (`feature/chat`) | `NOT_STARTED` | Q6, Q12 |
+| 1 | Đăng ký, OTP & đăng nhập | `IMPLEMENTED` | `IMPLEMENTED_LOCAL` (`INTEGRATED` OTP) | HttpOnly cookie `moldy_refresh` + `X-Moldy-Auth: 1`; OTP kích hoạt ngay |
+| 2 | Tạo gian hàng | `IMPLEMENTED` | `IMPLEMENTED_LOCAL` | Đã xác minh DTO (`POST/GET/PUT /api/v1/stores`) |
+| 3 | Đăng và sửa sản phẩm | `IMPLEMENTED` (`SELLER_SET`) | `IMPLEMENTED_LOCAL` | Có `version` optimistic lock, ẩn/hiện, xóa; ảnh nhập URL HTTPS |
+| 4 | Giỏ hàng & Mua hàng (checkout + COD + đơn mua) | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` | qty=1, reservation 15p, chặn tự mua, buyer hủy đơn, B13 fallback `[]` |
+| 5 | Thanh toán chuyển khoản qua SePay | `IMPLEMENTED_LOCAL` | `INTEGRATED_LOCAL_SANDBOX` | B12 đã sửa local; polling `paymentStatus === "SUCCESSFUL"` |
+| 6 | Offer (trả giá) | `NOT_FOUND` | `NOT_STARTED` | Chưa có API |
+| 7 | Escrow / Ví / Rút tiền | Đã merge `main` | `NOT_STARTED` | **B2 mở** (thiếu `@PreAuthorize`) |
+| 8 | Refund / Dispute | `NOT_FOUND` | `NOT_STARTED` | `Refund` rỗng, `DisputeRequest` chưa có controller |
+| 9 | Thẩm định giá (Appraisal) | Đã merge `main` (module mới) | `NOT_STARTED` | Cần HTTP/security audit (xem `HANDOFF-APPRAISER-FRONTEND.md`) |
+| 10 | Quản lý gian hàng, staff & đơn gian hàng | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` | `/stores/my-store/staff/me` dùng `STORE_WORKSPACE_ACCESS`; có `/store/orders` |
+| 11 | Notification (DynamoDB) | `IMPLEMENTED` | `NOT_STARTED` | Phân trang cursor, chưa nối UI |
+| 12 | Chat (REST + STOMP + Read cursors) | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` | 1 kết nối STOMP tại `MainLayout`, chặn staff–owner cùng shop (`CHAT_005`) |
 
 ---
 

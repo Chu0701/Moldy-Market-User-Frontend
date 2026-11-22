@@ -613,6 +613,78 @@
     "noStoreDescription": "Open a store to start managing sales orders.",
     "invalidFilters": "Invalid filters",
     "invalidFiltersDescription": "The page or status in the URL is invalid. Reset the filters to continue.",
-    "resetFilters": "Reset filters"
+    "resetFilters": "Reset filters",
+    "progress": {
+      "title": "Order progress",
+      "history": "View processing history",
+      "listLabel": "Recorded milestones",
+      "noHistory": "No timestamps have been recorded yet.",
+      "hints": {
+        "pendingPayment": "Waiting for the buyer to complete payment. Store confirmation is not required yet.",
+        "pendingOwner": "The store owner can confirm this COD order after checking the items and delivery details. Confirmation does not record payment collection.",
+        "pendingStaff": "Waiting for the store owner to confirm this COD order. You can monitor the order here; confirmation belongs to the owner.",
+        "confirmed": "The order is confirmed. An admin records shipping next; this status does not indicate whether COD payment has been collected.",
+        "shipping": "The order is shipping. An admin records delivery when the delivery result is available; the store can monitor it here.",
+        "delivered": "Delivery has been recorded; this does not imply completion or COD payment collection. An admin records COD collection separately.",
+        "completed": "The system has recorded this order as completed.",
+        "cancelled": "The order is cancelled. Do not proceed with shipping or assume that a refund has been issued.",
+        "expired": "The order has expired. Do not proceed with shipping from this order.",
+        "disputed": "The order is disputed. Follow the outcome recorded by the system.",
+        "refunded": "The system has recorded the order as refunded.",
+        "unknown": "Guidance is not available for this status. Refresh to check the latest data.",
+        "paymentUnavailable": "Payment information is not sufficient to confirm this order. Refresh the list to check again."
+      },
+      "milestones": {
+        "createdAt": "Order created",
+        "confirmedAt": "Confirmed",
+        "shippedAt": "Shipping started",
+        "deliveredAt": "Delivered",
+        "completedAt": "Completed",
+        "cancelledAt": "Cancelled"
+      }
+    },
+    "payment": {
+      "title": "Payment information",
+      "method": "Method",
+      "status": "Payment status",
+      "paidAt": "Payment recorded at",
+      "methods": {
+        "cod": "Cash on delivery (COD)",
+        "online": "Bank transfer",
+        "unknown": "Information unavailable"
+      },
+      "statuses": {
+        "pending": "Awaiting payment",
+        "codPending": "Not collected",
+        "processing": "Processing payment",
+        "successful": "Paid",
+        "codSuccessful": "Collected",
+        "failed": "Payment unsuccessful",
+        "codCancelled": "Collection no longer required",
+        "unknown": "Information unavailable"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Keep up with your updates. Refresh to load the latest notifications.",
+    "read": "Read",
+    "unread": "Unread",
+    "fallbackTitle": "New update",
+    "markRead": "Mark as read",
+    "delete": "Delete",
+    "deletePrompt": "Remove this notification from your inbox?",
+    "confirmDelete": "Confirm delete",
+    "cancel": "Cancel",
+    "refresh": "Refresh",
+    "forbidden": "You do not have access to these notifications",
+    "loadError": "Notifications could not be loaded. Please retry or refresh the list.",
+    "updateError": "The notification could not be updated. Check the list before retrying.",
+    "loading": "Loading notifications…",
+    "listLabel": "Notification list",
+    "moreAvailable": "This page has no visible notifications. You can continue loading older updates.",
+    "emptyTitle": "No notifications yet",
+    "emptyDescription": "Updates for you will appear here.",
+    "loadMore": "Load more"
   }
 }

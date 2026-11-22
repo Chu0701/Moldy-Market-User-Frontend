@@ -613,6 +613,78 @@
     "noStoreDescription": "Mở gian hàng để bắt đầu quản lý đơn bán.",
     "invalidFilters": "Bộ lọc chưa hợp lệ",
     "invalidFiltersDescription": "Trang hoặc trạng thái trên đường dẫn chưa đúng. Đặt lại bộ lọc để tiếp tục.",
-    "resetFilters": "Đặt lại bộ lọc"
+    "resetFilters": "Đặt lại bộ lọc",
+    "progress": {
+      "title": "Tiến trình xử lý",
+      "history": "Xem lịch sử xử lý",
+      "listLabel": "Các mốc đã ghi nhận",
+      "noHistory": "Chưa có mốc thời gian được ghi nhận.",
+      "hints": {
+        "pendingPayment": "Chờ người mua hoàn tất thanh toán. Gian hàng chưa cần xác nhận đơn này.",
+        "pendingOwner": "Chủ gian hàng có thể xác nhận đơn COD sau khi kiểm tra món hàng và thông tin nhận hàng. Xác nhận đơn chưa phải đã thu tiền.",
+        "pendingStaff": "Chờ chủ gian hàng xác nhận đơn COD. Bạn có thể theo dõi đơn tại đây; thao tác xác nhận thuộc chủ gian hàng.",
+        "confirmed": "Đơn đã được xác nhận. Admin cập nhật giao hàng ở bước tiếp theo; trạng thái này không cho biết đã thu tiền COD hay chưa.",
+        "shipping": "Đơn đang giao. Admin ghi nhận đã giao khi có kết quả giao hàng; gian hàng có thể theo dõi tại đây.",
+        "delivered": "Đã ghi nhận giao hàng; chưa đồng nghĩa đã hoàn tất hoặc đã thu tiền COD. Admin ghi nhận thu tiền COD ở bước riêng.",
+        "completed": "Hệ thống đã ghi nhận đơn hoàn tất.",
+        "cancelled": "Đơn đã hủy; không tiếp tục giao và không tự suy ra đã hoàn tiền.",
+        "expired": "Đơn đã hết hạn. Không tiếp tục xử lý giao hàng từ đơn này.",
+        "disputed": "Đơn đang có tranh chấp. Theo dõi kết quả xử lý từ hệ thống.",
+        "refunded": "Hệ thống đã ghi nhận trạng thái hoàn tiền của đơn.",
+        "unknown": "Trạng thái này chưa có hướng dẫn xử lý. Làm mới để kiểm tra dữ liệu mới nhất.",
+        "paymentUnavailable": "Chưa đủ thông tin thanh toán để xác nhận đơn. Làm mới danh sách để kiểm tra lại."
+      },
+      "milestones": {
+        "createdAt": "Đã tạo đơn",
+        "confirmedAt": "Đã xác nhận",
+        "shippedAt": "Đã bắt đầu giao",
+        "deliveredAt": "Đã giao",
+        "completedAt": "Đã hoàn tất",
+        "cancelledAt": "Đã hủy"
+      }
+    },
+    "payment": {
+      "title": "Thông tin thanh toán",
+      "method": "Phương thức",
+      "status": "Trạng thái tiền",
+      "paidAt": "Thời điểm ghi nhận thanh toán",
+      "methods": {
+        "cod": "Thanh toán khi nhận hàng (COD)",
+        "online": "Chuyển khoản ngân hàng",
+        "unknown": "Chưa có thông tin"
+      },
+      "statuses": {
+        "pending": "Chờ thanh toán",
+        "codPending": "Chưa thu tiền",
+        "processing": "Đang xử lý thanh toán",
+        "successful": "Đã thanh toán",
+        "codSuccessful": "Đã thu tiền",
+        "failed": "Thanh toán chưa thành công",
+        "codCancelled": "Không tiếp tục thu tiền",
+        "unknown": "Chưa có thông tin"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "description": "Theo dõi những cập nhật dành cho bạn. Làm mới để tải thông báo mới nhất.",
+    "read": "Đã đọc",
+    "unread": "Chưa đọc",
+    "fallbackTitle": "Cập nhật mới",
+    "markRead": "Đánh dấu đã đọc",
+    "delete": "Xóa",
+    "deletePrompt": "Xóa thông báo này khỏi hộp thông báo?",
+    "confirmDelete": "Xác nhận xóa",
+    "cancel": "Hủy",
+    "refresh": "Làm mới",
+    "forbidden": "Bạn không có quyền xem thông báo",
+    "loadError": "Không tải được thông báo. Hãy thử lại hoặc làm mới danh sách.",
+    "updateError": "Không thể cập nhật thông báo. Vui lòng kiểm tra lại danh sách trước khi thử lại.",
+    "loading": "Đang tải thông báo…",
+    "listLabel": "Danh sách thông báo",
+    "moreAvailable": "Trang này không còn thông báo hiển thị. Bạn có thể tải tiếp các thông báo cũ hơn.",
+    "emptyTitle": "Chưa có thông báo",
+    "emptyDescription": "Những cập nhật dành cho bạn sẽ xuất hiện tại đây.",
+    "loadMore": "Tải thêm"
   }
 }

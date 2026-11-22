@@ -55,44 +55,46 @@ Giải thích:
 
 ---
 
-## 3. Cấu trúc thư mục
-
-Các thư mục dưới đây đã được tạo thủ công (nhiều thư mục chỉ chứa `.gitkeep`) `[ĐÃ CẤU HÌNH]`. **File bên trong, ngoài những file đã nêu ở doc 01 mục 7, là `[ĐỀ XUẤT]`.**
+## 3. Cấu trúc thư mục (Cập nhật 2026-11-22) `[ĐÃ TRIỂN KHAI]`
 
 ```text
 src/
   app/
-    providers/        # QueryClientProvider, RouterProvider bọc ngoài, ...
-    router/           # định nghĩa route, route guard
-    layouts/          # MainLayout, AuthLayout, StoreDashboardLayout
+    providers/        # AppProviders.jsx, queryClient.js
+    router/           # routes.js, RequireAuth.jsx, GuestOnly.jsx
+    layouts/          # MainLayout.jsx, AuthLayout.jsx (StoreDashboardLayout chưa tách)
   components/
-    ui/               # shadcn (sinh bởi CLI, KHÔNG sửa tay)
-    common/           # component dùng chung nhiều feature (Logo, PageHeader, EmptyState...)
-    feedback/         # loading, lỗi, rỗng, toast
-    navigation/       # header, footer, menu, breadcrumb
+    ui/               # shadcn (button.jsx — sinh bởi CLI, KHÔNG sửa tay)
+    common/           # ImageWithFallback, LanguageSwitcher, Logo, PaginationBar, ProductPrice, RoutePlaceholder
+    feedback/         # EmptyState, ErrorState, ForbiddenState, RouteLoading
+    navigation/       # .gitkeep
   features/
     auth/{components,hooks,pages,schemas}
     marketplace/{components,hooks,pages}
     products/{components,hooks,pages,schemas}
     stores/{components,hooks,pages,schemas}
     profile/{components,hooks,pages,schemas}
-  hooks/              # hook dùng chung (không thuộc feature nào)
-  lib/                # utils.js (hàm cn), helper chung
-  state/              # Zustand: client state (sidebar, tùy chọn UI, ngôn ngữ)
-  constants/          # hằng số
-  i18n/               # index.js, locales/{vi,en}/common.json
+    cart/{components,hooks,pages}
+    checkout/{components,hooks,pages,schemas}
+    orders/{components,hooks,pages}
+    chat/{components,hooks,pages}
+    system/{pages}    # NotFoundPage, RouteErrorPage
+  hooks/              # .gitkeep
+  lib/                # utils.js (cn), tokenStorage.js
+  state/              # .gitkeep (Zustand — chỉ dùng cho client UI state khi cần)
+  constants/          # .gitkeep
+  i18n/               # index.js, locales/{vi,en}/common.json (514 keys)
   services/
-    api/              # Axios instance, interceptor, helper chuẩn hóa lỗi/phân trang
-    auth/  users/  stores/  categories/  products/
+    api/              # client.js, unwrap.js, ApiError.js, pagination.js, authRefreshInterceptor.js
+    auth/  users/  stores/  categories/  products/  cart/  checkout/  orders/  chat/
 ```
 
 Những điểm cần nhớ:
 
-- **`state/` thay vì `stores/`:** "store" trong dự án là *gian hàng*. Đặt thư mục Zustand tên `stores/` gây nhầm với `features/stores/` và `services/stores/`. Vì vậy đổi thành `state/`. `[ĐÃ CẤU HÌNH]`
-- **`lib/` thay vì `utils/`:** shadcn đã tạo `lib/utils.js`; không tạo thêm `utils/` song song.
-- **Không có `pages/` toàn cục:** component trang nằm trong `features/<tên>/pages/`. Router (`app/router/`) chỉ ghép trang vào route.
-- **Thư mục `.gitkeep`:** chỉ là chỗ giữ chỗ; xóa file này khi thư mục có file thật.
-- **Module chưa merge ở Backend** (notification, chat, cart, order, payment, pricing, voucher, escrow...) **chưa có** thư mục. Chúng được tạo khi Backend merge vào `main` và doc 14 cập nhật.
+- **`state/` thay vì `stores/`:** "store" trong dự án là *gian hàng*. Đặt thư mục Zustand tên `stores/` gây nhầm với `features/stores/` và `services/stores/`.
+- **`lib/` thay vì `utils/`:** chứa `utils.js` (`cn`) và `tokenStorage.js`.
+- **Không có `pages/` toàn cục:** component trang nằm trong `features/<tên>/pages/`. Router (`app/router/routes.js`) chỉ ghép trang lazy vào route.
+- **Thư mục chưa triển khai:** `features/appraiser/` và `services/appraiser/` sẽ được thêm theo `HANDOFF-APPRAISER-FRONTEND.md` sau khi audit contract Backend.
 
 ### 3.1 Vì sao `marketplace` tách khỏi `products`
 

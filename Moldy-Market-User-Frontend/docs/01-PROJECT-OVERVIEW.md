@@ -81,55 +81,51 @@ Lý do tách riêng `[ĐỀ XUẤT]`: hai ứng dụng có người dùng, bố 
 
 ---
 
-## 4. Các module và tình trạng Backend
+## 4. Các module và tình trạng Backend / Frontend (Cập nhật 2026-11-22)
 
-Bảng tóm tắt từ doc 14 (xem doc 14 mục 4 để có endpoint chi tiết). `FE` là trạng thái phía Frontend; hiện tại mọi tính năng đều `NOT_STARTED`.
+Bảng tóm tắt từ doc 14 (xem doc 14 mục 4 để có endpoint chi tiết).
 
 | Module | Trạng thái Backend | Ghi chú cho User Frontend | FE |
 |---|---|---|---|
-| Xác thực (đăng ký, đăng nhập, refresh, logout) | `IMPLEMENTED` | Lưu ý B10: user mới đăng ký chưa đăng nhập được (Q14) | `NOT_STARTED` |
-| Hồ sơ cá nhân, đổi mật khẩu | `IMPLEMENTED` | | `NOT_STARTED` |
-| Gian hàng (tạo, xem, sửa, trang công khai) | `IMPLEMENTED` | Mỗi user một gian hàng | `NOT_STARTED` |
-| Staff của gian hàng | `IMPLEMENTED` (thêm trực tiếp bằng email), mời staff `PLANNED` | Cần quyền `STORE_STAFF_MANAGE` | `NOT_STARTED` |
-| Danh mục (category) | `IMPLEMENTED` | Đọc công khai | `NOT_STARTED` |
-| Sản phẩm (tạo, sửa, xóa, đổi trạng thái, tìm kiếm, gợi ý) | `IMPLEMENTED` | Update cần `version`; ảnh chỉ nhận URL https (Q5) | `NOT_STARTED` |
-| Chiến lược định giá của sản phẩm | `PARTIALLY_IMPLEMENTED` | Chỉ `SELLER_SET` chắc chắn dùng được; `PROD_003` cho chiến lược chưa hỗ trợ | `NOT_STARTED` |
-| Notification | `IN_PROGRESS` | Phân trang cursor, không có kênh push | `NOT_STARTED` |
-| Chat (REST và WebSocket) | `IN_PROGRESS` | Chỉ giữa hai user, không gắn offer/order/product (Q6) | `NOT_STARTED` |
-| Cart | `IN_PROGRESS` | `listingId` có phải `Product.id` hay không còn hỏi (Q7) | `NOT_STARTED` |
-| Checkout, order (người mua), payment, SePay | `IN_PROGRESS` | B11, B12, B13, B14; tự bỏ `quantity` theo quyết định team | `NOT_STARTED` |
-| Voucher, pricing, appraiser | `IN_PROGRESS` | Voucher chưa được áp dụng ở checkout | `NOT_STARTED` |
-| Wallet, escrow, withdrawal | `IN_PROGRESS` | Trông như thao tác nội bộ; B2, Q4 | `NOT_STARTED` |
-| Order phía người bán, offer, refund, dispute, wishlist, follow, review, thống kê, upload ảnh | `NOT_FOUND` / `REQUIRES_BUSINESS_CLARIFICATION` | Chỉ có skeleton `TODO`, không viết code API | `NOT_STARTED` |
+| Xác thực & Email OTP (đăng ký, OTP, đăng nhập, refresh cookie, logout) | `IMPLEMENTED` | HttpOnly cookie `moldy_refresh` + `X-Moldy-Auth: 1`; OTP kích hoạt ngay | `IMPLEMENTED_LOCAL` |
+| Hồ sơ cá nhân, đổi mật khẩu | `IMPLEMENTED` | `/users/me` trả `roles`, `permissions`, `storeId` | `IMPLEMENTED_LOCAL` |
+| Gian hàng (tạo, xem, sửa, trang công khai) | `IMPLEMENTED` | Mỗi user một gian hàng; `PublicStoreResponse` có `ownerId` | `IMPLEMENTED_LOCAL` |
+| Staff của gian hàng | `IMPLEMENTED` (thêm trực tiếp bằng email), mời staff `PLANNED` | `GET /staff/me` dùng `STORE_WORKSPACE_ACCESS` | `IMPLEMENTED_LOCAL` |
+| Danh mục (category) | `IMPLEMENTED` | Đọc công khai | `INTEGRATED` |
+| Sản phẩm (CRUD, đổi trạng thái, tìm kiếm, tin cá nhân/shop) | `IMPLEMENTED` | Update cần `version`; reservation giữ chỗ; ảnh URL https | `IMPLEMENTED_LOCAL` |
+| Giỏ hàng (Cart, qty=1) | `IMPLEMENTED` | `listingId = Product.id`; chặn tự mua `CART_001` | `IMPLEMENTED_LOCAL` |
+| Checkout, Order (người mua & gian hàng), SePay + COD | `IMPLEMENTED_LOCAL` | B11/B12 đã sửa local; B13 (`orders/me` 404 khi rỗng) FE chuyển thành `[]` | `IMPLEMENTED_LOCAL` |
+| Chat (REST + WebSocket STOMP + Read cursors) | `IMPLEMENTED_LOCAL` | 1 kết nối STOMP ở `MainLayout`; chặn chat staff–owner cùng shop (`CHAT_005`) | `IMPLEMENTED_LOCAL` |
+| Notification (DynamoDB) | `IMPLEMENTED` | Phân trang cursor, chưa có push realtime | `NOT_STARTED` |
+| Appraiser & Appraisal 6 bước, Voucher, Auto Pricing, Wallet, File Storage | Đã merge `main`, cần Audit | Xem `HANDOFF-APPRAISER-FRONTEND.md`; B2 mở trên Wallet/Escrow/Withdrawal | `NOT_STARTED` |
+| Offer, refund, dispute, wishlist, follow, review, thống kê doanh thu | `NOT_FOUND` | Chỉ có skeleton `TODO`, không viết code API | `NOT_STARTED` |
 
-Quy tắc phát triển rút từ doc 14 mục 1.2: chỉ dòng `IMPLEMENTED` mới được viết service gọi API thật; `IN_PROGRESS` chờ branch merge và doc 14 cập nhật; `PLANNED`/`NOT_FOUND` chỉ làm skeleton.
+Quy tắc phát triển rút từ doc 14 mục 1.2: chỉ viết service gọi API cho endpoint đã xác minh/audit; `PLANNED`/`NOT_FOUND` chỉ làm skeleton.
 
 ---
 
 ## 5. Công nghệ sử dụng `[ĐÃ CẤU HÌNH]`
 
-Ngôn ngữ: **JavaScript** (không TypeScript), dùng JSDoc cho kiểu dữ liệu khi cần. Phiên bản lấy từ `package.json` (dạng `^` nên có thể nhích lên).
+Ngôn ngữ: **JavaScript** (không TypeScript), dùng JSDoc cho kiểu dữ liệu khi cần. Phiên bản lấy từ `package.json`.
 
 | Mảng | Công nghệ | Phiên bản | Vai trò |
 |---|---|---|---|
 | Runtime | Node.js | `>=22.12.0` (`.nvmrc` = 22) | Chạy công cụ build |
-| Build | Vite, `@vitejs/plugin-react` | ^8.3.5, ^6.1.2 | Dev server, build, proxy `/api` |
+| Build | Vite, `@vitejs/plugin-react` | ^8.3.5, ^6.1.2 | Dev server, build, proxy `/api` & `/chat` |
 | UI | React, react-dom | ^19.3.1 | Thư viện giao diện |
-| Style | Tailwind CSS (qua `@tailwindcss/vite`) | ^4.3.4 | Utility CSS, cấu hình trong CSS, không có `tailwind.config.js` |
-| Component | shadcn/ui (`radix-nova`), radix-ui, class-variance-authority, tw-animate-css, lucide-react | shadcn ^4.23.0 | Component nền, icon |
+| Style | Tailwind CSS (qua `@tailwindcss/vite`) | ^4.3.4 | Utility CSS, cấu hình trong `src/index.css` |
+| Component | shadcn/ui (`radix-nova`), radix-ui, cva, tw-animate-css, lucide-react | shadcn ^4.23.0 | Component nền (`button`), icon |
 | Tiện ích class | clsx, tailwind-merge (hàm `cn` ở `src/lib/utils.js`) | | Gộp class Tailwind |
-| Routing | react-router | ^7.18.5 | Điều hướng |
-| HTTP | axios | ^1.21.0 | Gọi REST |
+| Routing | react-router | ^7.18.5 | Điều hướng (`createBrowserRouter`) |
+| HTTP & Realtime | axios, `@stomp/stompjs`, `sockjs-client` | ^1.21.0 | Gọi REST & WebSocket STOMP/SockJS (`/chat`) |
 | Server state | @tanstack/react-query | ^5.105.3 | Cache và đồng bộ dữ liệu từ API |
-| Client state | zustand | ^5.0.16 | Trạng thái giao diện cục bộ |
+| Client state | zustand | ^5.0.16 | Trạng thái giao diện cục bộ (hiện chưa cần dùng) |
 | Form | react-hook-form, zod, @hookform/resolvers | ^7.91.0, ^4.6.7, ^7.0.1 | Form và validation |
-| i18n | i18next, react-i18next | ^26.7.1, ^17.1.11 | Đa ngôn ngữ (`vi`, `en`) |
-| Chất lượng | ESLint (flat config), Prettier | ^10.13.0, ^3.9.10 | Lint, format |
+| i18n | i18next, react-i18next | ^26.7.1, ^17.1.11 | Đa ngôn ngữ (`vi`, `en`, 514 keys, 100% parity) |
+| Kiểm thử & Chất lượng | Vitest, React Testing Library, ESLint 10, Prettier, GitHub Actions CI | | 49 test files / 449 tests pass, lint, format, build |
 | Font | @fontsource/be-vietnam-pro, @fontsource-variable/playfair-display | | Tự host font |
 
-**Chưa cấu hình** (sẽ làm, xem doc 13): Vitest + React Testing Library, GitHub Actions CI, mẫu Pull Request, luật bảo vệ nhánh `main`, metadata `index.html`. Playwright E2E mới chỉ là kế hoạch. Husky và lint-staged không dùng.
-
-Ghi chú: `npm audit` báo một cảnh báo mức moderate về `minimatch` thuộc chuỗi ESLint (devDependencies), chưa có bản vá từ upstream.
+Playwright E2E mới chỉ là kế hoạch.
 
 ---
 
@@ -141,44 +137,41 @@ flowchart LR
     FE["Moldy-Market-User-Frontend<br/>React + Vite"]
   end
   subgraph Dev["Máy dev"]
-    PX["Vite dev server<br/>proxy /api"]
+    PX["Vite dev server<br/>proxy /api & /chat"]
   end
   subgraph Server["Hệ thống Backend"]
     BE["Spring Boot REST API<br/>/api/v1 và /api"]
-    WS["WebSocket /chat<br/>(IN_PROGRESS)"]
-    DB[("Database")]
+    WS["WebSocket STOMP /chat<br/>(SockJS)"]
+    DB[("PostgreSQL + DynamoDB")]
   end
   SEPAY["SePay<br/>(cổng thanh toán)"]
 
   FE -->|"gọi /api/... cùng origin"| PX
   PX -->|"chuyển tiếp tới API_PROXY_TARGET"| BE
-  FE -.->|"STOMP qua SockJS (chưa dùng)"| WS
+  FE -->|"STOMP qua SockJS (/chat)"| WS
   BE --> DB
   SEPAY -->|"webhook HMAC<br/>(chỉ Backend nhận)"| BE
 ```
 
 Điểm cần nhớ:
 
-- Khi dev, trình duyệt gọi `/api/...` trên **cùng origin** với Vite; Vite chuyển tiếp tới Backend (`API_PROXY_TARGET`, mặc định `http://localhost:8080`). Lý do: Backend **chưa có CORS cho REST** (B1). `[ĐÃ CẤU HÌNH]`
-- Khi production, hoặc phục vụ cùng origin với API, hoặc Backend phải thêm CORS (doc 12).
+- Khi dev, trình duyệt gọi `/api/...` và `/chat` trên **cùng origin** với Vite; Vite proxy chuyển tiếp tới Backend (`API_PROXY_TARGET`, mặc định `http://localhost:8080`).
+- Khi production cross-origin dùng HttpOnly cookie, Backend cần bổ sung `allowCredentials(true)` và `X-Moldy-Auth` vào `SecurityConfig` CORS (doc 14 mục 2.4).
 - Frontend **không bao giờ gọi** webhook SePay. Chỉ SePay gọi Backend.
-- Không có kênh push cho notification và thanh toán; Frontend phải polling những chỗ cần.
+- Không có kênh push cho notification và thanh toán; Frontend polling checkout (`paymentStatus === "SUCCESSFUL"`).
 
 ---
 
-## 7. Tình trạng hiện tại của repo
+## 7. Tình trạng hiện tại của repo (2026-11-22)
 
 | Hạng mục | Trạng thái |
 |---|---|
-| Công cụ (Vite, React, Tailwind, shadcn, ESLint, Prettier) | `FOUNDATION_ONLY` `[ĐÃ CẤU HÌNH]` |
-| Proxy `/api`, alias `@`, biến môi trường | `[ĐÃ CẤU HÌNH]`, đã thử gọi `/api/v1/categories` qua proxy |
-| Design tokens và font | `[ĐÃ CẤU HÌNH]` (xem doc 03) |
-| i18n (`vi`, `en`, namespace `common`) | `[ĐÃ CẤU HÌNH]` |
-| Cấu trúc thư mục | `[ĐÃ CẤU HÌNH]` theo nghĩa thư mục tồn tại (nhiều thư mục chỉ có `.gitkeep`) |
-| Component shadcn | Chỉ có `button` |
-| Router, providers, layout, Axios instance, service, hook, store, schema | Chưa có, `[ĐỀ XUẤT]` |
-| Trang | Chỉ có trang thử `App.jsx` (kiểm tra i18n và nút) |
-| Test, CI | Chưa cấu hình |
+| Công cụ (Vite, React, Tailwind, shadcn, ESLint, Prettier, Vitest/RTL, CI, PR template, `index.html`) | `[ĐÃ TRIỂN KHAI]` |
+| App shell (AppProviders, queryClient, routes.js, MainLayout, AuthLayout, RequireAuth, GuestOnly, feedback components) | `[ĐÃ TRIỂN KHAI]` |
+| API core (`client`, `unwrap`, `ApiError`, `pagination`, `authRefreshInterceptor`, `tokenStorage`) | `[ĐÃ TRIỂN KHAI]` |
+| i18n (`vi`, `en`, namespace `common`) | `[ĐÃ TRIỂN KHAI]` — 514 keys, 100% parity |
+| 9 feature modules (auth/OTP, marketplace, products, stores/staff, profile, cart, checkout/payment, buyer & store orders, chat realtime/read) | `[ĐÃ TRIỂN KHAI]` (local) — 49 test files / 449 tests pass, `lint` & `build` pass |
+| Appraiser workspace, Notifications, Wallet/Voucher | `NOT_STARTED` (xem `HANDOFF-APPRAISER-FRONTEND.md` và doc 13) |
 
 ---
 

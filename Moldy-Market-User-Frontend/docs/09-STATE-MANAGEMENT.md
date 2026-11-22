@@ -1,34 +1,34 @@
 # 09 - State Management (Quản lý state)
 
-> **Trạng thái:** BẢN NHÁP v0.1
-> **Cập nhật:** 2026-11-08
+> **Trạng thái:** v0.2 (cập nhật 2026-11-22: đối chiếu `AppProviders`, `queryClient`, `tokenStorage` và các query key thực tế)
+> **Cập nhật:** 2026-11-22
 > **Áp dụng cho:** `Moldy-Market-User-Frontend`
 > **Mục đích:** Quy định mỗi loại dữ liệu trong ứng dụng được giữ ở đâu (TanStack Query, Zustand, React Hook Form, URL, state cục bộ) và vì sao, để không ai phải đoán khi viết một tính năng mới.
 
 Nhãn dùng trong tài liệu:
 - `[ĐÃ XÁC MINH BACKEND]`: có trong doc 14.
-- `[ĐÃ CẤU HÌNH]`: đã thật sự có trong repo.
-- `[ĐỀ XUẤT]`: kiến trúc dự kiến, **chưa có code**. Mọi tên hook, store, query key trong tài liệu này là `[ĐỀ XUẤT]`. Các đoạn code là ví dụ minh họa, chưa có trong repo.
+- `[ĐÃ TRIỂN KHAI]`: đã có code thực tế trong `src/`.
+- `[ĐỀ XUẤT]`: kiến trúc dự kiến, **chưa có code**.
 
 ---
 
-## 1. Hiện trạng
+## 1. Hiện trạng `[ĐÃ TRIỂN KHAI]`
 
-- `[ĐÃ CẤU HÌNH]` Đã cài `@tanstack/react-query` 5, `zustand` 5, `react-hook-form` 7, `zod` 4, `@hookform/resolvers`, `react-router` 7.
-- `[ĐÃ CẤU HÌNH]` Thư mục `src/state`, `src/hooks`, `src/app/providers`, `features/*/hooks`, `features/*/schemas` đã tạo, đang trống (`.gitkeep`).
-- Chưa có `QueryClient`, provider, store, hook, schema nào.
+- Đã cấu hình và triển khai `src/app/providers/{AppProviders.jsx, queryClient.js}` (singleton `queryClient`: `staleTime: 30_000`, `gcTime: 300_000`, `refetchOnWindowFocus: true`, bỏ qua retry 4xx, tối đa 2 lần thử lại, `mutations.retry: false`).
+- Đã triển khai TanStack Query hooks & Zod schemas trong 9 feature modules (`auth`, `marketplace`, `products`, `stores`, `profile`, `cart`, `checkout`, `orders`, `chat`).
+- `src/state/` hiện đang trống (`.gitkeep`): chưa có client state toàn cục nào cần dùng Zustand. Access token nằm trong `src/lib/tokenStorage.js` (`localStorage`), **không** nằm trong Zustand.
 
 ---
 
-## 2. Năm loại state và nơi giữ chúng `[ĐỀ XUẤT]`
+## 2. Năm loại state và nơi giữ chúng `[ĐÃ TRIỂN KHAI]`
 
 Câu hỏi đầu tiên khi viết bất kỳ đoạn code nào có "dữ liệu": **dữ liệu này thuộc loại nào?**
 
 | Loại | Ví dụ trong Moldy Market | Công cụ | Nằm ở |
 |---|---|---|---|
-| Server state (dữ liệu thuộc về Backend) | Danh sách sản phẩm, chi tiết sản phẩm, hồ sơ, gian hàng, cây danh mục | **TanStack Query** | `features/*/hooks` |
-| Client state (giao diện thuần, Backend không biết) | Sidebar đóng/mở, ngôn ngữ đã chọn, access token trong bộ nhớ | **Zustand** | `state/` |
-| Form state | Giá trị đang nhập ở form đăng ký, form đăng sản phẩm, lỗi validation | **React Hook Form + Zod** | `features/*/schemas` và component form |
+| Server state (dữ liệu thuộc về Backend) | Danh sách/chi tiết sản phẩm, hồ sơ (`['users','me']`), gian hàng, giỏ hàng, checkout, đơn hàng, hội thoại chat | **TanStack Query** | `features/*/hooks` |
+| Client state (giao diện thuần, Backend không biết) | Trạng thái UI toàn cục nếu phát sinh (sidebar, modal chung) | **Zustand** (hiện chưa cần dùng) | `state/` |
+| Form state | Giá trị đang nhập ở form đăng ký, đăng sản phẩm, checkout, lỗi validation | **React Hook Form + Zod** | `features/*/schemas` và component form |
 | URL state | Từ khóa tìm kiếm, bộ lọc, sắp xếp, số trang | **React Router** (`useSearchParams`, `useParams`) | trang |
 | State cục bộ | Dialog đang mở, tab đang chọn, ô nhập chưa gửi | `useState` | component |
 
@@ -124,19 +124,20 @@ export function useProductSearch(params) {
 }
 ```
 
-Bảng key đề xuất, chỉ cho các endpoint `IMPLEMENTED` `[ĐÃ XÁC MINH BACKEND]`:
+Bảng key thực tế đang dùng trong `src/features/` (`[ĐÃ TRIỂN KHAI]`):
 
 | Key | Endpoint | Ghi chú |
 |---|---|---|
-| `['users','me']` | `GET /api/v1/users/me` | Nguồn duy nhất của hồ sơ và `roles` (doc 08). |
-| `['categories','tree']` | `GET /api/v1/categories` | Ít đổi: `staleTime` dài hơn (ví dụ 10 phút). |
-| `['categories','detail', id]` | `GET /api/v1/categories/{id}` | |
-| `['products','search', params]` | `GET /api/v1/products/search` | `params` là object chuẩn hóa (xem 3.6). |
-| `['products','suggest', q]` | `GET /api/v1/products/suggest?q=` | Gõ phím: cần debounce, xem 3.7. |
-| `['products','detail', id]` | `GET /api/v1/products/{id}` | |
-| `['stores','public', id]` | `GET /api/v1/stores/{id}` | |
-| `['stores','mine']` | `GET /api/v1/stores/my-store` | |
-| `['stores','mine','staff']` | `GET /api/v1/stores/my-store/staff` | Chỉ khi có `STORE_STAFF_MANAGE`. |
+| `['users', 'me']` (`meQueryKey`) | `GET /api/v1/users/me` | Nguồn duy nhất của hồ sơ, `roles`, `permissions`, `storeId` (doc 08). |
+| `['categories', 'tree']` / `['categories', 'detail', id]` | `GET /api/v1/categories`, `/{id}` | |
+| `['products', 'search', params]` / `['products', 'detail', id]` | `GET /api/v1/products/search`, `/{id}` | `productKeys` |
+| `['products', 'mine', ...]` / `['products', 'store-mine', ...]` | `GET /api/v1/products/me`, `/stores/my-store/products`, `/stores/{storeId}/products` | |
+| `['stores', 'detail', storeId]` | `GET /api/v1/stores/{storeId}` | Trang công khai gian hàng |
+| `myStoreQueryKey(userId)` / `['stores', 'staff-me', userId]` / `storeStaffQueryKey(userId)` | `/stores/my-store`, `/stores/my-store/staff/me`, `/stores/my-store/staff` | Có scope theo `userId` để tránh lẫn cache khi đổi tài khoản |
+| `cartQueryKey(userId)` | `GET /api/v1/carts` | Scope theo `userId` |
+| `checkoutKeys` | `GET /api/v1/checkout-groups/{id}` | Scope theo `userId` + `checkoutId` |
+| `myOrdersQueryKey(userId)` / store orders key | `GET /api/v1/orders/me`, `GET /api/v1/stores/{storeId}/orders` | Scope theo `userId` / `storeId` |
+| `chatKeys.conversations(userId)` / `chatKeys.messages(userId, conversationId)` | `GET /api/v1/conversations`, `/{id}/messages` | Scope theo `userId` + `conversationId` |
 
 Key luôn dùng chuỗi và số rõ ràng; **không** nhét object có hàm hay thứ không serialize được vào key. Với `params`, loại bỏ giá trị `undefined` và chuẩn hóa thứ tự trước khi đưa vào key, để `{ a: 1 }` và `{ a: 1, b: undefined }` không thành hai cache khác nhau.
 

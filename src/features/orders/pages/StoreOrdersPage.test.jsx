@@ -60,6 +60,8 @@ const order = {
   storeId: store.id,
   checkoutGroupId: 'checkout',
   status: 'PENDING_CONFIRMED',
+  paymentMethod: 'COD',
+  paymentStatus: 'PENDING',
   totalAmount: 1000,
   receiverName: 'Private receiver',
   receiverPhone: '0901234567',
@@ -358,6 +360,31 @@ test('guest returns to the protected order page after login', async () => {
   await screen.findByRole('heading', { name: 'Đăng nhập' }, { timeout: 4000 })
   expect(router.state.location.state.from).toBe('/store/orders?page=2')
   expect(getStoreOrders).not.toHaveBeenCalled()
+})
+
+test('missing payment metadata hides COD confirmation and explains that a refresh is needed', async () => {
+  vi.mocked(getStoreOrders).mockResolvedValue(
+    page([{ ...order, paymentMethod: null, paymentStatus: null }]),
+  )
+  open()
+  await screen.findByRole('heading', { name: order.orderCode })
+  expect(screen.queryByRole('button', { name: 'Xác nhận đơn COD' })).not.toBeInTheDocument()
+  expect(screen.getByText(/Chưa đủ thông tin thanh toán để xác nhận đơn/)).toBeInTheDocument()
+  expect(confirmStoreOrder).not.toHaveBeenCalled()
+})
+
+test('canonical cache payment change during the confirmation dialog prevents a stale COD request', async () => {
+  const user = open()
+  vi.mocked(window.confirm).mockImplementation(() => {
+    client.setQueryData(
+      ['orders', 'store', owner.id, store.id, { page: 1, status: '' }],
+      page([{ ...order, paymentStatus: 'SUCCESSFUL' }]),
+    )
+    return true
+  })
+  await user.click(await findConfirm())
+  await screen.findByRole('alert')
+  expect(confirmStoreOrder).not.toHaveBeenCalled()
 })
 
 test('simultaneous clicks on different orders do not leave the second confirmation permanently locked', async () => {

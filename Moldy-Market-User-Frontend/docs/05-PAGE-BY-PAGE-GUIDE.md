@@ -289,12 +289,13 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Backend `IN_PROGRESS` (`feature/notification`...); **chưa viết service** |
-| API dự kiến | `GET /api/v1/notifications?limit&token` (cursor: mặc định `limit` 20, tối đa 50), `PATCH /{id}/read`, `DELETE /{id}` (xóa mềm), `PATCH /{id}/restore`; ba thao tác cuối không có body |
-| Giao diện | Danh sách cuộn vô hạn dùng `useInfiniteQuery` `[ĐỀ XUẤT]` với `nextToken`; `nextToken = null` là hết trang. `type` và `referenceType` là chuỗi tự do nên cần giao diện dự phòng cho type chưa biết |
-| Điểm cần xác minh | Cờ đã đọc là `read` hay `isRead` (Q13): kiểm tra response thật |
-| Không có | Thông báo thời gian thực (không có kênh push); cập nhật bằng polling hoặc khi mở trang |
-| FE | `NOT_STARTED` |
+| Trạng thái | `IMPLEMENTED_LOCAL` 22/11: Backend thật + DynamoDB Local qua 5 HTTP tests; chưa xác minh AWS pipeline. Chi tiết doc 14 §5.1 |
+| API | GET cursor `limit=20&token`, PATCH `/{id}/read`, DELETE `/{id}`; mutation 204 rỗng. ID/cursor opaque; restore API có nhưng UI chưa dùng |
+| Giao diện | `useInfiniteQuery` cache theo user; bấm Tải thêm, không auto-scroll/polling. Trang rỗng có cursor vẫn tải tiếp. Có loading, empty, lỗi, 401/403; giữ trang trước khi tải thêm lỗi |
+| Thao tác | Mark read rõ ràng; xóa cần xác nhận inline. Không optimistic update; refetch REST sau thao tác. Chặn double-submit, không khôi phục cache sau logout. Làm mới bắt đầu lại từ trang đầu |
+| Contract | REST `read` boolean (đã HTTP test), `message`, `id`, `relatedEntityType/Id`; ngày Instant UTC. Title/message text an toàn cho type chưa biết |
+| Giới hạn | Không badge tổng chưa đọc, không realtime/polling, không reference links chưa xác minh. Producer nghiệp vụ sang Lambda chưa nối/kiểm chứng; không giả dữ liệu rỗng khi lỗi cấu hình |
+| FE | `IMPLEMENTED_LOCAL`, route RequireAuth và navigation; chờ Chu kiểm thử UI |
 
 ### 5.2 Chat `/chat` và `/chat/:conversationId`
 
@@ -360,7 +361,7 @@ Tại `/store`, chủ gian hàng dùng `GET /api/v1/stores/my-store` để mở 
 | Route | Lý do | Trạng thái |
 |---|---|---|
 | Thống kê ở `/store` | Chưa có API thống kê | `NOT_FOUND` |
-| /store/orders | Owner và staff ORDER_PROCESS cùng store xem danh sách; chỉ owner xác nhận COD. Phân trang/lọc URL, món/người nhận, refresh và các trạng thái loading/empty/error/forbidden. Không dùng route chi tiết buyer cho seller | IMPLEMENTED_LOCAL: Backend verify 283 tests (282 pass, 1 skip có sẵn), frontend 398 tests + format/lint/build pass. Chờ Chu restart Backend và kiểm thử owner/staff thật |
+| /store/orders | Owner và staff ORDER_PROCESS cùng store xem; chỉ owner xác nhận COD khi payment PENDING. Có phương thức, trạng thái tiền và paidAt từng đơn, hướng dẫn bước tiếp theo và lịch sử timestamp thật. Missing/unknown metadata không đoán từ CONFIRMED/DELIVERED và không cho xác nhận. Phân trang/lọc URL, món/người nhận, refresh và loading/empty/error/forbidden. Không dùng route chi tiết buyer cho seller | IMPLEMENTED_LOCAL; metadata Backend đã được Chu chép và Maven verify 329 tests (328 pass, 1 disabled) ngày 22/11, xem doc 14 §5.7.3. Chờ Chu restart Backend và kiểm thử UI |
 | `/store/vouchers` | Chưa có API voucher cho người bán | `PLANNED`, skeleton |
 | `/store/offers` | Chưa có code offer (Q8) | `NOT_FOUND`, skeleton |
 | `/store/revenue` | Chưa có API doanh thu | `NOT_FOUND`, skeleton |
