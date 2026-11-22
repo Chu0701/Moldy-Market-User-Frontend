@@ -1,5 +1,7 @@
 # 14 - Backend Integration Matrix (Ma trận tích hợp Backend)
 
+> Cập nhật local 2026-11-20: checkout/payment đã nối trên codex/selective-checkout-integration, xem mục 5.7.2. Các audit branch cũ vẫn giữ cho lịch sử; không coi chúng là trạng thái bản local mới. Frontend chưa nối submit/QR.
+
 > **Trạng thái tài liệu:** BẢN NHÁP v0.3 (cập nhật 2026-11-08: thêm `feature/order`, đọc lại `feature/chat`, ghi nhận phản hồi của team), cần team review.
 > **Áp dụng cho:** `Moldy-Market-User-Frontend` và `Moldy-Market-Admin-Frontend` (nội dung giống hệt nhau ở cả hai repo; cột "Dùng bởi" cho biết app nào cần mục đó).
 
@@ -200,7 +202,7 @@ Entity `UserRole` là `(user_id, role_id, store_id)`. Cột `store_id` làm cho 
 |---|---|
 | Tên role của user hiện tại | Có: `GET /api/v1/users/me` trả `roles: string[]`. |
 | Permission code của user hiện tại | Có: `GET /api/v1/users/me` trả `permissions: string[]` từ các authority hiện tại sau khi lọc các giá trị bắt đầu bằng `ROLE_`. |
-| Permission của một staff | `StaffResponse.permissions` qua `GET /api/v1/stores/my-store/staff/me`, nhưng endpoint này yêu cầu `STORE_STAFF_MANAGE`. Xem Q1. |
+| Permission của một staff | `StaffResponse.permissions` qua `GET /api/v1/stores/my-store/staff/me`, yêu cầu `STORE_WORKSPACE_ACCESS` từ bản sửa local 2026-11-21. Không dùng permissions gộp của `/users/me` để suy ra quyền được cấp trong shop. |
 | Store ID của user hiện tại | `GET /api/v1/users/me` trả `storeId` đầu tiên khác null từ các bản ghi gán role, hoặc null. |
 
 Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. Backend xác minh quyền ở mỗi request. Frontend xử lý `403` nếu quyền đã thay đổi.
@@ -235,6 +237,8 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 | Tính năng | Trạng thái | Controller | Endpoint | Xác thực / permission | Dùng bởi | FE |
 |---|---|---|---|---|---|---|
 | Đăng ký / đăng nhập / refresh / logout | `IMPLEMENTED` | `AuthController` | xem 3.1 | công khai | U, A | NOT_STARTED |
+| Chat REST: hội thoại và lịch sử | `IMPLEMENTED` (audit local dc11b09 ngày 2026-11-19) | `ConversationController` | POST/GET `/api/v1/conversations`, GET `/{id}/messages` | đã đăng nhập; kiểm tra participant khi đọc lịch sử | U | API layer IMPLEMENTED_LOCAL, 281/281 frontend tests pass; chưa kiểm thử HTTP chat. Xem docs/learning/chat-api.md |
+| Danh sách đơn mua của tôi | `IMPLEMENTED` (audit local dc11b09 ngày 2026-11-19) | `OrderController` | `GET /api/v1/orders/me` | đã đăng nhập; service lọc theo buyerId hiện tại | U | IMPLEMENTED_LOCAL; Chu đã chép code, chờ kiểm thử HTTP |
 | Hồ sơ của tôi | `IMPLEMENTED` | `UserController` | `GET /api/v1/users/me` | đã đăng nhập | U, A | NOT_STARTED |
 | Cập nhật hồ sơ | `IMPLEMENTED` | `UserController` | `PUT /api/v1/users/me` | `PROFILE_MANAGE` | U | NOT_STARTED |
 | Đổi mật khẩu | `IMPLEMENTED` | `UserController` | `PUT /api/v1/users/me/password` | đã đăng nhập | U | NOT_STARTED |
@@ -265,13 +269,13 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 | Tính năng | Branch | Endpoint | Xác thực quan sát được | Dùng bởi | FE |
 |---|---|---|---|---|---|
 | Notification | `feature/notification`, `feature/cart`, `integration/demo` | `GET /api/v1/notifications?limit&token`, `GET /{id}`, `PATCH /{id}/read`, `DELETE /{id}` (xóa mềm), `PATCH /{id}/restore` | chỉ cần đăng nhập | U | NOT_STARTED |
-| Chat REST | Bản mới nhất ở `feature/chat` (`68b87cb`) và `feature/order`. Bản cũ hơn ở `feature/cart`, `integration/demo` (chưa có `PATCH .../read`). | `POST /api/v1/conversations`, `GET /api/v1/conversations`, `GET /api/v1/conversations/{id}/messages`, `PATCH /api/v1/conversations/{id}/read` | chỉ cần đăng nhập | U | NOT_STARTED |
+| Đánh dấu chat đã đọc | local main, controller còn stub | PATCH `/api/v1/conversations/{id}/read` | chỉ trả 204, chưa gọi service | U | Chưa dùng (STUB) |
 | Chat WebSocket | như trên | xem mục 5.2 | JWT trong header của STOMP CONNECT | U | NOT_STARTED |
-| Checkout (tạo checkout group, order, payment trong một lần gọi) | `feature/order` (`feature/payment` cùng commit) | `POST /api/v1/checkout-groups` | đã đăng nhập, không có `@PreAuthorize` | U | NOT_STARTED |
-| Xem checkout group | `feature/order` | `GET /api/v1/checkout-groups/{id}` (chỉ người mua) | đã đăng nhập | U | NOT_STARTED |
-| Order của người mua | `feature/order` | `GET /api/v1/orders/me`, `GET /api/v1/orders/{orderId}` (**không kiểm tra chủ sở hữu**, B11) | đã đăng nhập | U | NOT_STARTED |
-| Admin xác nhận đã thu tiền COD | `feature/order` | `POST /api/v1/orders/admin/{orderId}/cod-collected` (chuyển `DELIVERED` sang `COMPLETED`) | `@IsAdmin` | A | NOT_STARTED |
-| Xem payment | `feature/order` | `GET /api/v1/payments/my-payments`, `GET /api/v1/payments/{id}` (chỉ người trả tiền) | đã đăng nhập | U | NOT_STARTED |
+| Checkout (tạo checkout group, order, payment trong một lần gọi) | codex/selective-checkout-integration local; mục 5.7.2 | POST /api/v1/checkout-groups | buyer từ session; chặn owner/staff tự mua | U | Backend IMPLEMENTED_LOCAL; Frontend INTEGRATED_LOCAL_SANDBOX: online tạo đơn và thanh toán đã được Chu kiểm thử |
+| Xem checkout group | codex/selective-checkout-integration local | GET /api/v1/checkout-groups/{id} | chỉ buyer | U | Backend IMPLEMENTED_LOCAL; Frontend INTEGRATED_LOCAL_SANDBOX: QR, polling và reload đã được Chu kiểm thử |
+| Chi tiết order theo ID | codex/selective-checkout-integration local | GET /api/v1/orders/{orderId} | kiểm tra buyer, foreign ID trả ORDER_NOT_EXISTED | U | Backend đã sửa B11 local; UI vẫn dùng /orders/me |
+| Admin xác nhận đã thu tiền COD | codex/selective-checkout-integration local | POST /api/v1/orders/admin/{orderId}/cod-collected | @IsAdmin và service ADMIN; COD DELIVERED, idempotent | A | Backend IMPLEMENTED_LOCAL; Admin UI chưa làm |
+| Xem payment | codex/selective-checkout-integration local | GET /api/v1/payments/my-payments, GET /api/v1/payments/{id} | chỉ payer; response có paymentStatus và method | U | Backend IMPLEMENTED_LOCAL; Frontend NOT_STARTED |
 | Webhook SePay | `feature/order` | `POST /api/v1/payment_transactions/webhook/sepay` | công khai, xác thực bằng chữ ký HMAC. **Chỉ SePay gọi.** | không ai (server-to-server) | không áp dụng |
 | Cart | `feature/cart` | `GET /api/v1/carts`, `/summary`, `/by-seller`, `POST /items`, `PATCH /items/{listingId}`, `DELETE /items/{listingId}`, `DELETE /api/v1/carts`, `GET /items/{listingId}/exists`, `GET /items/count` | chỉ cần đăng nhập | U | NOT_STARTED |
 | Số dư ví | `feature/escrow-wallet`, `feature/cart`, `integration/demo` | `GET /api/v1/wallets/{userId}/balance` | chỉ cần đăng nhập (xem B2) | U | NOT_STARTED |
@@ -289,8 +293,8 @@ Hệ quả: user tự đăng ký xong thì chưa đăng nhập được cho đ�
 
 | Tính năng | Trạng thái | Bằng chứng |
 |---|---|---|
-| Order phía người bán (xác nhận, giao hàng, huỷ, danh sách order của gian hàng) và người mua xác nhận đã nhận hàng hoặc huỷ order | `NOT_FOUND` | Enum `OrderStatus` có `CONFIRMED`, `SHIPPING`, `DELIVERED`, `CANCELLED`, `EXPIRED`... nhưng không code nào chuyển sang các trạng thái này, ngoại trừ `DELIVERED` sang `COMPLETED` do admin. Code có ghi chú `//todo: shipping simulator`. File `order-lifecycle.md` trên `main` rỗng (0 byte). |
-| Cập nhật trạng thái order và checkout group sau khi thanh toán thành công, và tự động hết hạn | `NOT_FOUND` | Chỉ `Payment` được cập nhật. `PaymentCompletedEvent` được phát nhưng không có listener nào. `CheckoutGroup.markPaid()` và `markExpired()` có định nghĩa nhưng không ai gọi. Không thấy job `@Scheduled` nào. Xem B12. |
+| Order phía người bán và buyer hủy | PARTIALLY_IMPLEMENTED_LOCAL, mục 5.7.2 | Đã có owner confirm, admin shipping/delivery/COD collection, buyer hủy chưa thu tiền. Chưa có API danh sách order gian hàng hoặc buyer xác nhận nhận hàng online. |
+| Cập nhật trạng thái order/checkout sau thanh toán, tự động hết hạn | IMPLEMENTED_LOCAL trên codex/selective-checkout-integration | Listener đồng bộ, reservation, cart cleanup, job hết hạn và kiểm tra deadline đã test; mục 5.7.2. Chưa commit/merge/push. |
 | Offer / thương lượng / counteroffer | `NOT_FOUND` | Không có code offer. `offer-negotiation.md` rỗng. Giới hạn số vòng chưa biết. |
 | Yêu cầu và duyệt refund | `NOT_FOUND` dưới dạng API. Class `Refund` (trên `feature/order`) hiện **rỗng**, không có trường nào. Module escrow có `DisputeOutcome { PAY_SELLER, REFUND_BUYER }` và trạng thái `DISPUTED`, nhưng chưa controller nào mở refund hay dispute ra ngoài. | Xem các endpoint escrow ở 4.2. |
 | Quy trình return / dispute | `REQUIRES_BUSINESS_CLARIFICATION` | Có permission `DISPUTE_*`. Entity `DisputeRequest` (trên `feature/order`) có `userId`, `orderId`, `description`, `imagesUrl`, `createdAt` nhưng chưa có controller hay service. Tài liệu thiết kế mô tả các trạng thái `OPEN`, `UNDER_REVIEW`, `RESOLVED_REFUND`, `RESOLVED_RELEASE`, `CLOSED` nhưng chưa được triển khai. |
@@ -330,6 +334,11 @@ NotificationPageResponse { items: NotificationRecord[], nextToken: string | null
 
 ### 5.2 Chat và WebSocket
 
+> Bản sửa TEXT realtime 2026-11-21: Backend **IMPLEMENTED_LOCAL** sau khi Chu chép 5 file. Đã sửa regex /send bị escape nhầm, dùng findForMessage có lock, bỏ save thứ hai, đổi import validation exception sang messaging và broadcast=false cho domain errors. Tests đã cài vào src/test; full Maven verify/package chính pass 300 tests (299 pass, 1 QA-010 disabled có sẵn), có 3 real SockJS/STOMP/PostgreSQL tests trong 12 tests mới. Guide: Backend docs/testing/CHAT-REALTIME-TEXT.md. Frontend **IMPLEMENTED_LOCAL**: TEXT trong hội thoại có sẵn, full 419/419 tests trong 46 file, format/lint/format:check/build pass. Vitest giới hạn 4 workers sau khi full suite mặc định gặp timeout điều hướng đơn hàng có sẵn khi chạy đồng thời Maven; không bỏ test hoặc nới timeout/assertions. Chờ Chu kiểm thử UI. Điểm vào sản phẩm/storefront đã nối ownerId và Chu xác nhận nút hiện; xem cập nhật tên/policy bên dưới.
+
+> Audit REST: POST/GET /api/v1/conversations và GET /{id}/messages là IMPLEMENTED. Controller lấy current user; service kiểm tra người tham gia khi đọc history. Query tìm hội thoại xử lý cả hai chiều của cặp user. PATCH /{id}/read yêu cầu {messageId}, lưu mốc ID đơn điệu của caller và trả 204. ConversationResponse có lastReadMessageIdParticipant1/2 và unreadCount theo caller. Frontend đã nối badge và peer read receipt. MessageService local cập nhật lastMessageAt và chặn CLOSED. DTO có tên hai participant và canSend/sendBlockedReason; chưa có avatar. PublicStoreResponse có ownerId đã kiểm tra trên Backend chính.
+
+
 | Mục | Giá trị đã xác minh |
 |---|---|
 | Giao thức | STOMP qua SockJS |
@@ -340,21 +349,50 @@ NotificationPageResponse { items: NotificationRecord[], nextToken: string | null
 | Destination để nhận | `/user/queue/messages` (server đẩy cho cả người gửi lẫn người nhận) |
 | Payload nhận | `MessageResponse { id: number, conversationId, senderId, type, content, attachment, sentAt }` |
 | Broker prefix | `/topic`, `/queue`; application prefix `/app`; user prefix `/user` |
-| Kênh báo lỗi | `/user/queue/errors`. Khi gửi tin gặp `AppException`, server đẩy `ChatErrorResponse { errorType, errorMessage, timestamp }` (tham số đầu là mã `ErrorCode`). Các exception khác `AppException` chưa có handler. Bản cũ ở `feature/cart` và `integration/demo` chưa có kênh này. |
-| Subscribe | Khi SUBSCRIBE vào `/topic/conversations/{uuid}`, Backend kiểm tra user có thuộc conversation không. Tuy nhiên tin nhắn hiện được đẩy qua `/user/queue/messages`, không qua topic này. Frontend không cần subscribe topic. |
-| Token hết hạn | Token chỉ được kiểm tra lúc CONNECT. Chưa biết chuyện gì xảy ra khi access token (15 phút) hết hạn trên socket đang mở. |
+| Kênh báo lỗi | `/user/queue/errors`, chỉ session gửi yêu cầu (broadcast=false). ChatErrorResponse {code,errorMessage,timestamp}; code dùng ErrorCode.getCode(), khác REST dùng tên enum. Domain errors giữ code; validation/malformed payload dùng COMMON_002; lỗi nội bộ COMMON_005 không lộ chi tiết. |
+| Subscribe | Chỉ queue riêng messages/errors/chat-reads hoặc topic conversation có participant. Client không được SEND trực tiếp vào broker queue/topic/user destination. Frontend subscribe ba queue riêng này. |
+| Read receipt | /user/queue/chat-reads: {conversationId,readerId,messageId,readAt}, tới cả hai participant sau transaction commit; rollback không phát. REST là nguồn trạng thái chính. |
+| Token hết hạn | Kiểm tra JWT/account tại CONNECT và mỗi SEND/SUBSCRIBE; token hết hạn không được gửi/subscribe tiếp. Frontend kiểm tra session qua REST trước mỗi CONNECT, dùng refresh interceptor có sẵn và thay socket khi token đổi. Không claim server chủ động đóng mọi subscription idle ngay khi token/account hết hiệu lực. |
+
+Mapping local 2026-11-21: MessageMapper map conversation.id sang conversationId thật. attachment chưa được map và giữ null; UI chưa gửi ảnh/file hoặc đính kèm sản phẩm. Service có transaction và khóa dòng hội thoại khi gửi; insert message và lastMessageAt cùng commit hoặc cùng rollback. Frontend chỉ xóa draft sau echo của server, không optimistic append; frame hợp lệ kích hoạt tải lại REST history/inbox, giữ phân trang và quyền phía Backend. Khi lỗi/timeout/mất kết nối giữ draft, không tự gửi lại; reconnect tải lịch sử để đối chiếu. Protocol chưa có clientMessageId/idempotency key nên không claim exactly-once.
+
+Đối chiếu 2026-11-20: đã fetch origin/feature/dispute tại 4a58390 (fix: completed flows: checkout-payment by cod and online banking), không checkout/merge. Trong phạm vi chat và store DTO, khác biệt với main local chỉ là bỏ Swagger tag ở ChatController; các contract và blocker chat ở trên vẫn còn. Chưa audit hoặc xác minh checkout/payment của nhánh này.
 
 Phần REST:
 
 | Endpoint | Request | `data` trả về |
 |---|---|---|
-| `POST /api/v1/conversations` | `{ targetUserId }` | `ConversationResponse { id, participant1Id, participant2Id, status(ACTIVE\|CLOSED), lastMessageAt, lastReadAtParticipant1, lastReadAtParticipant2, createdAt }` (tạo mới hoặc trả lại cuộc hội thoại có sẵn) |
+| `POST /api/v1/conversations` | `{ targetUserId }` | `ConversationResponse { id, participant1Id, participant2Id, status(ACTIVE\|CLOSED), lastMessageAt, lastReadAtParticipant1, lastReadAtParticipant2, createdAt, participant1Name, participant2Name, canSend, sendBlockedReason, lastReadMessageIdParticipant1, lastReadMessageIdParticipant2, unreadCount }` (tạo mới hoặc trả lại cuộc hội thoại có sẵn) |
 | `GET /api/v1/conversations` | không | `ConversationResponse[]` (không phân trang) |
 | `GET /api/v1/conversations/{id}/messages?page&size` | xem 2.2 | `Page<MessageResponse>`, tin mới nhất trước |
-| `PATCH /api/v1/conversations/{id}/read` | không | không có data (đánh dấu đã đọc), chỉ có ở bản `feature/chat` mới nhất và `feature/order` |
+| `PATCH /api/v1/conversations/{id}/read` | `{ messageId: positiveLong }` bắt buộc | IMPLEMENTED_LOCAL: caller phải là participant, ID phải thuộc phòng; mốc chỉ tiến tới prefix đã hiển thị, trả 204; tin đến sau vẫn chưa đọc |
 
 Lưu ý quan trọng: một conversation chỉ là giữa **hai user** và được tạo chỉ với `targetUserId`. **Không có liên kết tới offer, order hay product** trong bất kỳ DTO nào. Điều này khác với ý tưởng chat gắn với offer. Xem Q6.
-Endpoint "đánh dấu đã đọc" chỉ có ở bản `feature/chat` mới nhất.
+Endpoint read cập nhật ID cursor và timestamp của caller; không đánh dấu cả phòng bằng thời gian hiện tại.
+
+#### Tên người tham gia và policy chat mua bán — cập nhật 2026-11-21
+
+Chu cho phép trợ lý sửa trực tiếp Backend/frontend và tự rà nghiệp vụ chat. Bản hiện tại **IMPLEMENTED_LOCAL** có ConversationResponse.participant1Name, participant2Name, canSend và sendBlockedReason. Tên lấy batch từ User.fullName, chỉ trả cho participant của hội thoại; không trả email/phone. Mapper dùng context đã nạp sẵn, không query từng dòng inbox. Frontend chọn peer theo ID tài khoản đang đăng nhập, hiện tên ở inbox/header và đúng sender trên từng tin; tên trống dùng fallback trung tính, không đoán danh tính.
+
+Policy mới thay thế việc staff được nhắn owner ở bản trước: chat hiện là chat mua bán giữa hai tài khoản, chưa có inbox chung hoặc chat nội bộ đội ngũ. Owner không tự chat; cặp staff và owner shop đang làm không tạo/gửi customer chat theo cả hai chiều; staff vẫn nhắn shop khác. Lịch sử cũ được giữ và read-only bằng canSend=false, không xóa hoặc tự đổi status thành CLOSED. Khi hết quan hệ staff, phòng ACTIVE/tài khoản ACTIVE được gửi lại. Người nhận thiếu/không ACTIVE bị từ chối. Backend kiểm tra ở REST start và mỗi message STOMP, không tin UI/role cache. REST CHAT_STORE_MEMBER/CHAT_PARTICIPANT_UNAVAILABLE tương ứng STOMP CHAT_005/CHAT_006. Các quan hệ staff cũ nhiều dòng được kiểm tra đầy đủ.
+
+Start khóa cả hai user theo UUID đã sort để request A→B/B→A không tạo trùng. Nếu DB cũ đã có nhiều phòng cùng cặp, start tái sử dụng phòng cũ nhất theo createdAt/id; không merge/xóa lịch sử các ID khác. PATCH read kiểm tra participant, khóa phòng như send và lưu ID cursor đơn điệu trước 204. History chặn paging sai bằng INVALID_REQUEST, sort ổn định theo sentAt/id.
+
+Checks: Backend chính full verify/package **311 tests: 310 pass, 1 QA-010 disabled có sẵn**; có tests PostgreSQL/HTTP/STOMP thật cho names/privacy, membership, foreign read, target locked/missing/self, read timestamp, paging và tạo chat đồng thời. Frontend full **437/437 trong 48 file**, format/lint/format:check/build pass. Đã rerun MoldyMarketApplication trong IntelliJ, tiến trình mới trả HTTP 200. Chưa claim trợ lý kiểm tra UI chat của tài khoản thật hoặc gửi tin thay Chu. Không schema/dependency mới, commit hoặc push. Backend guide hiện tại: docs/testing/CHAT-NAMES-AND-POLICY.md; guide chép code cũ chỉ giữ để học.
+
+#### Đọc/chưa đọc — cập nhật 2026-11-21
+
+Read/unread follow-up 2026-11-21 — IMPLEMENTED_LOCAL: badge tổng ở menu và từng phòng, outgoing “Đã đọc” từ peer cursor. MainLayout giữ một socket dùng chung; poll inbox mỗi 30 giây khi foreground để bù event mất. Chỉ ack khi history thành công, document visible/focus và bubble incoming mới nhất đã tải nằm ít nhất 50% trong viewport. Chọn phòng/gửi tin/ẩn tab không tự ack. Request đang chạy bị giới hạn ID; lỗi giữ unread và retry thủ công. Legacy timestamp được giữ nghĩa khi chuyển sang ID. Schema bổ sung hai nullable BIGINT, SQL Backend V20261121__chat_read_cursors.sql; local ddl-auto=update đã kiểm chứng, DB validate/none cần chạy SQL trước deploy. Backend full verify 314 tests (313 pass, 1 disabled cũ); FE 449/449 trong 49 file, format/lint/format:check/build pass. Backend guide: docs/testing/CHAT-READ-UNREAD.md. UI hai tài khoản chờ Chu kiểm tra; không commit/push.
+
+#### 5.2.1 Điểm vào Chat với gian hàng — 2026-11-21
+
+Chu yêu cầu một nút trên trang chi tiết sản phẩm và một nút trên trang gian hàng công khai. Frontend đã thêm cùng StoreChatButton/useStartStoreChat cho cả hai. Sản phẩm do staff đăng vẫn nhắn owner, không fallback sang product.sellerId. Guest sang Login với return URL, sau đăng nhập bấm Chat lại; owner không tự chat; theo policy mới staff không dùng chat mua bán với owner của chính shop; vẫn được chat shop khác.
+
+Backend bổ sung **IMPLEMENTED_LOCAL, Chu đã chép và xác nhận nút hiện**: chỉ thêm UUID ownerId vào PublicStoreResponse của GET /api/v1/stores/{id}. StoreMapper tự map getOwnerId() theo tên; không cần endpoint/controller/schema mới. Bản review riêng pass full Maven verify/package 301 tests (300 pass, 1 disabled có sẵn), có HTTP test public ownerId và không lộ email/phone/pickupAddress. DTO ứng dụng chính đã được đối chiếu và HTTP regression test đã cài. Guide một file: Backend docs/testing/STORE-CHAT-ENTRY.md; tests tham khảo trong store-chat-tests/. Fixture StoreServiceTest chính đã thích ứng với DTO cũ/mới và kiểm tra pass.
+
+Frontend **IMPLEMENTED_LOCAL**, ownerId đã có; Chu đã xác nhận hai nút xuất hiện. Dùng POST /api/v1/conversations {targetUserId: ownerId} đã IMPLEMENTED; phản hồi phải có đúng hai participant và status hợp lệ. Khóa double click, retry:false, bỏ callback sau logout/unmount, seed inbox từ response thật rồi invalidate để tải lại canonical list. Không thêm productId, message tự gửi hay recipient của staff vào request. Nếu Backend chưa có ownerId, giữ nút disabled và cho tải lại thông tin. Trang public truyền query có sẵn để tránh GET thừa; sản phẩm dùng chung cache store detail.
+
+Checks: frontend full **429/429 tests trong 47 file**, format/lint/format:check/build pass. Có 10 tests entry flow mới: hai điểm vào đúng owner, guest Login return URL, owner self-chat, staff nhắn owner, ownerId thiếu không fallback, double click, server denial, participant sai và phản hồi muộn sau logout. Test hồi quy storefront đã bắt GET thừa khi child mount; đã tái sử dụng query của trang, không thay assertions để che lỗi. Backend review thêm focused 14 tests pass sau khi đổi fixture sang mapper thật; main StoreServiceTest 8 tests pass với DTO cũ. OwnerId đã được kiểm tra trên repo chính; kiểm tra UI tên/policy mới còn dành cho Chu.
 
 ### 5.3 Cart
 
@@ -388,6 +426,8 @@ Hiện chỉ có API voucher cho **hệ thống/admin**. Chưa có API voucher c
 - Các enum khác đã xác minh: `UserStatus { ACTIVE, LOCKED, PENDING_VERIFICATION }`, `StoreStatus { ACTIVE, BLOCKED }`.
 
 ### 5.7 Checkout và Order (`feature/order`, chưa merge)
+
+> Contract local mới nhất ở mục 5.7.2: Backend chọn lọc đã nối và qua verify; Frontend submit/QR chưa nối. Mục 5.7.1 giữ audit riêng của origin/feature/dispute 4a58390 (raw branch compile thất bại), không phải trạng thái code local sau khi sửa. Các đoạn audit cũ dưới đây được giữ cho lịch sử.
 
 > Frontend ngày 2026-11-19: theo quyết định của Chu, tạm dừng sửa Backend và chuẩn bị UI chọn sản phẩm/form checkout trước. Chu đã chép code theo docs/learning/checkout-ui.md; các lỗi gõ được sửa. Form đã có điền sẵn fullName/phone từ session, giữ nguyên field đã sửa. Format/lint/build và 256/256 test pass trên repo chính. Dùng GET cart/product/profile đã tích hợp. Chưa có service tạo checkout hay payment; nút Đặt hàng tắt. Kiểm thử giao diện thực tế còn chờ Chu xác nhận.
 
@@ -429,6 +469,9 @@ PaymentResponse { id, amount, paymentStatus: string, qrBankUrl: string | null, c
 
 **Order của người mua:**
 
+> Orders local, audit 2026-11-19: GET /api/v1/orders/me is IMPLEMENTED on main at dc11b09. OrderController and OrderService resolve the authenticated buyer and call findAllByBuyerId(user.id); OrderMapper maps orderItems to items. Response is ApiResponse<OrderResponse[]>. Empty list throws ORDER_LIST_NOT_FOUND (HTTP 404); ORDER_003 is its internal identifier, while GlobalExceptionHandler serializes ErrorCode.name(). This endpoint may be integrated into the User Frontend. GET /orders/{id} still lacks buyer authorization (B11). The local detail page finds an order in the current buyer list returned by /orders/me; it does not call the detail endpoint. Frontend format, lint, build and all 272 tests pass after the source copy; live HTTP verification is pending. No Backend code changes are made.
+
+
 ```text
 OrderResponse {
   id, orderCode, checkoutGroupId, buyerId, sellerId, storeId, status,
@@ -439,7 +482,7 @@ OrderResponse {
 }
 ```
 
-- `GET /api/v1/orders/me` trả `OrderResponse[]`, không phân trang, và trả **404 `ORDER_003`** khi rỗng (B13).
+- `GET /api/v1/orders/me` trả `OrderResponse[]`, không phân trang, và trả **404 `ORDER_LIST_NOT_FOUND`** khi rỗng (mã nội bộ `ORDER_003`, B13).
 - `GET /api/v1/orders/{orderId}` **không kiểm tra chủ sở hữu** (B11).
 - `POST /api/v1/orders/admin/{orderId}/cod-collected` (`@IsAdmin`): chỉ cho order đang `DELIVERED`, chuyển sang `COMPLETED`; order ở trạng thái khác trả `ORDER_009`.
 
@@ -451,7 +494,96 @@ OrderResponse {
 
 **Chuyển trạng thái order thực sự có trong code:** order được tạo ở `PENDING_PAYMENT`; `DELIVERED` sang `COMPLETED` do admin. Mọi chuyển trạng thái khác chưa có code, kể cả các trạng thái có trong enum. Frontend không được vẽ timeline order như thể các bước này đã chạy.
 
+### 5.7.1 Đối chiếu checkout/payment trên feature/dispute — 2026-11-20
+
+> Local sau khi Chu duyệt hợp nhất có chọn lọc: branch codex/selective-checkout-integration đã ghép lượt 1 giữ hàng khi tạo checkout và scheduler hết hạn. Giữ reservation riêng, validation owner/staff và quantity=1 hiện có, chưa đưa dispute/refund hoặc listener thanh toán vào. Full Maven verify/package pass với cấu hình runtime từ IntelliJ: 214 test pass, 1 test auth đã disabled từ trước; 71 test liên quan không skip. Chưa bật submit Frontend. Mô tả audit phía dưới vẫn phản ánh đúng source feature/dispute tại commit được review, không phải toàn bộ bản local đã sửa. Chi tiết source và giới hạn: Backend docs/testing/CHECKOUT-SELECTIVE-INTEGRATION.md.
+
+Phạm vi: commit 4a58390df1d1469aeb37b2230bd484c747128d47; đọc controller/DTO/service/entity/repository của checkout, order, payment và giữ hàng. Đối chiếu CheckoutPage, CheckoutForm, checkoutSchema, OrderStatusLabel và Q15–Q17. Không checkout/merge nhánh, không sửa source Backend. Không coi kết quả build của working tree main có thay đổi local là bằng chứng cho nhánh được review.
+
+**Phần khớp hoặc đã tiến triển**
+
+- POST /api/v1/checkout-groups và GET /api/v1/checkout-groups/{id} giữ nguyên đường dẫn. Field nhận hàng, method COD/ONLINE_BANKING, giới hạn 20 item và validation form khớp Frontend hiện tại. Mỗi orderItems chỉ còn { productId }, không còn quantity. Giá/tổng tiền do Backend tính; voucher chưa áp dụng, shippingFee hiện bằng 0.
+- Có giữ hàng bằng ProductStatus.RESERVED, reservedCheckoutGroupId và khóa ghi khi reserve/release. Online đặt expiredAt sau 15 phút; COD không có expiredAt. Release chỉ trả đúng reservation của checkout tương ứng.
+- Có listener PaymentCompletedEvent gọi markCheckoutGroupPaid trong luồng webhook; có scheduler dự kiến chạy mỗi 60 giây. Đây là source đã có, chưa phải luồng chạy thành công.
+- GET /api/v1/payments/{id} kiểm tra payer. QR lấy từ paymentResponse.qrBankUrl, không tự dựng QR hoặc coi nút xác nhận chuyển khoản là bằng chứng thanh toán.
+- GET /api/v1/orders/me giữ nguyên. Chi tiết đơn đổi sang GET /api/v1/orders/buyer/{orderId} và đã kiểm tra buyer trên nhánh này; B11 vẫn còn ở main local. Frontend hiện tìm chi tiết trong danh sách của mình nên chưa bị đổi đường dẫn này ảnh hưởng.
+
+**Chặn tích hợp**
+
+1. **P0 — nhánh không compile.** Bản source sạch xuất bằng git archive đúng commit, chạy Maven Wrapper offline với JDK 23.0.1 và release 17: compile thất bại. Hai lỗi đầu là RefundRequest.java khai báo public class Refund và RefundRequestListener.java khai báo public class CancelOrderEventListener. Còn có nhiều lỗi dây chuyền nên không kết luận các lỗi Lombok getter riêng lẻ là nguyên nhân độc lập. Đọc source cũng xác nhận scheduler gọi expireExpiredCheckouts() nhưng CheckoutExpirationService chỉ có expireOne(UUID); RefundService rỗng và RefundReason rỗng trong khi caller dùng các method/enum chưa có. Cần chốt một commit compile được trước khi test HTTP.
+2. **P1 — nhánh chưa có module cart.** git ls-tree không có src/main/java/com/moldy/moldymarket/cart; main đã có cart ở commit b4f1af4, merge-base hai nhánh là 3b3d67c. Đây là chênh lệch lịch sử tích hợp, không kết luận tác giả chủ động xóa cart. Không chạy nguyên nhánh này thay main để thử UI checkout hiện tại vì UI cần GET cart; chưa có nối xóa đúng item sau thanh toán online/COD theo Q16.
+3. **P1 — chặn tự mua chưa đủ Q17.** CheckoutGroupService chỉ so sellerId với userId. Owner mua tin do staff đăng, hoặc staff mua tin của đồng nghiệp cùng store, vẫn qua validation. Working tree local đã có StoreAccessGuard.isStoreMember; phải giữ phần này khi tích hợp. Đây là thiếu so với quy tắc đã duyệt, không phải regression đã chứng minh so với merge-base.
+4. **P1 — online chưa tự xác nhận theo Q15.** markCheckoutGroupPaid đổi checkout thành PAID và product thành SOLD nhưng gọi order.markPendingConfirmation(), đưa order về PENDING_CONFIRMED, còn cần endpoint seller confirm. Cần online chuyển thẳng CONFIRMED, ghi timestamp và xóa đúng cart item trong cùng luồng giao dịch. Không đổi COD thành tự xác nhận theo suy đoán.
+5. **P1 — job hết hạn có query sai kiểu.** CheckoutGroupRepository.findExpiredCheckoutIds khai báo List<UUID> nhưng JPQL select cg trả entity; caller lặp UUID và gọi expireOne. Cần select cg.id hoặc đổi contract caller cho thống nhất. Chưa kiểm chứng lỗi runtime vì branch chưa compile.
+6. **P1 — hủy/refund đang lệch.** OrderService.cancelOrderFromBuyer chỉ nhận CONFIRMED/PENDING_CONFIRMED, không nhận online đang PENDING_PAYMENT nên chưa trả giữ hàng khi người mua hủy trước thanh toán. Điều kiện phát RefundRequestEvent là method khác ONLINE_BANKING, tức COD bị phát refund trong khi online đã trả tiền thì không. Cần sửa theo trạng thái thực thu tiền và quyết định Q16/Q17; không tự hoàn tiền chỉ vì order bị hủy.
+7. **P1 — hạn online chưa được kiểm tra tại webhook.** PaymentRepository.markPaid chỉ kiểm tra PENDING, không kiểm tra expiredAt so với now. Nếu job chậm, chuyển khoản đến sau phút 15 nhưng trước lần quét vẫn được nhận SUCCESSFUL. Đây là rủi ro deadline có sẵn ở truy vấn cũ, nay ảnh hưởng trực tiếp quy tắc giữ 15 phút; cần xử lý đồng bộ với expire, kể cả tình huống tiền thật đến trễ.
+8. **P2 — COD chưa đồng bộ toàn trạng thái.** receivedCOD có đặt payment SUCCESSFUL khi các order không còn mở, nhưng không ghi paidAt, không chuyển checkout khỏi PAY_ON_DELIVERY và không xóa cart item. Cần thống nhất trạng thái kết thúc và xử lý checkout có nhiều order trước khi UI dựa vào nó.
+
+**Frontend cần làm sau khi Backend được thống nhất**
+
+- Giữ nút Đặt hàng tắt hiện tại. Thêm checkout service/mutation, gửi { orderItems: [{ productId }], receiverName, phoneNumber, shippingAddress, method, note }; không gửi giá hoặc userId, không auto-retry POST có thể đã thành công.
+- Nối route /checkout/:checkoutGroupId và đọc lại checkout để reload vẫn xem được. Online lấy QR/tổng tiền/hạn từ server và polling endpoint đã xác minh; dừng khi terminal/logout. Không tự kết luận hết hạn thanh toán chỉ bằng đồng hồ client.
+- Bổ sung nhãn đúng cho PENDING_CONFIRMED, PAY_ON_DELIVERY và PaymentStatus.EXPIRED khi những trạng thái này còn trong contract cuối. OrderItem entity đã bỏ quantity nhưng OrderItemResponse vẫn có int quantity, mapper không set field này; cần Backend bỏ field hoặc bảo đảm trả 1, tránh UI hiển thị 0.
+- Sau server xác nhận thanh toán, refetch/invalidate đúng cart, orders và checkout; Frontend không tự xóa cart thay Backend. Không tự bật hủy/confirm/shipping/refund trước khi chốt quyền và flow liên quan.
+
+**Thứ tự đề xuất và kiểm chứng**
+
+1. Tạo bản tích hợp từ main giữ thay đổi local đã làm; hợp nhất có chọn lọc checkout/payment của nhánh mới. Chỉ làm khi Chu duyệt sửa/tích hợp Backend.
+2. Sửa build, query hết hạn, chặn owner/staff và giữ hàng; thống nhất online CONFIRMED, COD, hủy và cart cleanup đúng Q15–Q17.
+3. Test Backend: owner/staff tự mua; hai buyer giữ cùng product; hết hạn và webhook đồng thời; tiền đến trễ; hủy COD chưa thu tiền không refund; hủy online chưa thanh toán trả hàng; online trả tiền tự CONFIRMED; xóa đúng cart item sau thực thu tiền, giữ item khác; checkout nhiều seller và COD thu tiền từng order.
+4. Khi bản tích hợp compile và test pass, mới nối submit và trang thanh toán Frontend thành từng flow nhỏ để Chu chép.
+
+Giới hạn kiểm chứng: chưa gọi HTTP, chưa thanh toán thật, chưa chạy mutation test hoặc unit/integration test nghiệp vụ trên nhánh vì compile đã thất bại. Nhánh chỉ có application context test trong src/test tại commit đã đọc, chưa có test riêng checkout/payment. Full suite Frontend 297 test đã pass ở bước inbox trước đó; không dùng kết quả đó để kết luận Backend mới hoạt động.
+
+### 5.7.2 Contract local sau hợp nhất chọn lọc — 2026-11-20
+
+> Hủy checkout: Kiểm chứng repo chính ngày 2026-11-21: format check, lint, build và 362/362 tests trong 41 file pass sau khi sửa lỗi chép. Chu xác nhận ngày 2026-11-21 đã thử hủy checkout với Backend thật từ UI thành công: hủy các đơn trong checkout, ẩn QR, giữ giỏ, reload giữ trạng thái và có thể đặt lại. INTEGRATED_LOCAL cho hủy online chưa thanh toán; không bao gồm refund hoặc hủy COD.
+
+Frontend hủy checkout online: **INTEGRATED_LOCAL** sau khi Chu chép ngày 2026-11-21, hướng dẫn docs/learning/checkout-cancel-ui.md. Đã đối chiếu OrderController/OrderService local: POST /api/v1/orders/buyer/{orderId}/cancel không body, trả OrderResponse; ONLINE_BANKING chỉ hủy khi payment PENDING, group PENDING_PAYMENT và mọi order PENDING_PAYMENT, hủy cả group. UI chỉ dùng một order đại diện, không gọi endpoint group tưởng tượng hoặc lặp POST cho từng order. Phải GET lại canonical checkout; không suy trạng thái group từ một OrderResponse. INVALID_ORDER_STATE là tên enum trả ra API, ORDER_002 là mã nội bộ. Source UI/i18n đã có trong repo chính và được sửa lỗi chép; tests được trợ lý thêm. Chu xác nhận ngày 2026-11-21 đã thử hủy checkout với Backend thật từ UI thành công: hủy các đơn trong checkout, ẩn QR, giữ giỏ, reload giữ trạng thái và có thể đặt lại. INTEGRATED_LOCAL cho hủy online chưa thanh toán; không bao gồm refund hoặc hủy COD. Không thay đổi Backend trong task này.
+
+Kiểm chứng Frontend trên repo chính sau khi Chu chép: format check, lint, build và 337/337 tests pass (38 file); source đã đối chiếu hướng dẫn. Chu xác nhận ngày 2026-11-20: online checkout → QR → SePay Test mode → webhook HMAC → thanh toán thành công, order đã xác nhận, xóa đúng món khỏi giỏ và giữ trạng thái sau reload. INTEGRATED_LOCAL_SANDBOX; chưa kiểm thử tiền thật/SePay Live hoặc toàn bộ vòng đời COD.
+
+> Frontend **INTEGRATED_LOCAL_SANDBOX** (online): Chu đã chép source submit/QR theo docs/learning/checkout-payment-ui.md và đã sửa lỗi chép trên repo chính. POST không tự retry; GET checkout làm snapshot và polling online 5 giây khi còn chờ/đồng bộ (mặc định kỹ thuật cho Q11), COD cập nhật thủ công. Chỉ SUCCESSFUL + PAID mới báo đã trả tiền. Không tự xóa giỏ hoặc kết luận EXPIRED từ countdown. Đã kiểm chứng HTTP với SePay Test mode theo xác nhận của Chu; chưa chuyển khoản thật. Phần “Frontend chưa nối” bên dưới lưu trạng thái trước khi chép.
+
+Backend branch codex/selective-checkout-integration giữ nền main dc11b09 và các sửa local auth/cart/store. Source feature/dispute 4a58390 chưa được merge nguyên nhánh. Toàn bộ flow đã duyệt được nối local; Frontend submit/QR chưa nối. Hướng dẫn source đầy đủ: Backend docs/testing/CHECKOUT-PAYMENT-FLOW.md.
+
+- POST /api/v1/checkout-groups nhận { orderItems: [{ productId }], receiverName, phoneNumber, shippingAddress, method, note? }. quantity cũ bằng 1 còn hợp lệ, thiếu thì mặc định 1, >1 bị chặn. Giá, buyer, seller lấy server.
+- CheckoutResponse vẫn { id, totalAmount, expiredAt, orders, status, paymentResponse }. PaymentResponse nay { id, amount, paymentStatus, method: COD|ONLINE_BANKING, qrBankUrl, checkoutGroupId }. Dùng method khi reload, không đoán từ QR.
+- Online: PENDING_PAYMENT → PAID; orders PENDING_PAYMENT → CONFIRMED; product ACTIVE có reservation → SOLD. COD: group PAY_ON_DELIVERY, orders PENDING_CONFIRMED → CONFIRMED → SHIPPING → DELIVERED → COMPLETED sau thu tiền. Group/payment còn pending trong lúc chỉ một số order đã thu tiền.
+- Action đã chọn từ branch: POST /api/v1/orders/seller/{orderId}/confirm (store owner); POST /api/v1/orders/buyer/{orderId}/cancel (buyer); PATCH /api/v1/orders/admin/{orderId}/start-shipping và /mark-delivered; POST /api/v1/orders/admin/{orderId}/cod-collected (admin). Buyer detail giữ GET /api/v1/orders/{orderId} và nay kiểm tra ownership.
+- Hủy online chỉ khi chưa thanh toán và hủy toàn bộ checkout chung QR; COD chỉ hủy order chưa giao/chưa thu tiền và giảm tổng còn phải trả. Không phát refund khi chưa thu tiền. Online đã trả tiền cần flow refund riêng.
+- Hết hạn/hủy online: payment FAILED, group EXPIRED/CANCELLED tương ứng, giữ giỏ. Receipt muộn ghi LATE, lệch tiền AMOUNT_MISMATCH, trả vào payment đã SUCCESSFUL ghi DUPLICATE; không tự báo paid hoặc refund.
+- DB migration V20261120__checkout_statuses.sql đã áp dụng local: giữ ordinal cũ, append PENDING_CONFIRMED=9/PAY_ON_DELIVERY=4, mở rộng constraints và sửa index expired_at. DB khác đã tồn tại cần chạy SQL trong transaction; Maven không tự chạy migration vì chưa có Flyway runner.
+- Source mapper đã sửa paymentStatus, checkoutGroupId và orderId để response không null. Full Maven verify/package cuối pass 264 test: 263 pass, 1 skip auth có sẵn, không failure/error; có 8 integration PostgreSQL/HTTP test. Chưa kiểm thử ngân hàng/SePay Live. Không coi kết quả Backend là FE đã tích hợp.
+
+### 5.7.3 Danh sách đơn gian hàng — 2026-11-21
+
+Trạng thái Backend: **IMPLEMENTED_LOCAL** sau khi Chu chép ngày 2026-11-21. Đã sửa typo :staus thành :status trong query, cài 19 tests mới và full Maven verify/package trên repo chính pass 283 tests: 282 pass, 1 auth QA-010 disabled có sẵn. Endpoint đã được PostgreSQL/JWT/MockMvc kiểm tra. Guide đủ 5 file: Backend docs/testing/STORE-ORDERS-API.md. Frontend từ task này do trợ lý trực tiếp code, Backend vẫn gửi code để Chu chép; tests do trợ lý thêm. Không nối service frontend trước khi source Backend chính được kiểm tra.
+
+- GET /api/v1/stores/{storeId}/orders?page=1&size=20&status=PENDING_CONFIRMED. Cần đăng nhập. Chu chốt owner và staff cùng store có ORDER_PROCESS được xem; quyền xem không cấp quyền xác nhận COD. Tái sử dụng StoreAccessGuard, bao gồm STORE_BLOCKED.
+- page từ 1, mặc định 1; size 1–100, mặc định 20. status tùy chọn theo OrderStatus. Sort cố định createdAt DESC, id DESC; sai UUID/int/enum/bounds/offset trả INVALID_REQUEST (400).
+- ApiResponse<PagedResponse<OrderResponse>>, data có content/page/size/hasNext/totalElements. Trang rỗng trả 200, không dùng lỗi rỗng legacy của /orders/me. Filter bằng Order.storeId, không dùng sellerId; owner thấy đơn từ mọi staff đúng shop, không lấy đơn shop khác hoặc đơn cá nhân cũ.
+- OrderResponse giữ nguyên, chưa có paymentMethod/paymentStatus. UI không được coi CONFIRMED là đã thu tiền COD. POST /api/v1/orders/seller/{orderId}/confirm hiện có vẫn chỉ owner; admin shipping/delivery/collection giữ nguyên.
+- Chu duyệt sửa CustomAuthenticationEntryPoint và CustomAccessDeniedHandler: dùng Jackson 3 ObjectMapper được Spring inject, giữ status/code/message. Test anonymous tái hiện lỗi mapper Jackson 2 không serialize được Instant của ApiResponse.timestamp.
+- Bản review riêng (từ working tree Backend hiện tại, không phải committed ref) pass full Maven verify/package: 283 tests, 282 pass và 1 auth QA-010 disabled có sẵn; 19 test mới, gồm 11 PostgreSQL/HTTP và 8 unit. Tests mới không skip, fixtures tự rollback. Hibernate 7.4.1.Final đã được đối chiếu; pagination với nhiều items và count được kiểm tra trên PostgreSQL.
+
+Frontend **IMPLEMENTED_LOCAL**: trợ lý trực tiếp nối /store/orders và menu owner/staff; dùng query key theo userId/storeId/page/status, AbortSignal, lọc trạng thái và phân trang URL, tái sử dụng snapshot món/người nhận; không dùng link /orders/:id dành cho buyer. Xác nhận chỉ owner và order PENDING_CONFIRMED; đọc lại cache trước POST, khóa bấm đúp, không retry/optimistic CONFIRMED, invalidate đúng các page của user/store sau thành công hoặc lỗi. GET lỗi 403/404 ẩn cached private data; response muộn sau logout không phục hồi cache. Full frontend pass 398 tests trong 44 file (36 test mới), format check/lint/build pass. Chưa claim kiểm thử giao diện/HTTP thủ công bởi Chu. Cần restart Backend sau khi chép để nạp controller/query/handler mới.
+
+### 5.7.4 Quyền staff trong workspace — 2026-11-21
+
+Backend **IMPLEMENTED_LOCAL**: Chu duyệt trợ lý sửa trực tiếp Backend trong task này. GET `/api/v1/stores/my-store/staff/me` dùng `STORE_WORKSPACE_ACCESS`, trả StaffResponse của chính principal (userId/storeId/permissions). Các API thêm/list/đổi quyền/xóa nhân viên vẫn yêu cầu `STORE_STAFF_MANAGE` và owned-store check.
+
+GET `/api/v1/stores/{storeId}/products` cần đăng nhập; dùng service/StoreAccessGuard có sẵn: owner hoặc staff đúng shop được cấp `PRODUCT_MANAGE_OWN`. Trả PagedResponse<ProductResponse> với ACTIVE/HIDDEN, page bắt đầu 1, mặc định size 20, sort createdAt DESC. Sai shop hoặc thiếu quyền trả STORE_ACCESS_DENIED, shop khóa trả STORE_BLOCKED. API owner `/stores/my-store/products` giữ nguyên.
+
+Chu duyệt bổ sung `PRODUCT_MANAGE_OWN` vào quyền owner được cấp riêng cho staff; không tự cấp cho staff cũ, không gộp với PRODUCT_CREATE. `/users/me.permissions` vẫn gộp quyền role và delegated; USER có ORDER_PROCESS/PRODUCT_MANAGE_OWN không đồng nghĩa được quản lý shop. Không nới StoreAccessGuard.
+
+Full Maven verify/package pass 288 tests: 287 pass, 1 QA-010 disabled có sẵn. Năm integration tests mới kiểm tra self-profile, quyền global khác delegated, đúng shop, thu hồi quyền với cùng token, shop khóa và anonymous. Unit test đổi quyền bao gồm PRODUCT_MANAGE_OWN. Frontend lấy quyền/storeId từ self-profile, link quản lý `/store/products` khác “Xem trang công khai”; trang công khai giữ bộ lọc tìm kiếm. Chờ Chu restart Backend và kiểm thử UI thật.
+
+Frontend full test pass **406/406 trong 44 file**; npm run format, lint, format:check và build pass. Regression tests kiểm tra quyền role USER không thay quyền delegated, storeId phiên cũ không ghi đè membership, lỗi kiểm tra lại quyền 403 ẩn cached orders, staff quản lý sản phẩm không gọi API my-store của owner, mở form sửa tin đồng nghiệp và owner cấp PRODUCT_MANAGE_OWN độc lập. Chưa kiểm thử giao diện thật; Chu tự kiểm tra.
+
 ### 5.8 Thanh toán SePay (`feature/order`, chưa merge)
+
+> Phần này lưu audit protocol/branch cũ. Trạng thái đồng bộ mới và contract cho Frontend dùng mục 5.7.2: B12 đã sửa local, payment có method, job hết hạn đã có. Không áp dụng các kết luận B12 cũ bên dưới cho bản tích hợp local mới.
 
 **Phía Frontend nhận được gì:** trong `PaymentResponse`, `qrBankUrl` là một URL ảnh QR do Backend tạo (dạng `https://vietqr.app/img?acc=...&bank=...&amount=...&des=<mã thanh toán>`), và là `null` với `COD`. Mã thanh toán có dạng `MM` + 8 ký tự chữ hoa hoặc số, được dùng làm nội dung chuyển khoản. Số tài khoản và tên ngân hàng nằm trong cấu hình Backend. Frontend chỉ hiển thị ảnh theo URL này và **không tự dựng QR**. Chưa có endpoint nào trả thông tin chuyển khoản dạng chữ (số tài khoản, ngân hàng, nội dung), xem Q11.
 
@@ -490,10 +622,10 @@ OrderResponse {
 | B8 | Các tài liệu thiết kế cho chat, offer, vòng đời order, payment/escrow và upload ảnh đều rỗng (0 byte) trên `main`. | Frontend không có contract viết sẵn cho các phần này. |
 | B9 | Tên class `UserProfileReSponse` bị viết sai chính tả. | Chỉ là thẩm mỹ, nội bộ, không ảnh hưởng JSON. |
 | B10 | Đăng ký đặt user ở `PENDING_VERIFICATION`, đăng nhập chỉ cho `ACTIVE`, và không có endpoint xác minh nào. Chỉ admin (qua `PUT /users/{id}/status`) hoặc tài khoản admin seed mới có `ACTIVE`. Team xác nhận ngày 2026-11-08. | User tự đăng ký xong không đăng nhập được. Frontend chưa thể làm luồng đăng ký rồi đăng nhập hoàn chỉnh. |
-| B11 | `GET /api/v1/orders/{orderId}` không kiểm tra người gọi có phải chủ order. Mọi user đã đăng nhập đều xem được order của người khác (tên, số điện thoại, địa chỉ nhận hàng). `GET /checkout-groups/{id}` và `GET /payments/{id}` thì có kiểm tra. | Lộ dữ liệu cá nhân. Backend cần sửa trước khi phát hành. |
-| B12 | Sau khi SePay báo thành công chỉ `Payment` đổi sang `SUCCESSFUL`. `PaymentCompletedEvent` không có listener, `CheckoutGroup.markPaid()` và `markExpired()` không được gọi, order vẫn `PENDING_PAYMENT`, và không có job hết hạn. | Team dự định gắn listener cho `PaymentCompletedEvent` (chưa có code, ghi nhận 2026-11-08). Cho đến khi đó được merge và ghi vào tài liệu này, Frontend chỉ tin được `paymentStatus` của payment, không tin `status` của order hay checkout group. |
+| B11 | Đã sửa local: GET /api/v1/orders/{orderId} kiểm tra buyer; không có quyền trả ORDER_NOT_EXISTED. | Unit regression chặn buyer khác. Chưa nằm trong main đã commit; UI hiện vẫn lấy chi tiết từ danh sách riêng. |
+| B12 | Đã sửa local: online SUCCESSFUL → listener trong transaction → checkout PAID, order CONFIRMED, product SOLD, xóa đúng cart item. Có scheduler và kiểm tra deadline trong webhook. | Integration PostgreSQL/HTTP kiểm tra settlement, rollback/retry và trễ/trùng. COD CONFIRMED chưa đồng nghĩa đã thu tiền. Main đã commit chưa có phần này. |
 | B13 | `GET /api/v1/orders/me` trả 404 (`ORDER_003`) khi người mua chưa có order. | Trạng thái rỗng bị trả như lỗi. Frontend phải xử lý riêng. |
-| B14 | Checkout chưa giữ hay trừ tồn kho (`//todo`), chưa áp voucher, phí ship luôn 0. `ProductResponse` không có trường số lượng tồn nhưng checkout nhận `quantity` từ 1 đến 100 (team đã quyết định bỏ `quantity`, xem Q17). | Có thể bán trùng cùng một sản phẩm cho nhiều người. Cần cơ chế giữ hàng hoặc khoá sản phẩm khi đã có checkout. |
+| B14 | Đã giữ hàng local và khóa product theo ID; mỗi product một món. quantity có thể bỏ qua và mặc định 1, giá trị >1 bị chặn. Giữ online 15 phút, COD không tự hết hạn. | Test hai buyer cùng giữ một product chỉ một checkout thành công. Voucher chưa áp, shippingFee vẫn 0; không suy ra đã có shipping calculator. |
 
 ---
 
@@ -506,7 +638,7 @@ OrderResponse {
 | Q3 | **Đã trả lời từ source** (xem 3.2): khi gặp `AUTH_007`, Backend thu hồi toàn bộ phiên của user. Cách UI thông báo cho user sẽ ghi ở doc 08. | Doc 08. |
 | Q4 | Ai gọi escrow `hold` / `capture` / `release`: service order nội bộ hay Frontend? | Frontend có cần các endpoint này không. |
 | Q5 | Ảnh product upload bằng cách nào (API chỉ nhận URL HTTPS)? Pre-signed URL? Dịch vụ bên thứ ba? | Trang tạo/sửa product. |
-| Q6 | Chat có gắn với offer, order hay product không? Hiện conversation chỉ là `(participant1, participant2)`. | Điểm vào chat trên giao diện. |
+| Q6 | Chu chốt ngày 2026-11-19: khách nhắn chủ gian hàng, kể cả khi staff đăng sản phẩm. Chat API hiện chỉ nhận targetUserId, chưa gắn product/order/store trong DTO. PublicStoreResponse đã có ownerId; conversation đã có tên hai participant và quyền gửi do server tính. Chưa có avatar/inbox chung cho staff. Chu cho phép sửa Backend trực tiếp trong task tên/policy chat. | Điểm vào chat và hiển thị người đối thoại. |
 | Q7 | Chu đã chốt `listingId = Product.id`. Backend local đọc Product để lấy seller, giá và kiểm tra ACTIVE. Mỗi dòng có quantity 1; thêm lại giữ một dòng. `GET /api/v1/carts`, `POST /api/v1/carts/items`, `DELETE /api/v1/carts/items/{listingId}` đã được sửa và test local, được dùng cho tích hợp Frontend. Chu đã xác nhận flow thêm → xem → tải lại → xóa với Backend thật ngày 2026-11-18. Cả ba trả `CartResponse` trong ApiResponse. Giỏ chưa tồn tại trả id null, items [], subtotal 0, totalItems 0. Chủ hoặc staff cùng gian hàng và người bán của tin cá nhân bị chặn thêm bằng `403 CART_OWN_PRODUCT`. | Liên kết cart với product. |
 | Q8 | Thương lượng offer: số vòng, thời hạn, ai được counter? | Quy tắc giao diện offer. `REQUIRES_BUSINESS_CLARIFICATION`. |
 | Q9 | Refund: ai được yêu cầu, có những trạng thái nào, có hoàn một phần không? Requirements nói Admin xử lý refund thủ công; hiện chưa có API. | Các trang refund. |
@@ -515,14 +647,20 @@ OrderResponse {
 | Q12 | Branch nào là đích tích hợp, và khi nào `order`, `payment`, `notification`, `chat`, `cart`, `voucher`, `pricing`, `escrow-wallet` được merge vào `main`? Lưu ý `feature/order` đã gộp `main`, `chat`, `voucher`, `escrow-wallet` nhưng **không có** `cart`, `notification`, `pricing`. | Quyết định khi nào các dòng `IN_PROGRESS` được phép code. |
 | Q13 | `isRead` trong JSON của notification được serialize thành `read` hay `isRead`? | Hiển thị danh sách notification. |
 | Q14 | Chu đã chốt kích hoạt qua OTP email. Backend local có `POST /api/v1/auth/verify-email` nhận `{ email, code, password }` và `POST /api/v1/auth/resend-verification` nhận `{ email }`. Cả hai trả `200` với `data: null`. OTP 6 số, hạn 5 phút, gửi lại sau 60 giây, tối đa 5 lần sai mỗi mã. OTP đúng mới cho lưu mật khẩu cuối cùng, chuyển `PENDING_VERIFICATION` sang `ACTIVE` và xóa mã. Tài khoản đã ACTIVE hoặc LOCKED bị chặn xác nhận. Đăng ký lại email pending trả `403 EMAIL_NOT_VERIFIED` để tiếp tục xác nhận. Chu đã kiểm tra gửi OTP qua Gmail thật; thay đổi mật khẩu cuối cùng chờ thử lại toàn luồng. | Trang đăng ký, xác nhận email và đăng nhập. |
-| Q15 | Chu chốt ngày 2026-11-19: sau khi Backend xác nhận chuyển khoản thành công, order tự chuyển sang CONFIRMED, checkout sang PAID, product sang SOLD và xóa đúng item đã mua khỏi giỏ. Không có bước chờ gian hàng duyệt cho đơn đã thanh toán online. Quy tắc đã duyệt, chưa triển khai. Quyền chuyển SHIPPING/DELIVERED, xác nhận nhận hàng và giới hạn hủy đơn vẫn chưa chốt; quyết định này không tự thay đổi flow COD. | Vòng đời order và đồng bộ payment. |
-| Q16 | Chu chốt ngày 2026-11-19: giữ item trong giỏ khi tạo checkout; chỉ xóa đúng item thuộc đơn khi Backend xác nhận thanh toán thành công, giữ các item khác. COD cũng phải được Backend ghi nhận đã thu tiền trước khi xóa. Checkout nhận productId riêng, không lấy giá từ giỏ. Helper CartService.removePurchasedItems đã có local, qua 5 test mới (tổng 51 test cart/checkout/giữ hàng/hết hạn pass). Chưa nối helper vào payment, nên chưa có xóa cart tự động. | Cart sang checkout và xử lý payment. |
-| Q17 | Chu chốt ngày 2026-11-19: mỗi sản phẩm chỉ mua 1; chặn mua tin của mình hoặc gian hàng mình sở hữu/làm staff. ONLINE_BANKING giữ hàng 15 phút; hết hạn chưa thanh toán hoặc hủy thì trả lại. COD giữ ngay lúc tạo đơn, trả lại khi hủy. Giới hạn quantity 1 và chặn tự mua đã triển khai local, qua 10 checkout service tests. Product đã có reservedCheckoutId, reservationExpiresAt, hàm giữ/trả hàng và repository khóa ghi; 8 unit test giữ hàng pass. Đã có CheckoutExpirationService và query khóa checkout/payment, qua 7 service tests (tổng 46 test liên quan pass). Service hết hạn giữ nguyên cart, bỏ qua COD/payment thành công/order đã tiến triển. Chưa nối giữ hàng vào checkout/payment, chưa bật job hết hạn; chưa kiểm tra tranh chấp trên DB thật. Không dùng trạng thái HIDDEN/SOLD thay thế việc giữ tạm. | Checkout và vòng đời sản phẩm. |
-| Q18 | COD: ai thu tiền và khi nào (endpoint tên `cod-collected` nhưng chuyển `DELIVERED` sang `COMPLETED`)? Escrow có áp dụng cho order COD và order trả bằng chuyển khoản không, và nối với order bằng cách nào? | Trang order, trang escrow của admin. |
+| Q15 | Đã chốt và triển khai local: online đúng hạn SUCCESSFUL tự CONFIRMED, checkout PAID, product SOLD và xóa đúng item giỏ. Admin shipping/delivery chỉ cho các trạng thái hợp lệ; DELIVERED online không tự COMPLETED. | Chưa có buyer xác nhận nhận hàng hoặc refund online đã trả tiền; xem 5.7.2. |
+| Q16 | Đã chốt và nối local: tạo checkout giữ giỏ; online xóa đúng item sau server xác nhận tiền; COD xóa item của order sau admin ghi nhận đã thu tiền, không đợi các order khác. Giữ item không mua. | Cùng transaction với trạng thái tiền/đơn/sản phẩm; cart lỗi rollback toàn bộ, receipt có thể retry. |
+| Q17 | Đã chốt và nối local: một product một món; chặn seller/owner/staff cùng store; online giữ 15 phút, COD giữ tới thu tiền hoặc hủy. Webhook và expire/cancel cùng thứ tự khóa checkout → payment → product. | Chu chốt hủy một order online chưa trả tiền sẽ hủy toàn checkout chung QR, trả mọi reservation và giữ giỏ. Tiền cũ/trễ không được bán một reservation mới. |
+| Q18 | Chu chốt 2026-11-20: COD chờ chủ store xác nhận (staff đăng không có quyền xác nhận thay owner); admin cập nhật SHIPPING, DELIVERED và thu tiền. Buyer hủy trước SHIPPING khi chưa thu tiền, không refund COD. Hủy một phần giảm đúng tổng phải trả. | Đã nối và test local. Escrow, refund đã thu tiền và API danh sách đơn gian hàng còn riêng, chưa đưa stub vào. |
 
 ---
 
 ## 8. Bảo trì tài liệu
+
+### Ghi nhận khi bàn giao Appraiser — 2026-11-21
+
+Decision update sau khi Chu trả lời “duyệt 4 điểm” ngày 2026-11-21: chặn appraiser thẩm định sản phẩm của bản thân/shop sở hữu/shop đang làm staff; phải enforce ở apply, accept invitation và tạo/nhận assignment. BUSINESS_APPROVED, BACKEND_IMPLEMENTATION_PENDING: chưa sửa code hoặc có test chứng minh rule mới. Admin MVP là auth/users/stores/moderation/categories, chưa cho admin bypass OTP. Shared baseline sẽ review/tách commit rồi xin duyệt commit/push riêng, chưa phải baseline đã phát hành. Nội dung đầy đủ ở handoff; không hỏi lại các quyết định đã chốt.
+
+Xem [HANDOFF-APPRAISER-FRONTEND.md](HANDOFF-APPRAISER-FRONTEND.md). Đã đọc scoped controller/DTO/service của local Backend `dc11b09` trên codex/selective-checkout-integration; chưa HTTP/security audit appraisal. Module hiện có `/api/v1/appraisal-requests`, appraisal-applications/invitations/assignments/reports/reviews, khác flow `/api/pricing/appraiser/queue` + claim trong snapshot cũ mục 4.2. Không coi các route cũ hoặc DTO chưa audit là contract triển khai. Application mới là ứng tuyển cho request, không phải hồ sơ xin role. `AppraisalConversationService` đang trả UUID placeholder; không nối chat từ field này. Apply chưa thấy APPRAISER guard ở controller/service đã đọc, cần test USER/foreign IDs và trao đổi Chu trước phát hành. PaginationConfig đặt request Pageable 1-based, Spring Page response number 0-based; chat nhận int page riêng nên không chép page-1 sang appraisal. Các phát hiện này chưa nâng trạng thái endpoint thành IMPLEMENTED/INTEGRATED. Chỉ ghi tài liệu, không sửa Backend trong lần bàn giao.
 
 - Cập nhật tài liệu này **trong cùng Pull Request** mỗi khi một branch Backend được merge hoặc một Frontend service được thêm.
 - Khi một dòng đổi trạng thái, ghi lại commit hoặc PR của Backend làm căn cứ.

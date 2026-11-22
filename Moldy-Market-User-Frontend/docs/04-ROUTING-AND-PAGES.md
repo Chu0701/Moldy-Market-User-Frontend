@@ -81,13 +81,13 @@ Ghi chú các cột:
 | `/my-products/new` | Chuyển hướng sang `/store/products/new` | Áp dụng luồng đăng bán qua gian hàng | — | Có chuyển hướng |
 | `/my-products/:productId/edit` | `ProductEditPage` | `GET /api/v1/products/{id}`, `PUT /api/v1/products/{id}` (bắt buộc `version`), `DELETE`, `PATCH /{id}/status?status=` | `IMPLEMENTED` | `NOT_STARTED` |
 | `/cart` | `CartPage` | GET `/api/v1/carts`, POST `/items`, DELETE `/items/{listingId}` (Q7 doc 14) | Ba endpoint đã sửa và test Backend local | INTEGRATED local; Chu xác nhận thêm, xem, tải lại và xóa ngày 2026-11-18 |
-| `/checkout` | `CheckoutPage` | Form và tóm tắt lựa chọn; chưa gọi API tạo checkout. Xem Q15–Q17 doc 14 | Chờ thống nhất bản Backend tích hợp | `IMPLEMENTED_UI_LOCAL`: Chu đã chép, có điền sẵn thông tin tài khoản; 256 test pass; chờ thử giao diện, chưa tích hợp HTTP checkout |
-| `/checkout/:checkoutGroupId` | `CheckoutPaymentPage` | `GET /api/v1/checkout-groups/{id}`, polling `GET /api/v1/payments/{id}`. Chỉ tin `paymentStatus` (B12) | `IN_PROGRESS` | `NOT_STARTED` |
-| `/orders` | `OrderListPage` | `GET /api/v1/orders/me` (404 `ORDER_003` là trạng thái rỗng, B13) | `IN_PROGRESS` | `NOT_STARTED` |
-| `/orders/:orderId` | `OrderDetailPage` | `GET /api/v1/orders/{orderId}` (B11: Backend chưa kiểm tra chủ order) | `IN_PROGRESS` | `NOT_STARTED` |
+| `/checkout` | `CheckoutPage` | Form và POST /api/v1/checkout-groups; không tự retry POST; chuyển sang trang thanh toán | Backend IMPLEMENTED_LOCAL, doc 14 mục 5.7.2 | INTEGRATED_LOCAL_SANDBOX: Chu đã kiểm thử tạo checkout online và thanh toán qua SePay Test mode; chưa Live |
+| `/checkout/:checkoutGroupId` | `CheckoutPaymentPage` | GET /api/v1/checkout-groups/{id} cho reload và polling online 5 giây; COD cập nhật thủ công | Backend IMPLEMENTED_LOCAL (B12 đã sửa local) | INTEGRATED_LOCAL_SANDBOX: QR, webhook xác nhận tiền, xóa giỏ và reload đã được Chu kiểm thử; COD mới tạo đơn |
+| `/orders` | `OrderListPage` | `GET /api/v1/orders/me`; 404 ORDER_LIST_NOT_FOUND là danh sách rỗng | IMPLEMENTED local, audit doc 14 mục 5.7 | IMPLEMENTED_LOCAL: Chu đã chép, chờ xác minh HTTP/giao diện |
+| `/orders/:orderId` | `OrderDetailPage` | Tìm ID trong danh sách `/orders/me` của tài khoản hiện tại; B11 đã sửa trên bản Backend chọn lọc local; UI chưa đổi cách đọc | Dùng endpoint danh sách IMPLEMENTED local | IMPLEMENTED_LOCAL: Chu đã chép, chờ xác minh HTTP/giao diện |
 | `/notifications` | `NotificationsPage` | `GET /api/v1/notifications?limit&token` (cursor), `PATCH /{id}/read`, `DELETE /{id}`, `PATCH /{id}/restore` | `IN_PROGRESS` | `NOT_STARTED` |
-| `/chat` | `ChatPage` | `GET /api/v1/conversations`, STOMP qua SockJS tại `/chat` | `IN_PROGRESS` | `NOT_STARTED` |
-| `/chat/:conversationId` | `ChatPage` (cùng trang, chọn cuộc hội thoại) | `GET /api/v1/conversations/{id}/messages`, `PATCH /{id}/read`, WebSocket | `IN_PROGRESS` | `NOT_STARTED` |
+| `/chat` | `ChatPage` | GET conversations và STOMP /chat dùng chung từ MainLayout | IMPLEMENTED_LOCAL; badge unread ở menu/inbox | Có inbox và trạng thái kết nối/reconnect; manual UI chờ Chu |
+| `/chat/:conversationId` | `ChatPage` (cùng trang, chọn cuộc hội thoại) | REST history, PATCH read {messageId}, STOMP send/messages/errors/chat-reads | IMPLEMENTED_LOCAL; visible/focused read prefix và peer read receipt | Có gửi/nhận TEXT, giữ draft khi lỗi, reload REST sau event/reconnect; manual UI chờ Chu |
 | `/appraisals` | `MyAppraisalsPage` | `POST /api/pricing/appraiser/request`, `GET /api/pricing/requests/{requestId}`, `GET /api/pricing/{listingId}` (DTO chưa audit) | `IN_PROGRESS` | `NOT_STARTED` |
 | `/wishlist` | `WishlistPage` | Không có | `NOT_FOUND` | `NOT_STARTED` |
 | `/transactions` | `TransactionsPage` | Không có endpoint lịch sử giao dịch. Có thể dùng `GET /api/v1/payments/my-payments` cho phần thanh toán, cần xác nhận phạm vi với team | `NOT_FOUND` (chưa có thiết kế) | `NOT_STARTED` |
@@ -107,11 +107,11 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 |---|---|---|---|---|
 | `/store` | `StoreOverviewPage` | Chủ gian hàng dùng `GET /api/v1/stores/my-store`. Nhân viên có `STORE_WORKSPACE_ACCESS` dùng `GET /api/v1/stores/{id}` với `storeId` từ hồ sơ phiên | `IMPLEMENTED` cho thông tin gian hàng | Có tổng quan chủ gian hàng và màn hình gian hàng liên kết cho nhân viên |
 | `/store/profile` | `StoreProfilePage` | `GET`, `PUT /api/v1/stores/my-store` | `IMPLEMENTED` | Có form chỉnh sửa, chờ kiểm tra với Backend thật |
-| `/store/products` | `StoreProductsPage` | `GET /api/v1/stores/my-store/products` | Có trên Backend local, chờ kiểm tra HTTP | Có danh sách phân trang, chờ kiểm tra với Backend thật |
+| `/store/products` | `StoreProductsPage` | Owner: `GET /api/v1/stores/my-store/products`; staff: `GET /api/v1/stores/{storeId}/products` theo membership `/staff/me` có PRODUCT_MANAGE_OWN | IMPLEMENTED_LOCAL, PostgreSQL/HTTP tests pass | Danh sách quản lý phân trang ACTIVE/HIDDEN, không dùng bộ lọc trang công khai; chờ Chu kiểm thử UI |
 | `/store/products/new` | `ProductCreatePage` | Chủ gian hàng dùng `GET /api/v1/stores/my-store`. Nhân viên có `PRODUCT_CREATE` dùng gian hàng liên kết từ hồ sơ phiên. Cả hai gửi `storeId` qua `POST /api/v1/products` | `IMPLEMENTED` | Có form cho chủ gian hàng và nhân viên được cấp quyền |
 | `/store/products/:productId/edit` | `ProductEditPage` | `GET /api/v1/stores/my-store`, `GET` và `PUT /api/v1/products/{id}` (xem 3.3) | `IMPLEMENTED` | Có form sửa và kiểm tra quyền gian hàng, chờ kiểm tra với Backend thật |
 | `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | Có danh sách, thêm bằng email, đổi quyền và xóa, chờ kiểm tra với Backend thật |
-| `/store/orders` | `StoreOrdersPage` | Không có order phía người bán (Q15) | `NOT_FOUND` | `NOT_STARTED` |
+| /store/orders | StoreOrdersPage | GET /api/v1/stores/{storeId}/orders; owner hoặc staff cùng store có ORDER_PROCESS xem; POST seller/{orderId}/confirm chỉ owner xác nhận COD | IMPLEMENTED_LOCAL; Backend chính pass 283 tests (282 pass, 1 skip có sẵn) | IMPLEMENTED_LOCAL: có menu, phân trang/lọc URL, snapshot món/người nhận, owner confirm; frontend 398 tests pass, chờ Chu kiểm thử UI/HTTP |
 | `/store/vouchers` | `StoreVouchersPage` | Chưa có API voucher cho người bán (`VOUCHER_SELLER_MANAGE` chỉ là permission) | `PLANNED` | `NOT_STARTED` |
 | `/store/offers` | `StoreOffersPage` | Không có code offer (Q8) | `NOT_FOUND` | `NOT_STARTED` |
 | `/store/revenue` | `StoreRevenuePage` | Không có API thống kê | `NOT_FOUND` | `NOT_STARTED` |
