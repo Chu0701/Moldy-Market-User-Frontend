@@ -1,26 +1,30 @@
 # 08 - Authentication and Authorization (Xác thực và phân quyền)
 
-> **Trạng thái:** BẢN NHÁP v0.1
-> **Cập nhật:** 2026-11-08
+> **Trạng thái:** v0.2 (cập nhật 2026-11-22: đối chiếu `authService.js`, `authRefreshInterceptor.js`, `tokenStorage.js`, `useSession.js` và Backend OTP + HttpOnly cookie)
+> **Cập nhật:** 2026-11-22
 > **Áp dụng cho:** `Moldy-Market-User-Frontend`
-> **Mục đích:** Mô tả Frontend đăng ký, đăng nhập, giữ phiên, làm mới token, đăng xuất và phân quyền giao diện như thế nào, dựa trên cách Backend thật sự hoạt động.
+> **Mục đích:** Mô tả Frontend đăng ký, xác minh OTP, đăng nhập, giữ phiên, làm mới token, đăng xuất và phân quyền giao diện như thế nào, dựa trên cách Backend thật sự hoạt động.
 
 Nhãn dùng trong tài liệu:
 - `[ĐÃ XÁC MINH BACKEND]`: có trong doc 14.
-- `[ĐÃ CẤU HÌNH]`: đã thật sự có trong repo.
-- `[ĐỀ XUẤT]`: kiến trúc dự kiến, **chưa có code**. Mọi tên hook, store, guard, hàm trong tài liệu này là `[ĐỀ XUẤT]`. Các đoạn code là ví dụ minh họa, chưa có trong repo.
+- `[ĐÃ TRIỂN KHAI]`: đã có code thực tế trong `src/`.
+- `[ĐỀ XUẤT]`: kiến trúc dự kiến, **chưa có code**.
 
-Hai quyết định **CHƯA CHỐT** xuyên suốt tài liệu này (cần team quyết định, không được coi là đã quyết):
-- **Q2**: lưu token ở đâu (mục 4).
-- **Q1**: Frontend không đọc được permission code của user (mục 8).
+> **Các quyết định đã chốt (2026-11-21):**
+> - **Q2 (đã chốt & triển khai):** Access token lưu `localStorage` qua `src/lib/tokenStorage.js` (`moldy-market:user:access-token`); refresh token là **HttpOnly cookie `moldy_refresh`** do Backend set (`withCredentials: true`, header `X-Moldy-Auth: 1`).
+> - **Q1 (đã giải quyết):** `GET /api/v1/users/me` trả `roles`, `permissions`, `storeId`; quyền nhân viên trên shop lấy từ `GET /api/v1/stores/my-store/staff/me` (`STORE_WORKSPACE_ACCESS`).
+> - **B10 / Q14 (đã giải quyết):** Tài khoản mới kích hoạt qua Email OTP (`/verify-email`); **Admin không được bypass OTP** (business đã duyệt; enforcement Backend của admin status endpoint vẫn pending).
 
 ---
 
-## 1. Hiện trạng
+## 1. Hiện trạng `[ĐÃ TRIỂN KHAI]`
 
-- `[ĐÃ CẤU HÌNH]` Thư viện đã cài: `axios`, `zustand`, `react-router`, `@tanstack/react-query`, `react-hook-form`, `zod`. Thư mục `src/services/auth`, `src/features/auth/*`, `src/state`, `src/app/router` đã tạo nhưng **trống**.
-- Chưa có Axios instance, interceptor, store, guard, trang đăng nhập hay đăng ký nào.
-- Mọi thứ dưới đây là thiết kế để team thống nhất trước khi code.
+- Đã triển khai đầy đủ lớp auth và phiên:
+  - `src/lib/tokenStorage.js`: quản lý access token (`moldy-market:user:access-token`) kèm cơ chế subscribe thay đổi (`EventTarget`).
+  - `src/services/api/{client,unwrap,ApiError,authRefreshInterceptor}.js`: Axios instance, single-flight refresh-once trên 401 (bỏ qua `/api/v1/auth/*` và `PUT /api/v1/users/me/password` với 401 `INVALID_CREDENTIALS`), cài 1 lần tại `src/App.jsx` và eject khi HMR dispose.
+  - `src/services/auth/authService.js`: `login`, `refresh`, `logout`, `registerAccount`, `verifyEmail`, `resendVerification`.
+  - `src/features/auth/`: `LoginPage`, `RegisterPage`, `VerifyEmailPage`, `useSession` (`meQueryKey = ['users', 'me']`), `useLogin`, `useLogout`, `loginSchema`, `registerSchema`.
+  - `src/app/router/`: `RequireAuth` (redirect `/login` với `state.from`), `GuestOnly` (bọc `/login`).
 
 ---
 
@@ -30,19 +34,16 @@ Trích từ doc 14 mục 2.5, 3.1 đến 3.5.
 
 | Chủ đề | Sự thật |
 |---|---|
-| Endpoint | `POST /api/v1/auth/register`, `/login`, `/refresh`, `/logout`. Cả bốn đều công khai (không cần header `Authorization`). |
-| Đăng ký | Body `{ email, password(8-100), fullName(tối đa 100), phone }`. Trả `{ userId, email, fullName, status }`. |
-| Đăng nhập | Body `{ email(tối đa 254), password }`. Trả `{ userId, email, fullName, accessToken, refreshToken, tokenType }`. **Không trả role.** |
-| Refresh | Body `{ refreshToken }`. Trả giống login. |
-| Logout | Body `{ refreshToken }`. Không có `data`. Chỉ thu hồi phiên của refresh token được gửi lên. |
-| Token nằm ở đâu | Cả hai trong JSON body (không có cookie). |
-| Thời hạn | Access token 15 phút, refresh token 30 ngày (**chỉ xác minh ở profile local**, production có thể khác). |
+| Endpoint | `POST /api/v1/auth/register`, `/verify-email`, `/resend-verification`, `/login`, `/refresh`, `/logout`. |
+| Đăng ký | Body `{ email, password(8-100), fullName(tối đa 100), phone? }`. Trả `201 { userId, email, fullName, status }`. Đăng ký lại email chưa xác minh trả `403 AUTH_008` (`EMAIL_NOT_VERIFIED`). |
+| Xác minh OTP | `POST /api/v1/auth/verify-email` (`{ email, code(6 digits), password }`) kích hoạt `ACTIVE`; `POST /api/v1/auth/resend-verification` (`{ email }`) gửi lại OTP (giãn cách 60s). |
+| Đăng nhập | Header bắt buộc `X-Moldy-Auth: 1`, `withCredentials: true`, body `{ email(<=254), password }`. Trả `AccessTokenResponse { userId, email, fullName, accessToken, tokenType }` + `Set-Cookie: moldy_refresh` (`HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/v1/auth`). |
+| Refresh | Header `X-Moldy-Auth: 1`, `withCredentials: true`, body `undefined`. Đọc cookie `moldy_refresh`, trả `AccessTokenResponse` mới + xoay vòng cookie. |
+| Logout | Header `X-Moldy-Auth: 1`, `withCredentials: true`, body `undefined`. Thu hồi phiên hiện tại và xóa cookie `moldy_refresh`. |
+| Thời hạn | Access token 15 phút, refresh token 30 ngày (profile local). |
 | Claim của access token | `sub`, `email`, `tokenType = "ACCESS"`. Không có role hay permission. |
-| Xoay vòng (rotation) | Mỗi lần refresh, refresh token cũ bị thu hồi, token mới được cấp. |
-| Phát hiện dùng lại | Gửi lên một refresh token **đã bị thu hồi** thì Backend trả `AUTH_007` và **thu hồi mọi phiên đăng nhập của user** (mọi thiết bị, mọi tab). |
-| Role của user | `GET /api/v1/users/me` trả `roles: string[]` (tên role: `USER`, `APPRAISER`, `STAFF`, `ADMIN`, `OWNER`). |
-| Permission code của user | **Không có endpoint nào** (Q1). |
-| Tài khoản mới | Trạng thái `PENDING_VERIFICATION`, chưa đăng nhập được, chưa có luồng kích hoạt (B10, Q14). |
+| Phát hiện dùng lại | Gửi lại refresh token đã bị thu hồi → `401 AUTH_007` và Backend **thu hồi mọi phiên đăng nhập của user**. |
+| Role & Permission | `GET /api/v1/users/me` trả `roles`, `permissions`, `storeId`. Quyền nhân viên trong gian hàng lấy từ `GET /api/v1/stores/my-store/staff/me` (`STORE_WORKSPACE_ACCESS`). |
 
 Các mã lỗi liên quan:
 
@@ -50,67 +51,30 @@ Các mã lỗi liên quan:
 |---|---|---|---|
 | `AUTH_001` | 401 | Sai email hoặc mật khẩu | Hiện lỗi ở form đăng nhập. **Không** refresh. |
 | `AUTH_003` / `AUTH_004` | 403 | Tài khoản bị khóa / bị vô hiệu | Hiện thông báo tài khoản không dùng được. |
-| `AUTH_005` / `AUTH_006` | 401 | Refresh token không hợp lệ / hết hạn | Xóa phiên, về trang đăng nhập. |
-| `AUTH_007` | 401 | Refresh token bị dùng lại, mọi phiên đã bị thu hồi | Xóa phiên, về trang đăng nhập, hiện thông báo riêng (mục 7). |
-| `COMMON_003` | 401 | Cần đăng nhập | Thử refresh một lần (mục 6). |
-| `COMMON_004` | 403 | Không đủ quyền | Hiện "không có quyền", **không** xóa phiên (mục 9). |
+| `AUTH_005` / `AUTH_006` / `AUTH_007` | 401 | Refresh token không hợp lệ / hết hạn / bị dùng lại | Xóa access token, xóa Query cache, về `/login`. |
+| `AUTH_008`..`AUTH_013` | 403/400/429/503 | Email chưa xác minh / OTP sai / OTP hết hạn / vượt số lần / gửi lại quá nhanh / lỗi gửi mail | Điều hướng `/verify-email` hoặc hiện lỗi i18n tương ứng. |
+| `COMMON_003` | 401 | Cần đăng nhập / Access token hết hạn | `authRefreshInterceptor` thử refresh một lần (single-flight). |
+| `COMMON_004` | 403 | Không đủ quyền | Hiện `ForbiddenState`, **không** xóa phiên, **không** refresh. |
 | `COMMON_009` | 429 | Quá nhiều request | Hiện thông báo thử lại sau. |
-| `STORE_004` | 403 | Gian hàng bị chặn | Hiện thông báo theo ngữ cảnh. |
-| `STORE_015` | 403 | Không có quyền với tài nguyên của gian hàng này | Hiện "không có quyền". |
-
-Lưu ý: khi đăng nhập một tài khoản chưa `ACTIVE`, doc 14 mục 3.5 ghi Backend trả lỗi `ACCOUNT_DISABLED`; chưa xác định đó là `AUTH_003` hay `AUTH_004`. Phải thử thật để biết `code` chính xác, và không đoán.
+| `STORE_004` / `STORE_015` | 403 | Gian hàng bị chặn / Không có quyền gian hàng | Hiện thông báo theo ngữ cảnh. |
 
 ---
 
-## 3. Mô hình phiên của Frontend `[ĐỀ XUẤT]`
+## 3. Mô hình phiên của Frontend `[ĐÃ TRIỂN KHAI]`
 
-### 3.1 Ba nơi giữ thông tin, mỗi nơi một việc
+### 3.1 Hai nơi giữ thông tin, mỗi nơi một việc
 
 | Thông tin | Nơi giữ | Lý do |
 |---|---|---|
-| Access token | Bộ nhớ (store Zustand **không persist**) | Sống 15 phút, mất khi tải lại trang là chấp nhận được vì có refresh token. Ít bị lộ nhất khi có XSS (không nằm trong storage). |
-| Refresh token | Qua một module duy nhất `lib/tokenStorage.js`, nơi lưu **CHƯA CHỐT** (Q2, mục 4) | Một chỗ để đổi khi team quyết định. |
-| Thông tin user (`email`, `fullName`, `roles`...) | **TanStack Query**, query key `['users', 'me']` | Đây là dữ liệu từ server, không để trong Zustand (doc 09). |
+| Access token | `src/lib/tokenStorage.js` (`localStorage` key `moldy-market:user:access-token` + `EventTarget` subscribe) | Một module duy nhất quản lý đọc/ghi/xóa; không rải `localStorage` ở nơi khác. |
+| Refresh token | **HttpOnly cookie `moldy_refresh`** do Backend quản lý | JavaScript không đọc/ghi trực tiếp; gửi kèm tự động qua `withCredentials: true` trên `/api/v1/auth/*`. |
+| Thông tin user (`email`, `fullName`, `roles`, `permissions`, `storeId`) | **TanStack Query**, query key `meQueryKey = ['users', 'me']` (`useSession.js`) | Dữ liệu từ server, **không** lưu trong Zustand (`src/state/` hiện trống). |
 
-### 3.2 Store phiên
+### 3.2 Vòng đời phiên & 401 Refresh
 
-```js
-// src/state/authStore.js (ví dụ minh họa, chưa có trong repo)
-import { create } from 'zustand'
-
-// status: 'unknown' = đang khôi phục phiên lúc mở app
-//         'authenticated' | 'anonymous'
-export const useAuthStore = create((set) => ({
-  status: 'unknown',
-  accessToken: null,
-  setAccessToken: (accessToken) => set({ accessToken, status: 'authenticated' }),
-  clearSession: () => set({ accessToken: null, status: 'anonymous' }),
-}))
-
-// Interceptor chỉ cần hàm này, không cần biết token nằm ở đâu.
-export const getAccessToken = () => useAuthStore.getState().accessToken
-```
-
-`status` có giá trị `'unknown'` để guard biết "đang khôi phục phiên, chưa được kết luận là chưa đăng nhập". Thiếu giá trị này, người dùng đã đăng nhập sẽ bị chuyển về `/login` trong tích tắc mỗi lần tải lại trang.
-
-### 3.3 Khôi phục phiên khi mở app (bootstrap)
-
-```mermaid
-flowchart TD
-  START["App khởi động"] --> HAS{"Có refresh token<br/>trong tokenStorage?"}
-  HAS -- Không --> ANON["status = anonymous"]
-  HAS -- Có --> REFRESH["POST /api/v1/auth/refresh"]
-  REFRESH --> OK{"Thành công?"}
-  OK -- Có --> SAVE["Lưu access token mới (bộ nhớ)<br/>Lưu refresh token mới (tokenStorage)"]
-  SAVE --> ME["GET /api/v1/users/me<br/>(lấy roles, fullName)"]
-  ME --> AUTHED["status = authenticated"]
-  OK -- "401: AUTH_005, AUTH_006, AUTH_007" --> CLEAR["Xóa token, status = anonymous"]
-  OK -- "Lỗi mạng hoặc 5xx" --> KEEP["Giữ nguyên refresh token<br/>Hiện màn hình lỗi, cho phép thử lại"]
-```
-
-Điểm quan trọng: **chỉ xóa refresh token khi Backend nói rõ token không còn dùng được** (`AUTH_005`, `AUTH_006`, `AUTH_007`). Lỗi mạng hay `5xx` không được xóa phiên, nếu không người dùng bị đăng xuất oan mỗi lần Backend khởi động lại.
-
-Trong lúc `status === 'unknown'`, router hiển thị màn hình chờ (skeleton toàn trang), không render trang bảo vệ và không chuyển hướng.
+- `useSession()` dùng `useSyncExternalStore` theo dõi `tokenStorage` và kích hoạt query `['users', 'me']` khi có access token.
+- Khi request bảo vệ gặp `401`, `authRefreshInterceptor.js` gọi `POST /api/v1/auth/refresh` một lần duy nhất (single-flight), lưu access token mới vào `tokenStorage` và phát lại các request đang chờ. Nếu refresh thất bại: xóa access token, xóa `queryClient`, điều hướng về `/login` kèm `state.from`.
+- Khi logout (`useLogout.js`): xóa access token và `queryClient.clear()` ngay lập tức, chờ refresh đang chạy (nếu có), gọi `POST /api/v1/auth/logout` rồi chuyển về `/login` bất kể server lỗi hay thành công.
 
 ---
 
@@ -156,12 +120,12 @@ Bọc `try/catch` vì storage có thể bị chặn (chế độ riêng tư, ch�
 
 ## 5. Đăng ký, đăng nhập, đăng xuất
 
-### 5.1 Đăng ký `[ĐỀ XUẤT]`
+### 5.1 Đăng ký & Xác minh Email OTP `[ĐÃ TRIỂN KHAI]`
 
-- Form dùng React Hook Form + Zod (`features/auth/schemas`). Ràng buộc lấy đúng từ Backend: `email` hợp lệ, `password` 8 đến 100 ký tự, `fullName` tối đa 100, `phone` bắt buộc (định dạng chưa audit nên chỉ kiểm tra không rỗng, để Backend là nơi quyết định, `COMMON_001` nếu sai).
-- Mã lỗi khi trùng email chưa được đọc. Xử lý theo `code` thật khi test, không đoán.
-- **Không tự đăng nhập sau khi đăng ký.** Vì B10, tài khoản mới ở `PENDING_VERIFICATION` và đăng nhập sẽ thất bại. Sau khi đăng ký thành công, hiện màn hình "Tài khoản đã được tạo, đang chờ kích hoạt". Nội dung chính xác của màn hình này **phụ thuộc Q14** (email xác minh, OTP hay admin duyệt); hiện chỉ ghi chung và không hứa hẹn cơ chế nào.
-- Trong giai đoạn phát triển: tài khoản test do admin chuyển sang `ACTIVE` (`PUT /api/v1/users/{id}/status`) hoặc dùng tài khoản admin seed.
+- `RegisterPage` (`/register`) dùng React Hook Form + Zod (`registerSchema`) gọi `POST /api/v1/auth/register`.
+- Thành công (hoặc gặp `403 EMAIL_NOT_VERIFIED` khi đăng ký lại email chưa xác minh) → chuyển sang `/verify-email` (`VerifyEmailPage` + `VerifyEmailForm`).
+- Người dùng nhập mã OTP 6 chữ số và mật khẩu cuối cùng → `POST /api/v1/auth/verify-email` kích hoạt `ACTIVE`, sau đó chuyển sang `/login`. Có nút gửi lại OTP (`POST /api/v1/auth/resend-verification`) kèm cooldown.
+- **Quyết định đã chốt (2026-11-21):** Admin **không được bypass OTP** để kích hoạt `PENDING_VERIFICATION`.
 
 ### 5.2 Đăng nhập `[ĐỀ XUẤT]`
 

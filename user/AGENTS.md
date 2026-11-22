@@ -31,7 +31,7 @@ Alias `@` = `src`. Dev proxy: `/api` -> `API_PROXY_TARGET` (default http://local
 
 1. Only write a service/hook for endpoints marked IMPLEMENTED in doc 14. For IN_PROGRESS/PLANNED/NOT_FOUND build UI skeleton + `TODO(doc14:<id>)` only, no fake API calls, no mock endpoints, no invented DTOs/enums/permissions.
 2. Frontend is not a security boundary. Backend 401/403 is final. Hide UI by role only as UX.
-3. Token storage (Q2) and permission discovery (Q1) are UNDECIDED. Do not choose silently: stop and ask the owner, or implement behind a single swappable module `src/lib/tokenStorage.js`.
+3. Access token storage is resolved: use `src/lib/tokenStorage.js` (`moldy-market:user:access-token` in `localStorage`); refresh token is a Backend-set HttpOnly cookie (`moldy_refresh`) using `withCredentials: true` and `X-Moldy-Auth: 1`. Session roles/permissions come from `GET /api/v1/users/me` (`meQueryKey = ['users', 'me']`); staff shop permissions come from `GET /api/v1/stores/my-store/staff/me`. Do not scatter storage calls or infer shop permissions from merged `/users/me` permissions.
 4. Payment: never mark success on the client; trust only `paymentStatus === "SUCCESSFUL"` from polling. QR is Backend's `qrBankUrl`.
 5. Update with `version` for products (409 `COMMON_010` = stale data, refetch).
 6. UI text only through i18n keys (vi first, en mirrored). Do not translate Backend enums/codes; map them to keys.
@@ -52,14 +52,18 @@ Alias `@` = `src`. Dev proxy: `/api` -> `API_PROXY_TARGET` (default http://local
 - Env/build: `12`; order of work: `13-DEVELOPMENT-ROADMAP.md`; PR rules: `15-CONTRIBUTING.md`
 - Backend truth (endpoints, DTO limits, error codes, Bn issues, Qn questions): `14-BACKEND-INTEGRATION-MATRIX.md`
 
-## Project state (2026-11-10)
+## Project state (2026-11-22)
 
-DONE: both repos scaffolded and configured (Vite, Tailwind 4 tokens, fonts, shadcn init + button, ESLint/Prettier, alias, proxy, i18n vi/en base, env, Node 22, editorconfig), base folder structure, 15 docs per repo (Vietnamese, status DRAFT v0.1).
-IN PROGRESS / VERIFY: Vitest + RTL config (check `package.json`, `src/test/setup.js`, `vite.config.js` `test` block).
-NOT DONE (config): `index.html` metadata (lang vi, title, favicon), GitHub Actions CI (lint, format:check, test, build), PR template.
-NOT DONE (code): everything. `src/main.jsx` renders a trial `App.jsx`. No router, providers, layouts, Logo, Axios instance, services, hooks, stores, schemas, pages, tests.
-Suggested code order (see doc 13): 1) app skeleton: QueryClientProvider, router, layouts, NotFound, `lib/` Axios client + `unwrap` + `ApiError` + pagination adapters; 2) auth (login/register, session bootstrap via `GET /api/v1/users/me`, 401 refresh-once queue, route guards); 3) public marketplace (home, product list/search, detail, category, public store); 4) profile and open store; 5) personal listings and store dashboard (products CRUD, staff); Admin: login with ADMIN role check, users, stores, product moderation, categories.
-Known blockers/decisions: B10 new accounts are PENDING_VERIFICATION and cannot log in (admin must set ACTIVE; use the seeded admin or an admin-activated test user); Q1 no endpoint exposes permission codes (use role names from `/users/me` for UX, 403 is truth); Q2 token storage undecided; Q19 no verified endpoint to list "my personal products"; B12 order/checkout status not updated after payment (poll payment only); chat/cart/order/payment/notification/pricing/voucher/escrow are IN_PROGRESS on unmerged Backend branches: no code yet; offer/wishlist/follow/review/stats/image upload are NOT_FOUND; product images accept https URLs only (Q5); checkout has no `quantity` (one item per used product, team decision).
+DONE:
+- Tooling & config: Vite, React 19, Tailwind 4 tokens, fonts, shadcn (`button`), ESLint 10, Prettier, Vitest + RTL (`49` test files / `449` passing tests), `index.html` metadata, GitHub Actions CI, PR template, `@stomp/stompjs` + `sockjs-client`, Vite proxy (`/api` and `/chat`).
+- App shell & core API: `AppProviders`, `queryClient`, `MainLayout`, `AuthLayout`, `routes.js` (lazy routes + `RequireAuth` + `GuestOnly` on `/login`), `NotFoundPage`, `RouteErrorPage`, `src/services/api/{client,unwrap,ApiError,pagination,authRefreshInterceptor}.js`, `src/lib/tokenStorage.js`, shared `common/` & `feedback/` components, 514 `vi`/`en` i18n keys (100% parity).
+- Implemented features (`src/features/` + `src/services/`): `auth` (login, register, email OTP verify/resend, logout, HttpOnly cookie refresh), `marketplace` (home, category), `products` (search, detail, my-products, create, edit with `version`, visibility, delete), `stores` (public storefront, open store, store overview/profile/products/staff), `profile` (view/edit profile, change password), `cart` (qty=1), `checkout` (preparation, SePay QR polling, COD, cancel), `orders` (buyer orders, detail, cancel, store orders + owner COD confirm), `chat` (inbox, STOMP/SockJS realtime text, bounded read cursors + `/user/queue/chat-reads`, store chat entry).
+- Note on current layering tech debt: 6 components/pages (`VerifyEmailForm`, `RegisterPage`, `ProductCreateForm`, `ProductDeleteButton`, `ProductVisibilityButton`, `ChangePasswordForm`) still import `@/services/` directly instead of going through feature hooks, and `StoreDashboardLayout`/`RequireRole`/`RequireStoreAccess` are not yet created (all `/store/*` routes render in `MainLayout`).
+
+NOT DONE / NEXT:
+- Appraiser workspace (`src/features/appraiser/`, `src/services/appraiser/`): follow `Moldy-Market-User-Frontend/docs/HANDOFF-APPRAISER-FRONTEND.md` and audit Backend `/api/v1/appraisal-*` endpoints before calling APIs (`AppraisalConversationService` still returns a placeholder UUID).
+- Notifications UI (`/api/v1/notifications`, DynamoDB cursor pagination), Wallet/Voucher/Auto-pricing UI (audit Backend permissions/DTOs first — B2 still open on Wallet/Escrow/Withdrawal).
+- Known open Backend items: B13 (`GET /api/v1/orders/me` returns 404 `ORDER_003` when empty — FE falls back to `[]`), B2 (`Wallet`/`Escrow`/`Withdrawal` lack `@PreAuthorize`), CORS `allowCredentials`/`X-Moldy-Auth` for cross-origin deploys, offer/wishlist/follow/review/stats APIs are `NOT_FOUND`.
 
 ## Skills
 

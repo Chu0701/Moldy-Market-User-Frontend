@@ -1,66 +1,56 @@
 # 07 - API Integration (Tích hợp API)
 
-> **Trạng thái:** BẢN NHÁP v0.1
-> **Cập nhật:** 2026-11-08
+> **Trạng thái:** v0.2 (cập nhật 2026-11-22: đối chiếu 11 service modules, `authRefreshInterceptor`, `pagination.js` và Backend `07ef520` + local)
+> **Cập nhật:** 2026-11-22
 > **Áp dụng cho:** `Moldy-Market-User-Frontend`
 > **Mục đích:** Quy định cách Frontend nói chuyện với Backend: cấu hình Axios, xử lý lỗi, tổ chức `services/`, các dạng phân trang, và bảng ánh xạ endpoint.
 
 Nhãn dùng trong tài liệu:
 - `[ĐÃ XÁC MINH BACKEND]`: có trong doc 14.
-- `[ĐÃ CẤU HÌNH]`: đã có trong repo (proxy, biến môi trường, thư mục `services/`).
-- `[ĐỀ XUẤT]`: thiết kế dự kiến, **chưa có code**. Các đoạn code là ví dụ minh họa, chưa có trong repo.
+- `[ĐÃ TRIỂN KHAI]`: đã có code thực tế trong `src/services/`.
+- `[ĐỀ XUẤT]`: thiết kế dự kiến, **chưa có code**.
 
 Quy tắc số một: **mọi endpoint trong tài liệu này phải có trong doc 14.** Thứ gì doc 14 không có thì Frontend coi là chưa biết, không tự bịa.
 
 ---
 
-## 1. Hiện trạng `[ĐÃ CẤU HÌNH]`
+## 1. Hiện trạng `[ĐÃ TRIỂN KHAI]`
 
-- Axios ^1.21.0 đã cài. **Chưa có** Axios instance, interceptor hay service nào. Thư mục `src/services/{api,auth,users,stores,categories,products}` đã tạo, đang trống (`.gitkeep`).
-- Vite proxy: mọi request bắt đầu bằng `/api` được chuyển tới `API_PROXY_TARGET` (mặc định `http://localhost:8080`). Đã kiểm chứng gọi `/api/v1/categories` qua `http://localhost:5173` chạy được.
-- `.env.example`: `VITE_API_BASE_URL` (để trống khi dev), `API_PROXY_TARGET` (chỉ dev, không lộ ra bundle vì không có tiền tố `VITE_`).
+- Đã triển khai lớp API lõi trong `src/services/api/`: `client.js`, `unwrap.js`, `ApiError.js`, `pagination.js`, `authRefreshInterceptor.js` kèm unit tests.
+- Đã triển khai 10 module service: `auth`, `users`, `categories`, `products`, `stores`, `cart`, `checkout`, `orders` (`orderService`, `cancelOrderService`, `storeOrderService`), `chat` (`chatService`, `chatConnection` STOMP/SockJS).
+- Vite proxy: chuyển tiếp `/api` và `/chat` tới `API_PROXY_TARGET` (mặc định `http://localhost:8080`). `.env.example`: `VITE_API_BASE_URL` (để trống khi dev), `API_PROXY_TARGET` (chỉ dev).
 
 ---
 
-## 2. Cấu hình Axios `[ĐỀ XUẤT]`
+## 2. Cấu hình Axios `[ĐÃ TRIỂN KHAI]`
 
 ### 2.1 Vì sao `baseURL` để trống và không gắn `/api/v1`
 
-1. **Trình duyệt gọi cùng origin với Vite dev server** (`localhost:5173`), Vite proxy chuyển tiếp sang Backend. Nhờ vậy dev không cần CORS, vì Backend chưa có CORS cho REST (B1, doc 14 mục 2.4).
-2. **Backend có hai prefix**: `/api/v1/...` (auth, users, stores, categories, products, order...) và `/api/...` (voucher, pricing, admin pricing). Nếu gắn cứng `/api/v1` vào `baseURL`, bạn không gọi được nhóm thứ hai (doc 14 mục 2.3).
-3. **Production:** đặt `VITE_API_BASE_URL` thành URL tuyệt đối của Backend, **hoặc** phục vụ app cùng origin với API. Cả hai đều cần Backend sẵn sàng (thêm CORS, hoặc reverse proxy). Xem doc 12.
+1. **Trình duyệt gọi cùng origin với Vite dev server** (`localhost:5173`), Vite proxy chuyển tiếp `/api` và `/chat` sang Backend.
+2. **Backend có hai prefix**: `/api/v1/...` và `/api/...` (voucher, pricing, reference prices). Nếu gắn cứng `/api/v1` vào `baseURL`, bạn không gọi được nhóm thứ hai (doc 14 mục 2.3).
+3. **Production:** đặt `VITE_API_BASE_URL` hoặc phục vụ cùng origin (lưu ý Backend `SecurityConfig` đã có CORS `/api/**`, nhưng nếu deploy cross-origin dùng HttpOnly cookie cần bổ sung `allowCredentials(true)` và header `X-Moldy-Auth`).
 
 Vì vậy mọi service viết **đường dẫn đầy đủ**, ví dụ `'/api/v1/products/search'`.
 
-### 2.2 Instance (ví dụ minh họa, chưa có trong repo)
+### 2.2 Instance (`src/services/api/client.js`)
 
 ```js
 // src/services/api/client.js
-import axios from 'axios'
-
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 15000,
   headers: { Accept: 'application/json' },
 })
 ```
 
-`?? ''` để khi biến không có giá trị, Axios gọi cùng origin (đúng với dev + proxy).
-
 ### 2.3 Request interceptor
 
-Nhiệm vụ duy nhất: gắn `Authorization: Bearer <accessToken>` nếu đang có token. Token lấy từ `state/` (xem doc 08, nơi lưu token **chưa chốt**, Q2). Interceptor chỉ đọc token qua một hàm `getAccessToken()` để khi quyết định lưu ở đâu thì chỉ sửa một chỗ.
+Gắn `Authorization: Bearer <accessToken>` từ `src/lib/tokenStorage.js` (`moldy-market:user:access-token`). Các request auth (`/login`, `/refresh`, `/logout`) cấu hình thêm `withCredentials: true` và header `X-Moldy-Auth: 1` (doc 08).
 
-Lưu ý: chưa xác minh được Backend phản ứng thế nào nếu gửi access token đã hết hạn tới endpoint **công khai**. Cần thử bằng request thật trước khi quyết định có gắn token cho mọi request hay chỉ endpoint cần đăng nhập.
+### 2.4 Response interceptor (`client.js` & `authRefreshInterceptor.js`)
 
-### 2.4 Response interceptor
-
-**Hiện trạng 2026-11-10:** đã triển khai `services/api/client.js`, `ApiError.js` và `unwrap.js`. Interceptor chuẩn hóa lỗi HTTP/mạng; cancellation giữ nguyên. `unwrap` trả `undefined` khi không có body và giữ nguyên payload `null`, `false`, `0`. Body sai envelope hoặc `success: false` bị từ chối. Chưa có auth interceptor, tự refresh hoặc logout: Q2 đã chốt access token ở `localStorage`, refresh token trong cookie `HttpOnly` do Backend set; chờ contract Backend (doc 14, Q2).
-
-Có hai việc, **tách riêng**:
-
-1. **Chuẩn hóa lỗi** thành một class `ApiError` (xem mục 4).
-2. **Xử lý `401`**: thử refresh token đúng một lần rồi gửi lại request gốc. Chi tiết, bao gồm hàng đợi và rủi ro đa tab, nằm ở doc 08. Interceptor **không** thử refresh cho chính các endpoint `/api/v1/auth/*` (vì `AUTH_001` sai mật khẩu cũng là `401`, refresh không giúp gì).
+1. **Chuẩn hóa lỗi (`client.js`):** chuẩn hóa lỗi HTTP/mạng thành `ApiError` (giữ nguyên cancellation). `unwrap.js` trả `undefined` khi không có body và giữ nguyên `null`, `false`, `0`.
+2. **Xử lý `401` (`authRefreshInterceptor.js`):** cài 1 lần tại `src/App.jsx` (eject khi HMR dispose), single-flight refresh-once qua `POST /api/v1/auth/refresh` (cookie `moldy_refresh`), bỏ qua `/api/v1/auth/*` và `PUT /api/v1/users/me/password` 401; không bao giờ refresh trên 403. Nếu refresh thất bại → xóa token, xóa `queryClient` và chuyển về `/login`.
 
 ---
 
@@ -199,15 +189,14 @@ Hook của feature gọi các hàm này (doc 09), component gọi hook.
 
 Backend có **nhiều dạng**, không thể dùng một bộ phân trang chung (doc 14 mục 2.2). Mỗi dạng cần một **adapter** chuẩn hóa về một hình dạng nội bộ của Frontend, ví dụ `{ items, page, size, totalElements, hasNext }`, để `PaginationBar` và hook dùng chung.
 
-| Dạng | Endpoint (trạng thái) | `page` bắt đầu | Response | Adapter / cách dùng |
+| Dạng | Endpoint | `page` bắt đầu | Response | Adapter (`src/services/api/pagination.js`) |
 |---|---|---|---|---|
-| `PagedResponse` | Danh sách user và store của admin (User Frontend không dùng) | 1 | `{ content, page, size, hasNext, totalElements }`, `totalElements` có thể `null` | `content` thành `items`; nếu `totalElements` null chỉ hiển thị "Trước/Sau" |
-| `ProductSearchResponse` | `GET /api/v1/products/search` (`IMPLEMENTED`) | 1 | `{ items, page, size, totalElements, totalPages, totalCapped, facets }` | Dùng `items`; nếu `totalCapped` thì hiển thị "10.000+" |
-| `PagedResponse<ProductResponse>` | `GET /api/v1/products` (`IMPLEMENTED`, tham số **chưa audit**) | 1 | theo chữ ký method | Ưu tiên dùng `/search` để duyệt sản phẩm |
-| Cursor (notification) | `GET /api/v1/notifications` (`IN_PROGRESS`) | không có page, dùng `limit` (mặc định 20, tối đa 50) và `token` | `{ items, nextToken, pageSize }` | `useInfiniteQuery`, `getNextPageParam` trả `nextToken`, `null` là hết |
-| Spring `Page` thô (lịch sử chat) | `GET /api/v1/conversations/{id}/messages` (`IN_PROGRESS`) | **0**, `size` mặc định **4** | `Page<MessageResponse>` | Luôn truyền `size` rõ ràng (mặc định 4 quá nhỏ), nhớ `page` từ 0 (B6). Tên trường của Spring `Page` cần đối chiếu response thật |
-| Danh sách thuần | `GET /api/v1/orders/me`, `GET /api/v1/payments/my-payments` (`IN_PROGRESS`) | không phân trang | `List<...>` | Trả mảng. Riêng `orders/me` trả 404 `ORDER_003` khi rỗng (B13), service **bắt lỗi này và trả mảng rỗng** |
-| Danh sách thuần | `GET /api/v1/conversations`, category cây | không phân trang | mảng | trả mảng |
+| `PagedResponse` | `GET /products/me`, `GET /stores/my-store/products`, `GET /stores/{storeId}/products`, `GET /stores/{storeId}/orders` | 1 | `{ content, page, size, hasNext, totalElements }` | `normalizePagedResponse` (`content` → `items`; `totalElements` có thể `null`) |
+| `ProductSearchResponse` | `GET /api/v1/products/search` | 1 | `{ items, page, size, totalElements, totalPages, totalCapped, facets }` | `normalizeProductSearchPage` |
+| Spring `Page` (lịch sử chat) | `GET /api/v1/conversations/{id}/messages` | **0**, `size` mặc định **4** | `Page<MessageResponse>` | `normalizeSpringPage` (User FE gửi `page: page - 1`, `size: 20`) |
+| Spring `Page` (appraisal, admin) | `/api/v1/appraisal-*/**`, `/api/admin/reference-prices` | **1** (request), `number` trả **0** | `Page<...>` | `normalizeSpringPage` (KHÔNG trừ `page - 1` như chat) |
+| Cursor (notification) | `GET /api/v1/notifications` (`NOT_STARTED` ở FE) | `limit` (20..50), `token` | `{ items, nextToken, pageSize }` | Chưa viết adapter (dùng `useInfiniteQuery`) |
+| Danh sách thuần | `GET /api/v1/orders/me`, `GET /api/v1/conversations`, `GET /api/v1/categories` | không phân trang | mảng | Trả mảng (`orderService` bắt 404 `ORDER_LIST_NOT_FOUND` → `[]`) |
 
 `size` tối đa 100 và mặc định 20 với dạng dùng `PaginationConfig` (doc 14 mục 2.2).
 
@@ -247,61 +236,22 @@ Hiện **không có API upload ảnh** (`NOT_FOUND`, doc 14 mục 4.3; Q5). Prod
 
 ---
 
-## 9. Bảng ánh xạ endpoint
+## 9. Bảng ánh xạ endpoint (Cập nhật 2026-11-22)
 
-Cột "FE" là trạng thái tích hợp phía Frontend. Hiện tại **mọi dòng là `NOT_STARTED`** (chưa có service nào). "Xác thực" ghi theo doc 14. `U` = User Frontend dùng.
+Chi tiết hợp đồng và trạng thái đầy đủ xem tại `docs/14-BACKEND-INTEGRATION-MATRIX.md` (nguồn sự thật duy nhất). Tóm tắt các module service đã triển khai trong `src/services/`:
 
-### 9.1 Dùng được ngay (`IMPLEMENTED` trên `main`)
-
-| Tính năng | Endpoint | Method | Xác thực | Backend | FE |
-|---|---|---|---|---|---|
-| Đăng ký | `/api/v1/auth/register` | POST | không | `IMPLEMENTED` | `NOT_STARTED` |
-| Đăng nhập | `/api/v1/auth/login` | POST | không | `IMPLEMENTED` | `NOT_STARTED` |
-| Refresh token | `/api/v1/auth/refresh` | POST | không | `IMPLEMENTED` | `NOT_STARTED` |
-| Đăng xuất | `/api/v1/auth/logout` | POST | không (gửi `refreshToken`) | `IMPLEMENTED` | `NOT_STARTED` |
-| Hồ sơ của tôi | `/api/v1/users/me` | GET | đã đăng nhập | `IMPLEMENTED` | `NOT_STARTED` |
-| Cập nhật hồ sơ | `/api/v1/users/me` | PUT | `PROFILE_MANAGE` | `IMPLEMENTED` | `NOT_STARTED` |
-| Đổi mật khẩu | `/api/v1/users/me/password` | PUT | đã đăng nhập | `IMPLEMENTED` | `NOT_STARTED` |
-| Tạo gian hàng | `/api/v1/stores` | POST | đã đăng nhập (mỗi user một gian hàng, `STORE_002`) | `IMPLEMENTED` | `NOT_STARTED` |
-| Gian hàng của tôi | `/api/v1/stores/my-store` | GET, PUT | đã đăng nhập | `IMPLEMENTED` | `NOT_STARTED` |
-| Trang gian hàng công khai | `/api/v1/stores/{id}` | GET | công khai | `IMPLEMENTED` | `NOT_STARTED` |
-| Staff: thêm, danh sách | `/api/v1/stores/my-store/staff` | POST, GET | `STORE_STAFF_MANAGE` | `IMPLEMENTED` | `NOT_STARTED` |
-| Staff: sửa permission | `/api/v1/stores/my-store/staff/{staffId}/permissions` | PUT | `STORE_STAFF_MANAGE` | `IMPLEMENTED` | `NOT_STARTED` |
-| Staff: xóa | `/api/v1/stores/my-store/staff/{staffId}` | DELETE | `STORE_STAFF_MANAGE` | `IMPLEMENTED` | `NOT_STARTED` |
-| Staff: thông tin của tôi | `/api/v1/stores/my-store/staff/me` | GET | `STORE_STAFF_MANAGE` (xem Q1) | `IMPLEMENTED` | `NOT_STARTED` |
-| Category: cây | `/api/v1/categories` | GET | công khai | `IMPLEMENTED` | `NOT_STARTED` |
-| Category: chi tiết | `/api/v1/categories/{id}` | GET | công khai | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: tạo | `/api/v1/products` | POST | `PRODUCT_CREATE` | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: sửa (cần `version`) | `/api/v1/products/{id}` | PUT | `PRODUCT_MANAGE_OWN` | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: xóa | `/api/v1/products/{id}` | DELETE | `PRODUCT_MANAGE_OWN` | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: đổi trạng thái (`ACTIVE` hoặc `HIDDEN`) | `/api/v1/products/{id}/status?status=` | PATCH | `PRODUCT_MANAGE_OWN` | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: danh sách | `/api/v1/products` | GET | công khai (tham số chưa audit) | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: chi tiết | `/api/v1/products/{id}` | GET | công khai | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: tìm kiếm | `/api/v1/products/search` | GET | công khai | `IMPLEMENTED` | `NOT_STARTED` |
-| Product: gợi ý từ khóa | `/api/v1/products/suggest?q=` | GET | công khai | `IMPLEMENTED` | `NOT_STARTED` |
-
-Ghi chú: **chưa có endpoint đã xác minh để liệt kê riêng "sản phẩm của tôi"**. Muốn liệt kê sản phẩm của một gian hàng thì dùng `search` với `storeId`. Với tin đăng cá nhân (`storeId = null`) cách lọc theo chính người đăng chưa được doc 14 xác nhận (có tham số `sellerType` nhưng giá trị chưa audit). Việc này cần hỏi team Backend trước khi làm trang `/my-products` (xem doc 04 và 05).
-
-### 9.2 Đang phát triển (`IN_PROGRESS`, **chưa được viết service**)
-
-| Tính năng | Endpoint | Method | Branch |
-|---|---|---|---|
-| Notification | `/api/v1/notifications` (`?limit&token`), `/{id}`, `/{id}/read`, `/{id}/restore` | GET, PATCH, DELETE | `feature/notification` |
-| Chat REST | `/api/v1/conversations`, `/{id}/messages`, `/{id}/read` | POST, GET, PATCH | `feature/chat`, `feature/order` |
-| Chat realtime | STOMP qua SockJS tại `/chat` | không phải REST | `feature/chat` |
-| Checkout | `/api/v1/checkout-groups`, `/api/v1/checkout-groups/{id}` | POST, GET | `feature/order` |
-| Order của tôi | `/api/v1/orders/me`, `/api/v1/orders/{orderId}` (B11) | GET | `feature/order` |
-| Payment của tôi | `/api/v1/payments/my-payments`, `/api/v1/payments/{id}` | GET | `feature/order` |
-| Cart | `/api/v1/carts`, `/summary`, `/by-seller`, `/items`, `/items/{listingId}`, `/items/{listingId}/exists`, `/items/count` | GET, POST, PATCH, DELETE | `feature/cart` |
-| Voucher (kiểm tra mã) | `/api/vouchers/{code}` | GET | `feature/voucher` |
-| Auto pricing, thẩm định | `/api/pricing/auto`, `/api/pricing/appraiser/...`, `/api/pricing/requests/{requestId}`, `/api/pricing/{listingId}` | nhiều | `feature/pricing`, `feature/cart` |
-| Số dư ví, rút tiền | `/api/v1/wallets/{userId}/balance`, `/api/v1/withdrawals` | GET, POST | `feature/escrow-wallet` |
-
-Escrow (`/api/v1/escrows/...`) trông là thao tác nội bộ của service, Frontend có gọi hay không là câu hỏi mở (Q4), nên không đưa vào bảng làm endpoint để Frontend dùng. Webhook SePay `/api/v1/payment_transactions/webhook/sepay` **không bao giờ** được Frontend gọi.
-
-### 9.3 Chưa có (`NOT_FOUND` hoặc `PLANNED`)
-
-Offer, refund, dispute, wishlist, follow gian hàng, đánh giá, thống kê doanh thu của gian hàng, upload ảnh, mời staff, order phía người bán, notification realtime (doc 14 mục 4.3). **Không có service**, chỉ có skeleton `TODO`.
+- **Đã có service (`IMPLEMENTED_LOCAL` / `INTEGRATED`):**
+  - `auth/authService.js`: `/register`, `/verify-email`, `/resend-verification`, `/login`, `/refresh`, `/logout`.
+  - `users/userService.js`: `GET/PUT /api/v1/users/me`, `PUT /api/v1/users/me/password`.
+  - `categories/categoryService.js`: `GET /api/v1/categories`, `GET /api/v1/categories/{id}`.
+  - `products/productService.js`: `GET /search`, `GET /{id}`, `POST /`, `PUT /{id}` (kèm `version`), `PATCH /{id}/status`, `DELETE /{id}`, `GET /products/me`, `GET /stores/my-store/products`, `GET /stores/{storeId}/products`.
+  - `stores/storeService.js`: `GET /{id}`, `GET/PUT /my-store`, `POST /`, `GET /my-store/staff/me`, `GET/POST /my-store/staff`, `PUT /my-store/staff/{staffId}/permissions`, `DELETE /my-store/staff/{staffId}`.
+  - `cart/cartService.js`: `GET /api/v1/carts`, `POST /items`, `DELETE /items/{listingId}`.
+  - `checkout/checkoutService.js`: `POST /api/v1/checkout-groups`, `GET /api/v1/checkout-groups/{id}`.
+  - `orders/{orderService,cancelOrderService,storeOrderService}.js`: `GET /api/v1/orders/me`, `POST /orders/buyer/{id}/cancel`, `GET /stores/{storeId}/orders`, `POST /orders/seller/{id}/confirm`.
+  - `chat/{chatService,chatConnection}.js`: `GET/POST /api/v1/conversations`, `GET /{id}/messages`, `PATCH /{id}/read`, STOMP `/chat`.
+- **Chưa viết service (`NOT_STARTED`, cần audit trước khi nối):** Notification (`/api/v1/notifications`), Appraisal (`/api/v1/appraisers/**`, `/api/v1/appraisal-*/**`, `/api/v1/appraiser/commissions/**`), Voucher (`/api/vouchers/{code}`), Auto Pricing (`/api/pricing/auto`), Wallet/Withdrawal (B2 mở), File Storage (`/api/v1/files/**`, RAW JSON), `GET /api/v1/products/suggest`, `GET /api/v1/payments/*`.
+- **Không có API (`NOT_FOUND` / `PLANNED`):** Offer, refund, dispute, wishlist, follow gian hàng, đánh giá, thống kê doanh thu, mời staff, notification realtime push. Webhook SePay chỉ server-to-server.
 
 ---
 
