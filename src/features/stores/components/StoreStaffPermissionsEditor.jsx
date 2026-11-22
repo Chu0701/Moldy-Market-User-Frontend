@@ -6,6 +6,7 @@ import { useUpdateStoreStaffPermissions } from '@/features/stores/hooks/useUpdat
 
 const editablePermissions = [
   'PRODUCT_CREATE',
+  'PRODUCT_MANAGE_OWN',
   'APPRAISAL_REQUEST_CREATE',
   'ORDER_PROCESS',
   'ORDER_CANCEL',

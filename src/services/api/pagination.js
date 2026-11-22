@@ -27,3 +27,15 @@ export function normalizeProductSearchPage(data) {
 export function normalizePagedResponse({ content, page, size, hasNext, totalElements }) {
   return { items: content, page, size, hasNext, totalElements }
 }
+
+/** Normalizes Spring Page metadata to the frontend's one-based page numbering. */
+export function normalizeSpringPage({ content, number, size, totalElements, totalPages, last }) {
+  return {
+    items: content,
+    page: number + 1,
+    size,
+    totalElements,
+    totalPages,
+    hasNext: !last,
+  }
+}

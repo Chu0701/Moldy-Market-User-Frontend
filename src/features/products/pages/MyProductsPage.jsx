@@ -18,8 +18,20 @@ const conditionKeys = {
 
 export function MyProductsPage({ store = false } = {}) {
   const { t } = useTranslation()
-  const { query, changePage } = useMyProducts({ store })
+  const { query, changePage, isStaff, staffQuery, forbidden } = useMyProducts({ store })
   const result = query.data
+
+  if (isStaff && staffQuery.isPending) return <ProductSkeleton />
+  if (isStaff && staffQuery.isError && ![403, 404].includes(staffQuery.error?.status))
+    return (
+      <ErrorState
+        title={t('stores.loadError')}
+        description={t('feedback.checkBack')}
+        onRetry={() => void staffQuery.refetch()}
+        isRetrying={staffQuery.isFetching}
+      />
+    )
+  if (forbidden || (isStaff && [403, 404].includes(query.error?.status))) return <ForbiddenState />
 
   if (store && query.error?.status === 404 && query.error.code === 'STORE_NOT_FOUND') {
     return <Navigate to="/open-store" replace />

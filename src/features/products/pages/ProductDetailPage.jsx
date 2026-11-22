@@ -86,7 +86,7 @@ export function ProductDetailPage() {
         storeId={product.storeId}
       />
 
-      <div className="md:col-start-2">
+      <div className="flex flex-wrap items-start gap-3 md:col-start-2">
         <AddToCartButton key={product.id} product={product} />
       </div>
       {canManage && (

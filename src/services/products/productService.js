@@ -164,3 +164,12 @@ export async function getMyStoreProducts({ page = 1, size = 20, signal } = {}) {
 
   return normalizePagedResponse(unwrap(response))
 }
+
+/** @param {{ storeId: string, page?: number, size?: number, signal?: AbortSignal }} options */
+export async function getStoreProducts({ storeId, page = 1, size = 20, signal }) {
+  const response = await apiClient.get(`/api/v1/stores/${encodeURIComponent(storeId)}/products`, {
+    params: { page, size },
+    signal,
+  })
+  return normalizePagedResponse(unwrap(response))
+}

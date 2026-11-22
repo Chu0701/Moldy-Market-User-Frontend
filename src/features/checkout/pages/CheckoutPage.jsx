@@ -1,5 +1,6 @@
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useNavigation, useSearchParams } from 'react-router'
 
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { EmptyState } from '@/components/feedback/EmptyState'
@@ -7,12 +8,25 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { useCart } from '@/features/cart/hooks/useCart'
 import { useCartProducts } from '@/features/cart/hooks/useCartProducts'
+import { useCreateCheckout } from '@/features/checkout/hooks/useCheckout'
+import { getCheckoutErrorKey, isAmbiguousCheckoutError } from '@/features/checkout/checkoutPayment'
+
 import { CheckoutForm } from '@/features/checkout/components/CheckoutForm'
 
 export function CheckoutPage() {
   const { t } = useTranslation()
   const [params] = useSearchParams()
   const query = useCart()
+  const create = useCreateCheckout()
+  const navigate = useNavigate()
+  const navigation = useNavigation()
+  const mounted = useRef(false)
+  useEffect(() => {
+    mounted.current = navigation.state === 'idle'
+    return () => {
+      mounted.current = false
+    }
+  }, [navigation.state])
   const requestedIds = params.getAll('productId')
   const validSelection =
     requestedIds.length > 0 &&
@@ -87,7 +101,29 @@ export function CheckoutPage() {
         <h1 id="checkout-title">{t('checkout.title')}</h1>
       </div>
       <div className="checkout-grid">
-        <CheckoutForm />
+        <div className="grid content-start gap-4">
+          <CheckoutForm
+            key={create.userId}
+            isSubmitting={create.isPending}
+            canSubmit={
+              Boolean(create.userId) && !create.data && !isAmbiguousCheckoutError(create.error)
+            }
+            submitError={create.error ? t(getCheckoutErrorKey(create.error)) : undefined}
+            onSubmit={async (values) => {
+              const checkout = await create.mutateAsync({
+                ...values,
+                productIds: selectedItems.map((item) => item.listingId),
+              })
+              if (mounted.current && checkout)
+                navigate('/checkout/' + encodeURIComponent(checkout.id))
+            }}
+          />
+          {create.isError && (
+            <Link to="/orders" className="underline underline-offset-4">
+              {t('checkout.checkOrders')}
+            </Link>
+          )}
+        </div>
         <aside className="checkout-panel" aria-labelledby="checkout-summary">
           <h2 id="checkout-summary">{t('checkout.summaryTitle')}</h2>
           <ul className="grid gap-4">

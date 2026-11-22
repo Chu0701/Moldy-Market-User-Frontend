@@ -14,9 +14,7 @@ export function StoreOverviewPage() {
   const store = getStoreContext(profile)
 
   if (store.kind === 'staff') {
-    if (!store.storeId) return <ForbiddenState />
-
-    return <StaffStoreOverview storeId={store.storeId} canCreateProduct={store.canCreateProduct} />
+    return <StaffStoreOverview profile={profile} />
   }
 
   return <OwnerStoreOverview profile={profile} />
@@ -63,6 +61,11 @@ function OwnerStoreOverview({ profile }) {
       {state?.storeProfileSaved === true && <p role="status">{t('stores.profile.saved')}</p>}
 
       <div className="mt-6 flex flex-wrap gap-3">
+        {store.status !== 'BLOCKED' && (
+          <Button asChild variant="outline">
+            <Link to="/store/orders">{t('storeOrders.title')}</Link>
+          </Button>
+        )}
         <Button asChild variant="outline">
           <Link to="/store/profile">{t('stores.profile.title')}</Link>
         </Button>

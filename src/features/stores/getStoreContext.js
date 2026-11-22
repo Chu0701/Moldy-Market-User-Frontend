@@ -1,4 +1,4 @@
-export function getStoreContext(profile) {
+export function getStoreContext(profile, staffProfile) {
   const roles = profile?.roles ?? []
 
   if (roles.includes('OWNER')) {
@@ -6,14 +6,17 @@ export function getStoreContext(profile) {
   }
 
   if (roles.includes('STAFF')) {
-    const storeId = profile.permissions?.includes('STORE_WORKSPACE_ACCESS')
-      ? (profile.storeId ?? null)
+    const permissions = staffProfile?.userId === profile.id ? staffProfile.permissions : []
+    const storeId = permissions?.includes('STORE_WORKSPACE_ACCESS')
+      ? (staffProfile.storeId ?? null)
       : null
 
     return {
       kind: 'staff',
       storeId,
-      canCreateProduct: Boolean(storeId && profile.permissions?.includes('PRODUCT_CREATE')),
+      canCreateProduct: Boolean(storeId && permissions?.includes('PRODUCT_CREATE')),
+      canManageProducts: Boolean(storeId && permissions?.includes('PRODUCT_MANAGE_OWN')),
+      canReadOrders: Boolean(storeId && permissions?.includes('ORDER_PROCESS')),
     }
   }
 

@@ -4,6 +4,7 @@ import { unwrap } from '@/services/api/unwrap'
 /**
  * @typedef {{
  *  id: string,
+ *  ownerId?: string,
  *  name: string,
  *  description: string | null,
  *  createdAt: string
@@ -29,6 +30,12 @@ export async function getPublicStore({ storeId, signal }) {
 export async function getMyStore({ signal } = {}) {
   const response = await apiClient.get('/api/v1/stores/my-store', { signal })
 
+  return unwrap(response)
+}
+
+/** @param {{ signal?: AbortSignal }} [options] */
+export async function getMyStaffProfile({ signal } = {}) {
+  const response = await apiClient.get('/api/v1/stores/my-store/staff/me', { signal })
   return unwrap(response)
 }
 

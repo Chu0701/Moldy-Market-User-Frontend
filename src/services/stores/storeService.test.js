@@ -5,6 +5,7 @@ import {
   addStoreStaff,
   createStore,
   getMyStore,
+  getMyStaffProfile,
   getPublicStore,
   getStoreStaff,
   removeStoreStaff,
@@ -14,6 +15,16 @@ import {
 
 afterEach(() => {
   vi.restoreAllMocks()
+})
+
+test('reads the signed-in staff membership without supplying another user ID', async () => {
+  const { signal } = new AbortController()
+  const staff = { userId: 'staff', storeId: 'shop', permissions: ['STORE_WORKSPACE_ACCESS'] }
+  const get = vi
+    .spyOn(apiClient, 'get')
+    .mockResolvedValue({ data: { success: true, code: 'SUCCESS', data: staff } })
+  await expect(getMyStaffProfile({ signal })).resolves.toEqual(staff)
+  expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/my-store/staff/me', { signal })
 })
 
 test('requests the public store by ID, forwards the abort signal, and unwraps the response', async () => {

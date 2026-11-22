@@ -677,3 +677,87 @@
     @apply rounded-md bg-secondary p-4 text-sm leading-6 text-muted-foreground;
   }
 }
+
+@layer components {
+  .orders-page {
+    @apply grid w-full max-w-5xl gap-6;
+  }
+
+  .order-list {
+    @apply grid gap-6;
+  }
+
+  .order-card {
+    @apply grid min-w-0 gap-5 rounded-xl border border-border p-5 sm:p-7;
+  }
+
+  .order-heading,
+  .order-total {
+    @apply flex flex-wrap items-center justify-between gap-4;
+  }
+
+  .order-total {
+    @apply border-t border-border pt-4;
+  }
+
+  .order-status {
+    @apply inline-flex rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground;
+  }
+
+  .order-items {
+    @apply grid gap-4;
+  }
+
+  .order-item {
+    @apply flex items-start gap-4;
+  }
+
+  .order-detail-grid {
+    @apply grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem];
+  }
+
+  .order-delivery {
+    @apply grid gap-4;
+  }
+
+  .order-delivery > div {
+    @apply grid gap-1;
+  }
+
+  .order-delivery dt {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .order-delivery dd {
+    @apply break-words;
+  }
+}
+
+/* Checkout payment uses backend-provided QR images. */
+.checkout-qr {
+  @apply mx-auto aspect-square w-full max-w-xs rounded-xl border border-border bg-background object-contain;
+}
+
+.checkout-deadline {
+  @apply rounded-lg border border-border bg-secondary px-4 py-3 text-sm font-medium tabular-nums;
+}
+
+.store-order-toolbar {
+  @apply grid gap-3 rounded-xl border border-border bg-secondary p-4 sm:grid-cols-[auto_minmax(12rem,18rem)_1fr] sm:items-center;
+}
+
+.store-order-toolbar > label {
+  @apply text-sm font-medium;
+}
+
+.store-order-toolbar > select {
+  @apply min-h-11 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60;
+}
+
+.store-order-toolbar > p {
+  @apply text-sm text-muted-foreground;
+}
+
+.store-order-details > summary {
+  @apply cursor-pointer rounded-md py-3 text-sm font-medium underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+}

@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { RequireAuth } from '@/app/router/RequireAuth'
 import { routes } from '@/app/router/routes'
+
 import i18n from '@/i18n'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { waitForPendingRefresh } from '@/services/api/authRefreshInterceptor'
@@ -26,6 +27,7 @@ import {
   deleteProduct,
   getMyProducts,
   getMyStoreProducts,
+  getStoreProducts,
   getProductById,
   searchProducts,
   updateProduct,
@@ -34,6 +36,7 @@ import {
   addStoreStaff,
   createStore,
   getMyStore,
+  getMyStaffProfile,
   getPublicStore,
   getStoreStaff,
   removeStoreStaff,
@@ -64,6 +67,7 @@ vi.mock('@/services/stores/storeService', () => ({
   addStoreStaff: vi.fn(),
   createStore: vi.fn(),
   getMyStore: vi.fn(),
+  getMyStaffProfile: vi.fn(),
   getPublicStore: vi.fn(),
   getStoreStaff: vi.fn(),
   removeStoreStaff: vi.fn(),
@@ -80,6 +84,7 @@ vi.mock('@/services/products/productService', () => ({
   deleteProduct: vi.fn(),
   getMyProducts: vi.fn(),
   getMyStoreProducts: vi.fn(),
+  getStoreProducts: vi.fn(),
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
   updateProduct: vi.fn(),
@@ -108,11 +113,22 @@ beforeEach(() => {
   vi.mocked(deleteProduct).mockReset()
   vi.mocked(getMyProducts).mockReset()
   vi.mocked(getMyStoreProducts).mockReset()
+  vi.mocked(getStoreProducts).mockReset()
   vi.mocked(updateProduct).mockReset()
   vi.mocked(createStoreProduct).mockReset()
   vi.mocked(createStore).mockReset()
   vi.mocked(addStoreStaff).mockReset()
   vi.mocked(getMyStore).mockReset()
+  vi.mocked(getMyStaffProfile)
+    .mockReset()
+    .mockImplementation(async () => {
+      const profile = await getMe()
+      return {
+        userId: profile.id,
+        storeId: profile.storeId,
+        permissions: profile.permissions ?? [],
+      }
+    })
   vi.mocked(getPublicStore).mockReset()
   vi.mocked(getStoreStaff).mockReset()
   vi.mocked(removeStoreStaff).mockReset()
@@ -212,6 +228,13 @@ describe('user app routing', () => {
         const next = screen.getByRole('link', { name: 'Tiếp tục đặt hàng' })
         expect(new URL(next.href).searchParams.getAll('productId')).toEqual([cartProduct.id])
         await user.click(next)
+        await waitFor(
+          () => {
+            expect(router.state.location.pathname).toBe('/checkout')
+            expect(router.state.navigation.state).toBe('idle')
+          },
+          { timeout: 4000 },
+        )
         await screen.findByRole('heading', { name: 'Thông tin đặt hàng' })
         const main = screen.getByRole('main')
         expect(within(main).getByRole('link', { name: cartProduct.title })).toBeInTheDocument()
@@ -229,7 +252,7 @@ describe('user app routing', () => {
         expect(await screen.findByRole('alert')).toHaveTextContent('số điện thoại Việt Nam hợp lệ')
         await user.click(screen.getByRole('radio', { name: 'Chuyển khoản ngân hàng' }))
         expect(screen.getByRole('radio', { name: 'Chuyển khoản ngân hàng' })).toBeChecked()
-        expect(screen.getByRole('button', { name: 'Đặt hàng' })).toBeDisabled()
+        expect(screen.getByRole('button', { name: 'Đặt hàng' })).toBeEnabled()
         await user.click(screen.getByLabelText('Họ tên người nhận'))
         await user.keyboard('{Enter}')
         expect(post).not.toHaveBeenCalled()
@@ -249,7 +272,7 @@ describe('user app routing', () => {
         '',
       )
       expect(screen.getByRole('link', { name: cartProduct.title })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Đặt hàng' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Đặt hàng' })).toBeEnabled()
     })
 
     test.each([
@@ -331,6 +354,7 @@ describe('user app routing', () => {
     vi.mocked(removeCartItem).mockResolvedValue(emptyCart)
     const user = renderRoute('/products/cart-product')
 
+    await waitFor(() => expect(router.state.initialized).toBe(true), { timeout: 4000 })
     await user.click(await screen.findByRole('button', { name: 'Thêm vào giỏ' }))
     expect(addCartItem).toHaveBeenCalledExactlyOnceWith(
       { productId: cartProduct.id },
@@ -438,6 +462,7 @@ describe('user app routing', () => {
 
   const store = {
     id: 'a8098c1a-f86e-11da-bd1a-00112444be1f',
+    ownerId: 'store-owner',
     name: 'Test store',
     description: 'Test store description',
   }
@@ -881,6 +906,29 @@ describe('user app routing', () => {
       expect(await screen.findByRole('textbox', { name: 'Tên sản phẩm' })).toHaveValue(
         listing.title,
       )
+    })
+
+    test('lets delegated staff open a coworker listing edit form without resolving an owned store', async () => {
+      vi.mocked(getMe).mockResolvedValue({
+        id: 'manager',
+        roles: ['USER', 'STAFF'],
+        permissions: ['STORE_WORKSPACE_ACCESS', 'PRODUCT_MANAGE_OWN'],
+        storeId: store.id,
+      })
+      vi.mocked(getMyStaffProfile).mockResolvedValue({
+        userId: 'manager',
+        storeId: store.id,
+        permissions: ['STORE_WORKSPACE_ACCESS', 'PRODUCT_MANAGE_OWN'],
+      })
+      const user = renderRoute(`/products/${listing.id}`)
+      await user.click(
+        await screen.findByRole('link', { name: 'Chỉnh sửa sản phẩm' }, { timeout: 4000 }),
+      )
+      expect(await screen.findByRole('textbox', { name: 'Tên sản phẩm' })).toHaveValue(
+        listing.title,
+      )
+      expect(getMyStore).not.toHaveBeenCalled()
+      expect(createStoreProduct).not.toHaveBeenCalled()
     })
 
     test('blocks the direct edit route for a listing from another store', async () => {
@@ -1470,29 +1518,36 @@ describe('user app routing', () => {
     }
 
     test('creates a pending account and clears the password form without signing in', async () => {
-      vi.mocked(registerAccount).mockResolvedValue({
-        userId: 'new-user',
-        email: 'chu@example.com',
-        fullName: 'Chu',
-        status: 'PENDING_VERIFICATION',
-      })
-      const user = renderRoute('/register')
-      await fillRegistration(user)
+      const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-11-20T02:00:00Z'))
+      try {
+        vi.mocked(registerAccount).mockResolvedValue({
+          userId: 'new-user',
+          email: 'chu@example.com',
+          fullName: 'Chu',
+          status: 'PENDING_VERIFICATION',
+        })
+        const user = renderRoute('/register')
+        await fillRegistration(user)
 
-      expect(await screen.findByRole('status')).toHaveTextContent(
-        'Hoàn tất xác nhận tài khoản cho chu@example.com',
-      )
-      expect(registerAccount).toHaveBeenCalledExactlyOnceWith({
-        fullName: 'Chu',
-        email: 'chu@example.com',
-        phone: '0901234567',
-        password: ' password ',
-      })
-      expect(screen.getByLabelText('Mật khẩu')).toHaveValue('')
-      expect(screen.getByLabelText('Email')).toHaveValue('chu@example.com')
-      expect(screen.getByRole('button', { name: 'Gửi lại sau 60 giây' })).toBeDisabled()
-      expect(getAccessToken()).toBeNull()
-      expect(login).not.toHaveBeenCalled()
+        expect(await screen.findByRole('status')).toHaveTextContent(
+          'Hoàn tất xác nhận tài khoản cho chu@example.com',
+        )
+        expect(registerAccount).toHaveBeenCalledExactlyOnceWith({
+          fullName: 'Chu',
+          email: 'chu@example.com',
+          phone: '0901234567',
+          password: ' password ',
+        })
+        expect(screen.getByLabelText('Mật khẩu')).toHaveValue('')
+        expect(screen.getByLabelText('Email')).toHaveValue('chu@example.com')
+        expect(
+          await screen.findByRole('button', { name: 'Gửi lại sau 60 giây' }, { timeout: 2000 }),
+        ).toBeDisabled()
+        expect(getAccessToken()).toBeNull()
+        expect(login).not.toHaveBeenCalled()
+      } finally {
+        clock.mockRestore()
+      }
     })
 
     test('rejects mismatched confirmation before sending the request', async () => {
@@ -1744,7 +1799,7 @@ describe('user app routing', () => {
       await user.click(workspace)
 
       expect(await screen.findByRole('region', { name: store.name })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'Xem gian hàng' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'Xem trang công khai' })).toHaveAttribute(
         'href',
         `/stores/${store.id}`,
       )
@@ -1760,6 +1815,59 @@ describe('user app routing', () => {
       expect(router.state.location.pathname).toBe('/store')
       expect(screen.queryByRole('button', { name: 'Tạo gian hàng' })).not.toBeInTheDocument()
       expect(getMyStore).not.toHaveBeenCalled()
+    })
+
+    test('opens the private staff product list using delegated membership and no public search filters', async () => {
+      vi.mocked(getMe).mockResolvedValue({
+        ...staffProfile,
+        storeId: 'stale-shop',
+        permissions: [...staffProfile.permissions, 'PRODUCT_MANAGE_OWN', 'ORDER_PROCESS'],
+      })
+      vi.mocked(getMyStaffProfile).mockResolvedValue({
+        userId: staffProfile.id,
+        storeId: store.id,
+        permissions: ['STORE_WORKSPACE_ACCESS', 'PRODUCT_MANAGE_OWN'],
+      })
+      vi.mocked(getStoreProducts).mockResolvedValue({
+        items: [
+          {
+            id: 'staff-product',
+            title: 'Private staff listing',
+            price: 1000,
+            status: 'HIDDEN',
+            condition: 'USED',
+          },
+        ],
+        page: 1,
+        hasNext: false,
+      })
+      const user = renderRoute('/store')
+      const main = await screen.findByRole('main')
+      await user.click(await within(main).findByRole('link', { name: 'Sản phẩm của gian hàng' }))
+      await screen.findByText('Private staff listing')
+      expect(getStoreProducts).toHaveBeenCalledWith(
+        expect.objectContaining({ storeId: store.id, page: 1, signal: expect.any(AbortSignal) }),
+      )
+      expect(getMyStoreProducts).not.toHaveBeenCalled()
+      expect(getMyStore).not.toHaveBeenCalled()
+      expect(searchProducts).not.toHaveBeenCalled()
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    })
+
+    test('merged USER management permission does not expose staff product management', async () => {
+      vi.mocked(getMe).mockResolvedValue({
+        ...staffProfile,
+        permissions: [...staffProfile.permissions, 'PRODUCT_MANAGE_OWN'],
+      })
+      vi.mocked(getMyStaffProfile).mockResolvedValue({
+        userId: staffProfile.id,
+        storeId: store.id,
+        permissions: ['STORE_WORKSPACE_ACCESS', 'PRODUCT_CREATE'],
+      })
+      renderRoute('/store/products')
+      await screen.findByRole('heading', { name: 'Không có quyền xem nội dung' })
+      expect(getStoreProducts).not.toHaveBeenCalled()
+      expect(getMyStoreProducts).not.toHaveBeenCalled()
     })
 
     test('shows an unavailable message when the linked store is blocked', async () => {
@@ -1975,6 +2083,7 @@ describe('user app routing', () => {
     test.each([
       { grantChat: true, permissions: ['CHAT_SEND'] },
       { grantChat: false, permissions: [] },
+      { grantChat: false, permissions: ['PRODUCT_MANAGE_OWN'] },
     ])(
       'saves the selected permissions and reloads the staff list ($permissions)',
       async ({ grantChat, permissions }) => {
@@ -2006,6 +2115,8 @@ describe('user app routing', () => {
 
         await user.click(screen.getByRole('checkbox', { name: 'Đăng sản phẩm' }))
         if (grantChat) await user.click(screen.getByRole('checkbox', { name: 'Gửi tin nhắn' }))
+        if (permissions.includes('PRODUCT_MANAGE_OWN'))
+          await user.click(screen.getByRole('checkbox', { name: 'Quản lý sản phẩm gian hàng' }))
         await user.click(screen.getByRole('button', { name: 'Lưu' }))
 
         expect(await screen.findByText('Đã cập nhật quyền nhân viên.')).toHaveAttribute(

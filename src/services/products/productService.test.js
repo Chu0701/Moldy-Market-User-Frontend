@@ -7,12 +7,35 @@ import {
   deleteProduct,
   getMyProducts,
   getMyStoreProducts,
+  getStoreProducts,
   searchProducts,
   updateProduct,
 } from './productService'
 
 afterEach(() => {
   vi.restoreAllMocks()
+})
+
+test('requests the private store-scoped product list with pagination and cancellation', async () => {
+  const { signal } = new AbortController()
+  const data = {
+    content: [{ id: 'hidden', status: 'HIDDEN' }],
+    page: 2,
+    size: 20,
+    totalElements: 21,
+    hasNext: false,
+  }
+  const get = vi
+    .spyOn(apiClient, 'get')
+    .mockResolvedValue({ data: { success: true, code: 'SUCCESS', data } })
+  await expect(getStoreProducts({ storeId: 'shop/id', page: 2, signal })).resolves.toMatchObject({
+    items: data.content,
+    page: 2,
+  })
+  expect(get).toHaveBeenCalledExactlyOnceWith('/api/v1/stores/shop%2Fid/products', {
+    params: { page: 2, size: 20 },
+    signal,
+  })
 })
 
 test('posts a store listing with the seller-set pricing strategy', async () => {

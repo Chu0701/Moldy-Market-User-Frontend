@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { getStoreContext } from '@/features/stores/getStoreContext'
+import { useMyStaffProfile } from '@/features/stores/hooks/useMyStaffProfile'
 
 const navigation = [
   { to: '/', label: 'navigation.home' },
@@ -21,11 +22,19 @@ export function MainLayout() {
   const { state } = useNavigation()
   const { signOut, isSigningOut } = useLogout()
   const { hasAccessToken, profileQuery } = useSession()
+  const staffQuery = useMyStaffProfile(
+    hasAccessToken && getStoreContext(profileQuery.data).kind === 'staff'
+      ? profileQuery.data?.id
+      : undefined,
+  )
   const showLogout = hasAccessToken || isSigningOut
   const storeNavigation = []
 
   if (hasAccessToken && profileQuery.isSuccess && !isSigningOut) {
-    const store = getStoreContext(profileQuery.data)
+    const store = getStoreContext(
+      profileQuery.data,
+      staffQuery.isError ? undefined : staffQuery.data,
+    )
 
     if (store.kind === 'owner') {
       storeNavigation.push({ to: '/store', label: 'stores.myStoreTitle' })
@@ -47,6 +56,7 @@ export function MainLayout() {
         ...navigation.filter(({ to }) => to !== '/login'),
         { to: '/profile', label: 'profile.title' },
         { to: '/cart', label: 'cart.title' },
+        { to: '/orders', label: 'orders.title' },
         { to: '/my-products', label: 'products.mine.title' },
         ...storeNavigation,
       ]

@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     test: {
       environment: 'jsdom',
+      // Bound jsdom memory use when local Backend/IDE processes are also running.
+      maxWorkers: 4,
       setupFiles: ['./src/test/setup.js'],
       passWithNoTests: true,
       deps: {

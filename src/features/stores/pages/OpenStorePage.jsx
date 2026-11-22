@@ -17,7 +17,7 @@ export function OpenStorePage() {
   const storeQuery = useMyStore(store.kind === 'staff' ? undefined : userId)
 
   if (store.kind === 'staff') {
-    return store.storeId ? <Navigate to="/store" replace /> : <ForbiddenState />
+    return <Navigate to="/store" replace />
   }
 
   function goToStore() {

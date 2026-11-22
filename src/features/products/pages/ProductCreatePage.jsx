@@ -12,6 +12,7 @@ import { useProductCategoryOptions } from '@/features/products/hooks/useProductC
 import { getStoreContext } from '@/features/stores/getStoreContext'
 import { useMyStore } from '@/features/stores/hooks/useMyStore'
 import { usePublicStore } from '@/features/stores/hooks/usePublicStore'
+import { useMyStaffProfile } from '@/features/stores/hooks/useMyStaffProfile'
 
 export function ProductCreatePage() {
   const { t } = useTranslation()
@@ -19,7 +20,10 @@ export function ProductCreatePage() {
   const queryClient = useQueryClient()
   const { profileQuery } = useSession()
   const profile = profileQuery.data
-  const storeContext = getStoreContext(profile)
+  const staffQuery = useMyStaffProfile(
+    getStoreContext(profile).kind === 'staff' ? profile?.id : undefined,
+  )
+  const storeContext = getStoreContext(profile, staffQuery.isError ? undefined : staffQuery.data)
   const isStaff = storeContext.kind === 'staff'
   const staffStoreId = isStaff && storeContext.canCreateProduct ? storeContext.storeId : undefined
   const ownedStoreQuery = useMyStore(isStaff ? undefined : profile?.id)
@@ -38,6 +42,17 @@ export function ProductCreatePage() {
     void queryClient.invalidateQueries({ queryKey: ['products', 'store-mine'] })
     void navigate(`/products/${encodeURIComponent(product.id)}`, { replace: true })
   }
+
+  if (isStaff && staffQuery.isPending) return <p role="status">{t('stores.loading')}</p>
+  if (isStaff && staffQuery.isError && ![403, 404].includes(staffQuery.error?.status))
+    return (
+      <ErrorState
+        title={t('stores.loadError')}
+        description={t('feedback.checkBack')}
+        onRetry={() => void staffQuery.refetch()}
+        isRetrying={staffQuery.isFetching}
+      />
+    )
 
   return (
     <section className="profile-page" aria-labelledby="product-create-heading">

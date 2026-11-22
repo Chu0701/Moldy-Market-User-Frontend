@@ -52,6 +52,7 @@ export function StorePublicPage() {
       <header className="store-public-header">
         <h1>{store.name}</h1>
         {description && <p>{description}</p>}
+        <div className="mt-4"></div>
       </header>
       <section className="store-public-products">
         <h2>{t('stores.productsTitle')}</h2>
