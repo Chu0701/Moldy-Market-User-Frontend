@@ -672,6 +672,7 @@
     "unread": "Unread",
     "fallbackTitle": "New update",
     "markRead": "Mark as read",
+    "markUnread": "Mark as unread",
     "delete": "Delete",
     "deletePrompt": "Remove this notification from your inbox?",
     "confirmDelete": "Confirm delete",
@@ -686,5 +687,225 @@
     "emptyTitle": "No notifications yet",
     "emptyDescription": "Updates for you will appear here.",
     "loadMore": "Load more"
+  },
+  "wishlist": {
+    "title": "Wishlist",
+    "description": "Products you saved to revisit later.",
+    "loading": "Loading wishlist…",
+    "loadError": "Could not load your wishlist",
+    "emptyTitle": "Your wishlist is empty",
+    "emptyDescription": "Save listings you like so you can easily find them again.",
+    "browseProducts": "Browse products",
+    "listLabel": "Wishlisted products",
+    "saveAction": "Save",
+    "savedAction": "Saved",
+    "removeAction": "Remove",
+    "viewProduct": "View product",
+    "savedAt": "Saved on {{date}}",
+    "unavailableProduct": "Product is no longer available",
+    "productNotActive": "This listing is no longer active.",
+    "toggleError": "Could not update wishlist. Please try again.",
+    "removeError": "Could not remove this product from your wishlist."
+  },
+  "disputes": {
+    "title": "Disputes",
+    "description": "Track your order dispute requests.",
+    "orderSectionTitle": "Order dispute",
+    "loading": "Loading dispute details…",
+    "loadError": "Could not load dispute details",
+    "emptyTitle": "No disputes yet",
+    "emptyDescription": "You can open a dispute from a completed order detail page within 7 days.",
+    "viewOrders": "View orders",
+    "listLabel": "Dispute list",
+    "orderRef": "Order: {{orderId}}",
+    "viewOrderDetail": "View order",
+    "createdAt": "Submitted {{date}}",
+    "openHint": "If there is an issue with your item, you can open a dispute within 7 days of completion.",
+    "openAction": "Open dispute",
+    "reopenAction": "Reopen dispute",
+    "cancelAction": "Cancel dispute",
+    "cancelling": "Cancelling…",
+    "submitAction": "Submit dispute",
+    "submitting": "Submitting…",
+    "closeForm": "Close",
+    "reasonLabel": "Reason",
+    "descriptionLabel": "Details",
+    "descriptionPlaceholder": "Describe the issue with the received item…",
+    "imagesLabel": "Evidence image URLs (optional, one HTTPS URL per line, up to 5)",
+    "imagesPlaceholder": "https://example.com/evidence-1.jpg",
+    "decisionNoteLabel": "Admin decision note",
+    "reason": {
+      "ITEM_NOT_RECEIVED": "Item not received",
+      "NOT_AS_DESCRIBED": "Not as described",
+      "DAMAGED": "Item arrived damaged",
+      "WRONG_ITEM": "Wrong item received",
+      "OTHER": "Other"
+    },
+    "status": {
+      "OPEN": "Open",
+      "PENDING_APPROVAL": "Pending approval",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "CANCELLED": "Cancelled"
+    },
+    "validation": {
+      "reasonRequired": "Please select a dispute reason.",
+      "descriptionRequired": "Please enter a detailed description.",
+      "descriptionTooLong": "Description cannot exceed 2000 characters.",
+      "tooManyImages": "You can attach at most 5 image URLs.",
+      "invalidImageUrl": "Each image must be a valid HTTPS URL (max 1000 characters)."
+    },
+    "errors": {
+      "periodExpired": "The 7-day dispute window for this order has expired.",
+      "alreadyExists": "A dispute already exists for this order.",
+      "invalidOrderState": "This order status does not allow opening a dispute.",
+      "invalidState": "This dispute cannot be cancelled in its current state.",
+      "generic": "Could not process the dispute request. Please try again."
+    }
+  },
+  "vouchers": {
+    "title": "Store vouchers",
+    "description": "Create and manage discount codes for your store.",
+    "loading": "Loading vouchers…",
+    "loadError": "Could not load store vouchers",
+    "emptyTitle": "No store vouchers yet",
+    "emptyDescription": "Create your first voucher to promote your store listings.",
+    "listLabel": "Store voucher list",
+    "createTitle": "Create voucher",
+    "editTitle": "Edit voucher",
+    "create": "Create voucher",
+    "saveAction": "Save changes",
+    "saving": "Saving…",
+    "cancelAction": "Cancel",
+    "editAction": "Edit",
+    "deactivateAction": "Deactivate",
+    "discountPercent": "{{value}}% off",
+    "discountFixedPrefix": "Save",
+    "remaining": "{{count}} remaining",
+    "expiresAt": "Expires: {{date}}",
+    "minOrderLabel": "Min order",
+    "maxDiscountLabel": "Max discount",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "discountType": {
+      "PERCENT": "Percentage (%)",
+      "FIXED": "Fixed amount (VND)"
+    },
+    "fields": {
+      "code": "Voucher code",
+      "discountType": "Discount type",
+      "discountValue": "Discount value",
+      "remainingQuantity": "Quantity",
+      "expiredAt": "Expiration date",
+      "minimumOrderValue": "Minimum order value (optional)",
+      "maximumDiscount": "Maximum discount (optional)"
+    },
+    "validation": {
+      "codeRequired": "Please enter a voucher code.",
+      "codeTooLong": "Voucher code cannot exceed 50 characters.",
+      "discountValueInvalid": "Discount value must be a valid number.",
+      "discountValuePositive": "Discount value must be greater than 0.",
+      "percentMax100": "Percentage discount cannot exceed 100%.",
+      "quantityInvalid": "Quantity must be a whole number.",
+      "quantityPositive": "Quantity must be greater than 0.",
+      "expiredAtRequired": "Please choose an expiration date.",
+      "expiredAtInvalid": "Expiration date is invalid.",
+      "minOrderNonNegative": "Minimum order value cannot be negative.",
+      "maxDiscountPositive": "Maximum discount must be greater than 0."
+    },
+    "errors": {
+      "codeExists": "This voucher code already exists.",
+      "notFound": "Voucher was not found.",
+      "generic": "Could not save the voucher. Please try again."
+    }
+  },
+  "analytics": {
+    "seller": {
+      "title": "Revenue analytics",
+      "description": "Track your revenue overview, completed orders, and top selling listings.",
+      "loading": "Loading analytics…",
+      "loadError": "Could not load analytics",
+      "totalRevenue": "Total revenue",
+      "totalOrders": "Completed orders",
+      "activeProducts": "Active listings",
+      "soldProducts": "Sold items",
+      "revenueChartTitle": "Daily revenue",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "clearDates": "Clear dates",
+      "orderCount": "{{count}} orders",
+      "noRevenueTitle": "No revenue data yet",
+      "noRevenueDescription": "Revenue from completed orders will appear here.",
+      "topProductsTitle": "Top selling products",
+      "soldUnits": "Sold: {{count}}",
+      "noTopProductsTitle": "No top products yet",
+      "noTopProductsDescription": "Your sold listings will appear here."
+    },
+    "priceHistory": {
+      "title": "Price change history"
+    }
+  },
+  "pricing": {
+    "auto": {
+      "title": "Auto price suggestion",
+      "subtitle": "Estimate a resale price from reference data by condition and warranty.",
+      "openAction": "Open price helper",
+      "hideAction": "Hide",
+      "modelIdLabel": "Reference model ID (UUID)",
+      "usageMonthsLabel": "Months used",
+      "conditionLabel": "Condition level",
+      "warrantyLabel": "Warranty status",
+      "calculateAction": "Calculate price",
+      "calculating": "Calculating…",
+      "suggestedPriceLabel": "Suggested price:",
+      "referenceModel": "Reference model: {{name}}",
+      "referencePriceLabel": "Original reference price",
+      "applyAction": "Apply this price",
+      "manualRequired": "Automatic pricing is unavailable ({{reason}}). Please enter a price manually.",
+      "error": "Could not calculate an automatic price right now. Please try again.",
+      "condition": {
+        "NEW": "Like new (100%)",
+        "SCRATCHED": "Light scratches (90%)",
+        "PARTIAL_DAMAGE": "Partial damage (70%)",
+        "HEAVILY_DAMAGED": "Heavily damaged (45%)"
+      },
+      "warranty": {
+        "UNDER_WARRANTY": "Under warranty",
+        "EXPIRED_UNDER_1Y": "Warranty expired (< 1 year)",
+        "EXPIRED_OVER_1Y": "Warranty expired (> 1 year)"
+      }
+    },
+    "validation": {
+      "categoryRequired": "Please select a category before calculating a price.",
+      "modelIdInvalid": "Model ID must be a valid UUID.",
+      "usageMonthsInvalid": "Usage months must be an integer.",
+      "usageMonthsMin": "Usage months must be 0 or greater."
+    }
+  },
+  "transactions": {
+    "title": "Transactions",
+    "description": "History of payments made by your account.",
+    "loading": "Loading payment history…",
+    "loadError": "Could not load payment history",
+    "emptyTitle": "No payment transactions yet",
+    "emptyDescription": "Your bank transfer and COD payments will appear here.",
+    "viewOrders": "View orders",
+    "listLabel": "Payment history list",
+    "methodLabel": "Method",
+    "idLabel": "Payment ID: {{id}}",
+    "viewCheckout": "View checkout",
+    "method": {
+      "COD": "Cash on delivery (COD)",
+      "ONLINE_BANKING": "Bank transfer"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "PROCESSING": "Processing",
+      "SUCCESSFUL": "Successful",
+      "FAILED": "Failed",
+      "EXPIRED": "Expired"
+    }
   }
 }

@@ -72,6 +72,14 @@ function OwnerStoreOverview({ profile }) {
         <Button asChild variant="outline">
           <Link to="/store/products">{t('stores.productsTitle')}</Link>
         </Button>
+        {store.status !== 'BLOCKED' && (
+          <Button asChild variant="outline">
+            <Link to="/store/vouchers">{t('vouchers.title')}</Link>
+          </Button>
+        )}
+        <Button asChild variant="outline">
+          <Link to="/store/revenue">{t('analytics.seller.title')}</Link>
+        </Button>
 
         {canManageStaff && store.status !== 'BLOCKED' && (
           <Button asChild variant="outline">

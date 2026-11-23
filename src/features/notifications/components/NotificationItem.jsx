@@ -46,7 +46,11 @@ export function NotificationItem({ item, busy, onUpdate }) {
           </p>
         )}
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          {!item.read && (
+          {item.read ? (
+            <Button variant="outline" disabled={busy} onClick={() => update('unread')}>
+              {t('notifications.markUnread')}
+            </Button>
+          ) : (
             <Button variant="outline" disabled={busy} onClick={() => update('read')}>
               {t('notifications.markRead')}
             </Button>

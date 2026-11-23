@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
 import {
   createProductSchema,
   productConditions,
@@ -22,6 +23,8 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
     register,
     handleSubmit,
     setError,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(createProductSchema),
@@ -121,6 +124,14 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
         <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
         {fieldError('price')}
       </div>
+
+      <AutoPricingPanel
+        categoryId={watch('categoryId')}
+        disabled={isSubmitting}
+        onApplyPrice={(suggested) =>
+          setValue('price', String(suggested), { shouldValidate: true, shouldDirty: true })
+        }
+      />
 
       <div className="product-create-field">
         <label htmlFor="product-create-condition">{t('products.filters.condition')}</label>

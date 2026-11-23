@@ -14,8 +14,8 @@ export function useLogin() {
       throw new Error('Login response is missing an access token')
     }
 
-    await queryClient.cancelQueries({ queryKey: meQueryKey, exact: true })
-    queryClient.removeQueries({ queryKey: meQueryKey, exact: true })
+    await queryClient.cancelQueries()
+    queryClient.clear()
     setAccessToken(session.accessToken)
 
     try {

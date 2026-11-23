@@ -87,6 +87,26 @@ export const routes = [
                 }),
               },
               {
+                path: 'wishlist',
+                lazy: async () => ({
+                  Component: (await import('@/features/wishlist/pages/WishlistPage')).WishlistPage,
+                }),
+              },
+              {
+                path: 'disputes',
+                lazy: async () => ({
+                  Component: (await import('@/features/disputes/pages/DisputeListPage'))
+                    .DisputeListPage,
+                }),
+              },
+              {
+                path: 'transactions',
+                lazy: async () => ({
+                  Component: (await import('@/features/payments/pages/TransactionsPage'))
+                    .TransactionsPage,
+                }),
+              },
+              {
                 path: 'checkout',
                 lazy: async () => ({
                   Component: (await import('@/features/checkout/pages/CheckoutPage')).CheckoutPage,
@@ -150,6 +170,20 @@ export const routes = [
                 lazy: async () => ({
                   Component: (await import('@/features/orders/pages/StoreOrdersPage'))
                     .StoreOrdersPage,
+                }),
+              },
+              {
+                path: 'store/vouchers',
+                lazy: async () => ({
+                  Component: (await import('@/features/vouchers/pages/StoreVouchersPage'))
+                    .StoreVouchersPage,
+                }),
+              },
+              {
+                path: 'store/revenue',
+                lazy: async () => ({
+                  Component: (await import('@/features/analytics/pages/StoreRevenuePage'))
+                    .StoreRevenuePage,
                 }),
               },
               {

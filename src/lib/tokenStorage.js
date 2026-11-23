@@ -12,7 +12,23 @@ export function getAccessToken() {
 /** @param {() => void} listener */
 export function subscribeToAccessToken(listener) {
   AccessTokenEvents.addEventListener('change', listener)
-  return () => AccessTokenEvents.removeEventListener('change', listener)
+  const unsubscribeStorage = subscribeToCrossTabTokenChange(listener)
+  return () => {
+    AccessTokenEvents.removeEventListener('change', listener)
+    unsubscribeStorage()
+  }
+}
+
+/** @param {() => void} listener */
+export function subscribeToCrossTabTokenChange(listener) {
+  if (typeof window === 'undefined') return () => {}
+  const handleStorage = (event) => {
+    if (event.key === null || event.key === ACCESS_TOKEN_KEY) {
+      listener()
+    }
+  }
+  window.addEventListener('storage', handleStorage)
+  return () => window.removeEventListener('storage', handleStorage)
 }
 
 /** @param {string} token */

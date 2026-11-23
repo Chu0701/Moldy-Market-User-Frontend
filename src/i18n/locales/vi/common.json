@@ -672,6 +672,7 @@
     "unread": "Chưa đọc",
     "fallbackTitle": "Cập nhật mới",
     "markRead": "Đánh dấu đã đọc",
+    "markUnread": "Đánh dấu chưa đọc",
     "delete": "Xóa",
     "deletePrompt": "Xóa thông báo này khỏi hộp thông báo?",
     "confirmDelete": "Xác nhận xóa",
@@ -686,5 +687,225 @@
     "emptyTitle": "Chưa có thông báo",
     "emptyDescription": "Những cập nhật dành cho bạn sẽ xuất hiện tại đây.",
     "loadMore": "Tải thêm"
+  },
+  "wishlist": {
+    "title": "Yêu thích",
+    "description": "Danh sách sản phẩm bạn đã lưu để xem lại sau.",
+    "loading": "Đang tải danh sách yêu thích…",
+    "loadError": "Không tải được danh sách yêu thích",
+    "emptyTitle": "Chưa có sản phẩm yêu thích",
+    "emptyDescription": "Lưu sản phẩm bạn quan tâm để dễ theo dõi tại đây.",
+    "browseProducts": "Khám phá sản phẩm",
+    "listLabel": "Danh sách sản phẩm yêu thích",
+    "saveAction": "Lưu yêu thích",
+    "savedAction": "Đã yêu thích",
+    "removeAction": "Bỏ yêu thích",
+    "viewProduct": "Xem sản phẩm",
+    "savedAt": "Đã lưu ngày {{date}}",
+    "unavailableProduct": "Sản phẩm hiện không khả dụng",
+    "productNotActive": "Sản phẩm hiện không còn đang bán.",
+    "toggleError": "Không thể cập nhật trạng thái yêu thích. Vui lòng thử lại.",
+    "removeError": "Không thể xóa sản phẩm khỏi danh sách yêu thích."
+  },
+  "disputes": {
+    "title": "Khiếu nại",
+    "description": "Theo dõi các yêu cầu khiếu nại đơn hàng của bạn.",
+    "orderSectionTitle": "Khiếu nại đơn hàng",
+    "loading": "Đang tải thông tin khiếu nại…",
+    "loadError": "Không tải được thông tin khiếu nại",
+    "emptyTitle": "Bạn chưa có khiếu nại nào",
+    "emptyDescription": "Bạn có thể mở khiếu nại trong trang chi tiết đơn hàng đã hoàn tất trong vòng 7 ngày.",
+    "viewOrders": "Xem đơn mua",
+    "listLabel": "Danh sách khiếu nại",
+    "orderRef": "Mã đơn: {{orderId}}",
+    "viewOrderDetail": "Xem đơn hàng",
+    "createdAt": "Gửi lúc {{date}}",
+    "openHint": "Nếu sản phẩm có vấn đề, bạn có thể gửi khiếu nại trong thời hạn 7 ngày kể từ khi đơn hoàn tất.",
+    "openAction": "Mở khiếu nại",
+    "reopenAction": "Mở lại khiếu nại",
+    "cancelAction": "Hủy khiếu nại",
+    "cancelling": "Đang hủy…",
+    "submitAction": "Gửi khiếu nại",
+    "submitting": "Đang gửi…",
+    "closeForm": "Đóng",
+    "reasonLabel": "Lý do khiếu nại",
+    "descriptionLabel": "Mô tả chi tiết",
+    "descriptionPlaceholder": "Mô tả tình trạng sản phẩm hoặc vấn đề bạn gặp phải…",
+    "imagesLabel": "Link ảnh minh chứng (tùy chọn, mỗi dòng 1 URL HTTPS, tối đa 5 ảnh)",
+    "imagesPlaceholder": "https://example.com/evidence-1.jpg",
+    "decisionNoteLabel": "Ghi chú xử lý từ quản trị viên",
+    "reason": {
+      "ITEM_NOT_RECEIVED": "Chưa nhận được hàng",
+      "NOT_AS_DESCRIBED": "Sản phẩm không đúng mô tả",
+      "DAMAGED": "Sản phẩm bị hư hỏng",
+      "WRONG_ITEM": "Giao sai sản phẩm",
+      "OTHER": "Lý do khác"
+    },
+    "status": {
+      "OPEN": "Đang mở",
+      "PENDING_APPROVAL": "Chờ duyệt",
+      "APPROVED": "Đã chấp thuận",
+      "REJECTED": "Đã từ chối",
+      "CANCELLED": "Đã hủy"
+    },
+    "validation": {
+      "reasonRequired": "Vui lòng chọn lý do khiếu nại.",
+      "descriptionRequired": "Vui lòng nhập mô tả chi tiết.",
+      "descriptionTooLong": "Mô tả không được vượt quá 2000 ký tự.",
+      "tooManyImages": "Chỉ được gửi tối đa 5 đường dẫn ảnh.",
+      "invalidImageUrl": "Mỗi đường dẫn ảnh phải là URL HTTPS hợp lệ (tối đa 1000 ký tự)."
+    },
+    "errors": {
+      "periodExpired": "Đã quá thời hạn 7 ngày để mở khiếu nại cho đơn hàng này.",
+      "alreadyExists": "Đơn hàng này đã có khiếu nại đang xử lý.",
+      "invalidOrderState": "Trạng thái đơn hàng hiện tại không thể thực hiện thao tác khiếu nại.",
+      "invalidState": "Trạng thái khiếu nại hiện tại không cho phép hủy.",
+      "generic": "Không thể xử lý yêu cầu khiếu nại. Vui lòng thử lại."
+    }
+  },
+  "vouchers": {
+    "title": "Mã giảm giá gian hàng",
+    "description": "Tạo và quản lý mã khuyến mãi dành riêng cho gian hàng của bạn.",
+    "loading": "Đang tải mã giảm giá…",
+    "loadError": "Không tải được danh sách mã giảm giá",
+    "emptyTitle": "Chưa có mã giảm giá nào",
+    "emptyDescription": "Tạo mã giảm giá đầu tiên để thu hút người mua cho gian hàng.",
+    "listLabel": "Danh sách mã giảm giá gian hàng",
+    "createTitle": "Tạo mã giảm giá",
+    "editTitle": "Cập nhật mã giảm giá",
+    "create": "Tạo mã",
+    "saveAction": "Lưu thay đổi",
+    "saving": "Đang lưu…",
+    "cancelAction": "Hủy",
+    "editAction": "Chỉnh sửa",
+    "deactivateAction": "Tắt mã",
+    "discountPercent": "Giảm {{value}}%",
+    "discountFixedPrefix": "Giảm",
+    "remaining": "Còn {{count}} lượt",
+    "expiresAt": "Hết hạn: {{date}}",
+    "minOrderLabel": "Đơn tối thiểu",
+    "maxDiscountLabel": "Giảm tối đa",
+    "status": {
+      "active": "Đang hoạt động",
+      "inactive": "Đã tắt"
+    },
+    "discountType": {
+      "PERCENT": "Giảm theo phần trăm (%)",
+      "FIXED": "Giảm số tiền cố định (VND)"
+    },
+    "fields": {
+      "code": "Mã voucher",
+      "discountType": "Loại giảm giá",
+      "discountValue": "Giá trị giảm",
+      "remainingQuantity": "Số lượng phát hành",
+      "expiredAt": "Thời điểm hết hạn",
+      "minimumOrderValue": "Giá trị đơn tối thiểu (tùy chọn)",
+      "maximumDiscount": "Mức giảm tối đa (tùy chọn)"
+    },
+    "validation": {
+      "codeRequired": "Vui lòng nhập mã voucher.",
+      "codeTooLong": "Mã voucher tối đa 50 ký tự.",
+      "discountValueInvalid": "Giá trị giảm phải là số hợp lệ.",
+      "discountValuePositive": "Giá trị giảm phải lớn hơn 0.",
+      "percentMax100": "Giảm theo phần trăm không được vượt quá 100%.",
+      "quantityInvalid": "Số lượng phải là số nguyên hợp lệ.",
+      "quantityPositive": "Số lượng phải lớn hơn 0.",
+      "expiredAtRequired": "Vui lòng chọn thời điểm hết hạn.",
+      "expiredAtInvalid": "Thời điểm hết hạn không hợp lệ.",
+      "minOrderNonNegative": "Giá trị đơn tối thiểu không được âm.",
+      "maxDiscountPositive": "Mức giảm tối đa phải lớn hơn 0."
+    },
+    "errors": {
+      "codeExists": "Mã voucher này đã tồn tại.",
+      "notFound": "Không tìm thấy mã voucher.",
+      "generic": "Không thể lưu mã giảm giá. Vui lòng thử lại."
+    }
+  },
+  "analytics": {
+    "seller": {
+      "title": "Thống kê doanh thu",
+      "description": "Theo dõi tổng quan doanh thu, đơn hoàn tất và sản phẩm bán chạy của bạn.",
+      "loading": "Đang tải dữ liệu thống kê…",
+      "loadError": "Không tải được dữ liệu thống kê",
+      "totalRevenue": "Tổng doanh thu",
+      "totalOrders": "Đơn hoàn tất",
+      "activeProducts": "Sản phẩm đang bán",
+      "soldProducts": "Sản phẩm đã bán",
+      "revenueChartTitle": "Doanh thu theo ngày",
+      "fromDate": "Từ ngày",
+      "toDate": "Đến ngày",
+      "clearDates": "Xóa bộ lọc ngày",
+      "orderCount": "{{count}} đơn",
+      "noRevenueTitle": "Chưa có dữ liệu doanh thu",
+      "noRevenueDescription": "Doanh thu từ các đơn hàng hoàn tất sẽ hiển thị tại đây.",
+      "topProductsTitle": "Sản phẩm bán chạy",
+      "soldUnits": "Đã bán: {{count}}",
+      "noTopProductsTitle": "Chưa có sản phẩm bán chạy",
+      "noTopProductsDescription": "Các sản phẩm đã bán sẽ xuất hiện tại đây."
+    },
+    "priceHistory": {
+      "title": "Lịch sử thay đổi giá"
+    }
+  },
+  "pricing": {
+    "auto": {
+      "title": "Gợi ý giá tự động",
+      "subtitle": "Ước tính giá bán đề xuất từ bảng giá tham chiếu theo tình trạng và bảo hành.",
+      "openAction": "Mở gợi ý giá",
+      "hideAction": "Thu gọn",
+      "modelIdLabel": "Mã model tham chiếu (UUID)",
+      "usageMonthsLabel": "Số tháng đã sử dụng",
+      "conditionLabel": "Mức độ tình trạng",
+      "warrantyLabel": "Tình trạng bảo hành",
+      "calculateAction": "Tính giá đề xuất",
+      "calculating": "Đang tính…",
+      "suggestedPriceLabel": "Giá đề xuất:",
+      "referenceModel": "Model tham chiếu: {{name}}",
+      "referencePriceLabel": "Giá tham chiếu gốc",
+      "applyAction": "Áp dụng giá này",
+      "manualRequired": "Chưa có giá gợi ý tự động ({{reason}}). Bạn có thể tự nhập giá bán.",
+      "error": "Không thể tính giá tự động lúc này. Vui lòng thử lại.",
+      "condition": {
+        "NEW": "Như mới (100%)",
+        "SCRATCHED": "Trầy xước nhẹ (90%)",
+        "PARTIAL_DAMAGE": "Hư hại một phần (70%)",
+        "HEAVILY_DAMAGED": "Hư hại nặng (45%)"
+      },
+      "warranty": {
+        "UNDER_WARRANTY": "Còn bảo hành",
+        "EXPIRED_UNDER_1Y": "Hết bảo hành dưới 1 năm",
+        "EXPIRED_OVER_1Y": "Hết bảo hành trên 1 năm"
+      }
+    },
+    "validation": {
+      "categoryRequired": "Vui lòng chọn danh mục sản phẩm trước khi tính giá.",
+      "modelIdInvalid": "Mã model phải là UUID hợp lệ.",
+      "usageMonthsInvalid": "Số tháng sử dụng phải là số nguyên.",
+      "usageMonthsMin": "Số tháng sử dụng phải từ 0 trở lên."
+    }
+  },
+  "transactions": {
+    "title": "Giao dịch",
+    "description": "Lịch sử các lần thanh toán của tài khoản hiện tại.",
+    "loading": "Đang tải lịch sử thanh toán…",
+    "loadError": "Không tải được lịch sử thanh toán",
+    "emptyTitle": "Chưa có giao dịch thanh toán",
+    "emptyDescription": "Các giao dịch chuyển khoản và COD của bạn sẽ hiển thị tại đây.",
+    "viewOrders": "Xem đơn mua",
+    "listLabel": "Danh sách giao dịch thanh toán",
+    "methodLabel": "Phương thức",
+    "idLabel": "Mã thanh toán: {{id}}",
+    "viewCheckout": "Xem chi tiết thanh toán",
+    "method": {
+      "COD": "Thanh toán khi nhận hàng (COD)",
+      "ONLINE_BANKING": "Chuyển khoản ngân hàng"
+    },
+    "status": {
+      "PENDING": "Chờ thanh toán",
+      "PROCESSING": "Đang xử lý",
+      "SUCCESSFUL": "Thành công",
+      "FAILED": "Thất bại",
+      "EXPIRED": "Hết hạn"
+    }
   }
 }

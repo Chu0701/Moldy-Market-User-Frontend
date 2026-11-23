@@ -82,12 +82,13 @@ Ghi chú các cột:
 | `/checkout/:checkoutGroupId` | `CheckoutPaymentPage` | GET /api/v1/checkout-groups/{id} cho reload và polling online 5 giây; COD cập nhật thủ công | Backend IMPLEMENTED_LOCAL (B12 đã sửa local) | INTEGRATED_LOCAL_SANDBOX: QR, webhook xác nhận tiền, xóa giỏ và reload đã được Chu kiểm thử; COD mới tạo đơn |
 | `/orders` | `OrderListPage` | `GET /api/v1/orders/me`; 404 ORDER_LIST_NOT_FOUND là danh sách rỗng | IMPLEMENTED local, audit doc 14 mục 5.7 | IMPLEMENTED_LOCAL: Chu đã chép, chờ xác minh HTTP/giao diện |
 | `/orders/:orderId` | `OrderDetailPage` | Tìm ID trong danh sách `/orders/me` của tài khoản hiện tại; B11 đã sửa trên bản Backend chọn lọc local; UI chưa đổi cách đọc | Dùng endpoint danh sách IMPLEMENTED local | IMPLEMENTED_LOCAL: Chu đã chép, chờ xác minh HTTP/giao diện |
-| `/notifications` | `NotificationsPage` | `GET /api/v1/notifications?limit&token` (cursor), `PATCH /{id}/read`, `DELETE /{id}`; restore API chưa có UI | `IMPLEMENTED_LOCAL` (DynamoDB Local tests; AWS pipeline chưa xác minh) | `IMPLEMENTED_LOCAL`, RequireAuth; chờ kiểm thử UI |
+| `/notifications` | `NotificationsPage` | `GET /api/v1/notifications?limit&token` (cursor), `PATCH /{id}/read`, `PATCH /{id}/unread`, `DELETE /{id}`; restore API chưa có UI | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL`, RequireAuth |
 | `/chat` | `ChatPage` | GET conversations và STOMP /chat dùng chung từ MainLayout | IMPLEMENTED_LOCAL; badge unread ở menu/inbox | Có inbox và trạng thái kết nối/reconnect; manual UI chờ Chu |
 | `/chat/:conversationId` | `ChatPage` (cùng trang, chọn cuộc hội thoại) | REST history, PATCH read {messageId}, STOMP send/messages/errors/chat-reads | IMPLEMENTED_LOCAL; visible/focused read prefix và peer read receipt | Có gửi/nhận TEXT, giữ draft khi lỗi, reload REST sau event/reconnect; manual UI chờ Chu |
+| `/wishlist` | `WishlistPage` | `GET /api/v1/wishlists?page&size` (0-based Spring Page), `POST/DELETE /{productId}`, `GET /check/{productId}`, `GET /count` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
+| `/disputes` | `DisputeListPage` | `GET /api/v1/disputes/me`, `GET /{orderId}`, `POST /api/v1/disputes`, `POST /{orderId}/cancel` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
+| `/transactions` | `TransactionsPage` | `GET /api/v1/payments/my-payments`, `GET /api/v1/payments/{id}` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
 | `/appraisals` | `MyAppraisalsPage` | `POST /api/pricing/appraiser/request`, `GET /api/pricing/requests/{requestId}`, `GET /api/pricing/{listingId}` (DTO chưa audit) | `IN_PROGRESS` | `NOT_STARTED` |
-| `/wishlist` | `WishlistPage` | Không có | `NOT_FOUND` | `NOT_STARTED` |
-| `/transactions` | `TransactionsPage` | Không có endpoint lịch sử giao dịch. Có thể dùng `GET /api/v1/payments/my-payments` cho phần thanh toán, cần xác nhận phạm vi với team | `NOT_FOUND` (chưa có thiết kế) | `NOT_STARTED` |
 
 ### 3.4 Người thẩm định (cần role `APPRAISER`, `MainLayout`) — Xem `HANDOFF-APPRAISER-FRONTEND.md`
 
@@ -114,9 +115,9 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 | `/store/products/:productId/edit` | `ProductEditPage` | `GET /api/v1/stores/my-store`, `GET` và `PUT /api/v1/products/{id}` (xem 3.3) | `IMPLEMENTED` | Có form sửa và kiểm tra quyền gian hàng, chờ kiểm tra với Backend thật |
 | `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | Có danh sách, thêm bằng email, đổi quyền và xóa, chờ kiểm tra với Backend thật |
 | /store/orders | StoreOrdersPage | GET /api/v1/stores/{storeId}/orders; owner hoặc staff cùng store có ORDER_PROCESS xem; POST seller/{orderId}/confirm chỉ owner xác nhận COD | IMPLEMENTED_LOCAL; xem doc 14 §5.7.3 | IMPLEMENTED_LOCAL: menu, phân trang/lọc URL, snapshot món/người nhận, owner confirm; thêm hướng dẫn bước tiếp theo và lịch sử timestamp thật ngày 22/11. Chờ Chu kiểm thử UI |
-| `/store/vouchers` | `StoreVouchersPage` | Chưa có API voucher cho người bán (`VOUCHER_SELLER_MANAGE` chỉ là permission) | `PLANNED` | `NOT_STARTED` |
+| `/store/vouchers` | `StoreVouchersPage` | `POST/GET /api/shop/vouchers`, `GET/PUT/DELETE /api/shop/vouchers/{code}` (`@IsOwner`); `GET /api/vouchers/{code}` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
 | `/store/offers` | `StoreOffersPage` | Không có code offer (Q8) | `NOT_FOUND` | `NOT_STARTED` |
-| `/store/revenue` | `StoreRevenuePage` | Không có API thống kê | `NOT_FOUND` | `NOT_STARTED` |
+| `/store/revenue` | `StoreRevenuePage` | `GET /api/v1/analytics/seller/overview`, `GET /revenue?from&to`, `GET /top-products?limit` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
 | `/store/reviews` | `StoreReviewsPage` | Không có code review | `NOT_FOUND` | `NOT_STARTED` |
 | `/store/settings` | `StoreSettingsPage` | Chưa có endpoint riêng ngoài `my-store`; phạm vi cần xác định với team | `REQUIRES_BUSINESS_CLARIFICATION` | `NOT_STARTED` |
 

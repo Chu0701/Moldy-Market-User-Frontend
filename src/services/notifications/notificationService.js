@@ -43,6 +43,11 @@ export async function markNotificationRead({ id }) {
 }
 
 /** @param {{id: string}} options */
+export async function markNotificationUnread({ id }) {
+  return unwrap(await apiClient.patch(`/api/v1/notifications/${encodeURIComponent(id)}/unread`))
+}
+
+/** @param {{id: string}} options */
 export async function deleteNotification({ id }) {
   return unwrap(await apiClient.delete(`/api/v1/notifications/${encodeURIComponent(id)}`))
 }

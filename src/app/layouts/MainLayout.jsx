@@ -70,8 +70,11 @@ export function MainLayout() {
     ? [
         ...navigation.filter(({ to }) => to !== '/login'),
         { to: '/profile', label: 'profile.title' },
+        { to: '/wishlist', label: 'wishlist.title' },
         { to: '/cart', label: 'cart.title' },
         { to: '/orders', label: 'orders.title' },
+        { to: '/disputes', label: 'disputes.title' },
+        { to: '/transactions', label: 'transactions.title' },
         { to: '/chat', label: 'chat.title' },
         { to: '/notifications', label: 'notifications.title' },
         { to: '/my-products', label: 'products.mine.title' },

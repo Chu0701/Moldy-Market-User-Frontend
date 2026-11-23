@@ -1,6 +1,11 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { apiClient } from '@/services/api/client'
-import { getNotifications, markNotificationRead, deleteNotification } from './notificationService'
+import {
+  getNotifications,
+  markNotificationRead,
+  markNotificationUnread,
+  deleteNotification,
+} from './notificationService'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -24,11 +29,13 @@ test('rejects malformed pages instead of presenting them as empty', async () => 
   await expect(getNotifications()).rejects.toThrow()
 })
 
-test('read and delete accept empty 204 bodies and encode opaque IDs', async () => {
+test('read, unread and delete accept empty 204 bodies and encode opaque IDs', async () => {
   const patch = vi.spyOn(apiClient, 'patch').mockResolvedValue({ status: 204, data: '' })
   const remove = vi.spyOn(apiClient, 'delete').mockResolvedValue({ status: 204, data: '' })
   await expect(markNotificationRead({ id: 'opaque/id' })).resolves.toBeUndefined()
+  await expect(markNotificationUnread({ id: 'opaque/id' })).resolves.toBeUndefined()
   await expect(deleteNotification({ id: 'opaque/id' })).resolves.toBeUndefined()
-  expect(patch).toHaveBeenCalledWith('/api/v1/notifications/opaque%2Fid/read')
+  expect(patch).toHaveBeenNthCalledWith(1, '/api/v1/notifications/opaque%2Fid/read')
+  expect(patch).toHaveBeenNthCalledWith(2, '/api/v1/notifications/opaque%2Fid/unread')
   expect(remove).toHaveBeenCalledWith('/api/v1/notifications/opaque%2Fid')
 })

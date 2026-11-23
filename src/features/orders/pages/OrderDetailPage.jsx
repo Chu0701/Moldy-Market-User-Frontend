@@ -9,6 +9,7 @@ import { OrderDate } from '@/features/orders/components/OrderDate'
 import { OrderItems } from '@/features/orders/components/OrderItems'
 import { OrderStatusLabel } from '@/features/orders/components/OrderStatusLabel'
 import { useMyOrders } from '@/features/orders/hooks/useMyOrders'
+import { OrderDisputePanel } from '@/features/disputes/components/OrderDisputePanel'
 
 export function OrderDetailPage() {
   const { t } = useTranslation()
@@ -109,6 +110,8 @@ export function OrderDetailPage() {
           </dl>
         </section>
       </div>
+
+      <OrderDisputePanel order={order} />
     </section>
   )
 }

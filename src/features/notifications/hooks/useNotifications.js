@@ -6,6 +6,7 @@ import { ApiError } from '@/services/api/ApiError'
 import {
   getNotifications,
   markNotificationRead,
+  markNotificationUnread,
   deleteNotification,
 } from '@/services/notifications/notificationService'
 
@@ -51,6 +52,7 @@ export function useNotifications() {
         })
       }
       if (action === 'read') await markNotificationRead({ id })
+      else if (action === 'unread') await markNotificationUnread({ id })
       else await deleteNotification({ id })
     },
     onSettled: async (_data, _error, { actor }) => {

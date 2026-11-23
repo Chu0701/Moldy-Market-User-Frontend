@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
 import { useEditProductForm } from '@/features/products/hooks/useEditProductForm'
 
 const conditions = [
@@ -58,6 +59,14 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
         {fieldError('price')}
       </div>
+
+      <AutoPricingPanel
+        categoryId={product.categoryId}
+        disabled={isSubmitting || hasConflict}
+        onApplyPrice={(suggested) =>
+          form.setValue('price', String(suggested), { shouldValidate: true, shouldDirty: true })
+        }
+      />
 
       <div className="product-create-field">
         <label htmlFor="product-edit-condition">{t('products.filters.condition')}</label>

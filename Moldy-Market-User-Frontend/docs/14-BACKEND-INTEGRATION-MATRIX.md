@@ -263,16 +263,19 @@ Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. 
 - Cả hai trả `StoreResponse` trong `ApiResponse`, gồm `id`, `ownerId`, `name`, `description`, `pickupAddress`, `status` và `createdAt`.
 - `PUT /api/v1/stores/my-store` nhận `name` bắt buộc (tối đa 255 ký tự), `description` và `pickupAddress` có thể gửi `null` để xóa giá trị cũ. API trả `200` với `StoreResponse`; tên trùng trả `409 STORE_NAME_TAKEN`, gian hàng bị khóa trả `403 STORE_BLOCKED`.
 
-### 4.2 Đã merge trên Backend `main` nhưng FE chưa nối / cần Audit trước khi gọi API
+### 4.2 Đã merge trên Backend `main` (`e0524c0`) và sẵn sàng tích hợp / cần Audit trước khi gọi API
 
 | Tính năng | Controller | Endpoint | Xác thực quan sát được & Lưu ý | Dùng bởi | FE |
 |---|---|---|---|---|---|
-| Notification (DynamoDB) | `NotificationController` | `GET /api/v1/notifications?limit&token`, `GET /{id}`, `PATCH /{id}/read`, `DELETE /{id}`, `PATCH /{id}/restore` | đã đăng nhập, phân trang cursor theo caller | U | `IMPLEMENTED_LOCAL`; chờ cấu hình DynamoDB/Lambda thật và kiểm thử UI |
-| Xem payment riêng lẻ | `PaymentController` | `GET /api/v1/payments/my-payments`, `GET /api/v1/payments/{id}` | đã đăng nhập, chỉ payer (`method`, `paymentStatus`, `qrBankUrl`) | U | `NOT_STARTED` |
+| Notification (DynamoDB) | `NotificationController` | `GET /api/v1/notifications?limit&token`, `GET /{id}`, `PATCH /{id}/read`, `PATCH /{id}/unread`, `DELETE /{id}`, `PATCH /{id}/restore` | đã đăng nhập, phân trang cursor theo caller; `PATCH /{id}/unread` trả 204 | U | `IMPLEMENTED_LOCAL` |
+| Wishlist (Sản phẩm yêu thích) | `WishlistController` | `GET /api/v1/wishlists?page&size` (**0-based** Spring `Page`, `size` 1..50), `POST /{productId}` (`201`), `DELETE /{productId}`, `GET /check/{productId}`, `GET /count`, `GET /products/{productId}/count` | đã đăng nhập (`anyRequest().authenticated()`); DTO `WishlistItemResponse { id, productId, createdAt }`; lỗi `PRODUCT_ALREADY_WISHLISTED`, `WISHLIST_ITEM_NOT_FOUND` | U | `NOT_STARTED` |
+| Buyer Disputes (Khiếu nại đơn hàng) | `DisputeController` | `POST /api/v1/disputes` (`201`), `GET /me`, `GET /{orderId}`, `POST /{orderId}/cancel`; Admin: `GET /admin`, `GET /admin/{id}`, `PATCH /admin/{id}/review` | đã đăng nhập (bật mặc định `features.disputes.enabled=true`); `DisputeReason`: `ITEM_NOT_RECEIVED\|NOT_AS_DESCRIBED\|DAMAGED\|WRONG_ITEM\|OTHER`; `DisputeStatus`: `OPEN\|PENDING_APPROVAL\|APPROVED\|REJECTED\|CANCELLED`; `description` <=2000, `imageUrls` <=5 (mỗi URL <=1000); Admin `APPROVE` tạm trả `501 REFUND_NOT_IMPLEMENTED` | U, A | `NOT_STARTED` |
+| Seller Analytics & Buyer Price History | `SellerAnalyticsController`, `BuyerAnalyticsController` | `GET /api/v1/analytics/seller/overview`, `GET /revenue?from&to`, `GET /top-products?limit=5`; `GET /api/v1/analytics/buyer/products/{productId}/price-history` | đã đăng nhập (`anyRequest().authenticated()`); `from`/`to` định dạng `YYYY-MM-DD`; DTO `SellerOverviewResponse`, `RevenueChartResponse`, `TopProductResponse`, `ProductPriceHistoryResponse` | U | `NOT_STARTED` |
+| Xem payment riêng lẻ | `PaymentController` | `GET /api/v1/payments/my-payments`, `GET /api/v1/payments/{id}` | đã đăng nhập, chỉ payer (`PaymentResponse { id, amount, paymentStatus, method, qrBankUrl, checkoutGroupId }`) | U | `NOT_STARTED` |
 | Webhook SePay | `PaymentTransactionController` | `POST /api/v1/payment_transactions/webhook/{provider}` | công khai, HMAC verified, RAW JSON. **Chỉ SePay gọi.** | không ai | không áp dụng |
 | Số dư ví / Escrow / Rút tiền | `WalletController`, `EscrowController`, `WithdrawalController` | `GET /api/v1/wallets/{userId}/balance`; `/api/v1/escrows/{hold,orders/{id}/capture,orders/{id}/release}`; `/api/v1/withdrawals/**` | **B2 MỞ:** chỉ yêu cầu `authenticated()`, chưa có `@PreAuthorize` | U, A | `NOT_STARTED` |
-| Voucher | `VoucherController` | `GET /api/vouchers/{code}` (hiện cần đăng nhập — không nằm trong `permitAll`); `POST/GET /api/admin/vouchers`, `GET /api/admin/vouchers/{code}` | Admin có `@IsAdmin` | U, A | `NOT_STARTED` |
-| Auto pricing & Reference price | `AutoPricingController`, `ReferencePriceController` | `POST /api/pricing/auto` (`@IsUser`); CRUD `/api/admin/reference-prices` (`@IsAdmin`, Spring `Page`) | Đã có `@IsUser` / `@IsAdmin` | U, A | `NOT_STARTED` |
+| Voucher (Platform & Store) | `VoucherController` | `GET /api/vouchers/{code}` (authenticated); Shop `@IsOwner`: `POST/GET /api/shop/vouchers`, `GET/PUT/DELETE /api/shop/vouchers/{code}` (`DELETE` trả 204); Admin `@IsAdmin`: `POST/GET /api/admin/vouchers`, `GET /api/admin/vouchers/{code}` | `DiscountType`: `PERCENT\|FIXED`; `VoucherIssuer`: `PLATFORM\|STORE`; `CreateVoucherRequest { code(<=50), discountType, discountValue(>0), remainingQuantity(>0), expiredAt(ISO), minimumOrderValue?(>=0), maximumDiscount?(>0) }` | U, A | `NOT_STARTED` |
+| Auto pricing & Reference price | `AutoPricingController`, `ReferencePriceController` | `POST /api/pricing/auto` (`@IsUser`); CRUD `/api/admin/reference-prices` (`@IsAdmin`, Spring `Page`) | `AutoPricingRequest { categoryId, modelId, origin("OFFICIAL_VN"), warrantyStatus(UNDER_WARRANTY\|EXPIRED_UNDER_1Y\|EXPIRED_OVER_1Y), conditionLevel(NEW\|SCRATCHED\|PARTIAL_DAMAGE\|HEAVILY_DAMAGED), usageMonths(>=0) }`; `AutoPricingResponse { pricingMode, status, suggestedPrice, referencePrice, deprecationFactor, conditionFactor, warrantyFactor, referenceModelName, referencePriceUpdatedAt, disclaimer, reason }` | U, A | `NOT_STARTED` |
 | Hồ sơ Appraiser (User & Admin) | `AppraiserController`, `AdminAppraiserController` | `/api/v1/appraisers/{register,me,me/status,active,{id},me/deactivate,me/reactivate}`; `/api/v1/admin/appraisers/**` (`hasRole('ADMIN')`) | Cần HTTP audit; thay thế hoàn toàn `/api/pricing/appraiser/*` cũ | U, A | `NOT_STARTED` |
 | Quy trình thẩm định (Appraisal 6 bước) | `AppraisalRequest*`, `AppraiserApplication*`, `AppraisalInvitation*`, `AppraisalAssignment*`, `AppraisalReport*`, `AppraisalReview*` | `/api/v1/appraisal-requests/**`, `/api/v1/appraisal-applications/**`, `/api/v1/appraisal-invitations/**`, `/api/v1/appraisal-assignments/**`, `/api/v1/appraisal-reports/**`, `/api/v1/appraisal-reviews/**` | **Cần HTTP/security audit** (xem `HANDOFF-APPRAISER-FRONTEND.md`); `AppraisalConversationService` còn placeholder `UUID.randomUUID()` | U | `NOT_STARTED` |
 | Hoa hồng Appraiser | `AppraiserCommissionController` | `GET /api/v1/appraiser/commissions/my`, `GET /{commissionId}` | Đã đăng nhập; trả **RAW JSON** (không bọc `ApiResponse`) | U | `NOT_STARTED` |
@@ -284,11 +287,10 @@ Frontend có thể dùng `permissions` để hiển thị thao tác phù hợp. 
 |---|---|---|
 | Quy trình **mời** staff | `PLANNED` | Chỉ có thêm trực tiếp bằng email |
 | Offer / thương lượng / counteroffer | `NOT_FOUND` | Không có code offer. `offer-negotiation.md` rỗng. |
-| Yêu cầu và duyệt refund / dispute | `NOT_FOUND` / `REQUIRES_BUSINESS_CLARIFICATION` | `Refund` rỗng, `DisputeRequest` chỉ có entity, chưa có controller hay service. |
-| Wishlist / Follow gian hàng / Đánh giá shop | `NOT_FOUND` | Không có controller |
-| Tổng quan doanh thu shop / Thống kê dashboard admin | `NOT_FOUND` | Không có controller |
-| Biểu đồ giá / Sản phẩm tương tự | `NOT_FOUND` | Không có endpoint riêng |
-| Notification thời gian thực | `NOT_FOUND` | Mới có DynamoDB + SQS publisher, chưa có kênh đẩy xuống trình duyệt |
+| Refund (hoàn tiền) | `NOT_FOUND` / `IN_PROGRESS` | Các file `refund/*` trên `feature/dispute` mới chỉ là khung rỗng; Admin `APPROVE` dispute trả `501 REFUND_NOT_IMPLEMENTED`. |
+| Follow gian hàng / Đánh giá gian hàng & sản phẩm | `NOT_FOUND` | Không có controller |
+| Thống kê dashboard admin / Sản phẩm tương tự | `NOT_FOUND` | Không có endpoint riêng |
+| Notification thời gian thực | `NOT_FOUND` | Mới có DynamoDB + SQS outbox publisher, chưa có kênh đẩy xuống trình duyệt |
 
 ---
 
