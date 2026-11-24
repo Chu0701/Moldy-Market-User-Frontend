@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { DisputeStatusBadge } from '@/features/disputes/components/DisputeStatusBadge'
 import {
   useCancelDispute,
@@ -50,6 +51,8 @@ export function OrderDisputePanel({ order }) {
     register,
     handleSubmit,
     reset,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createDisputeSchema),
@@ -219,6 +222,17 @@ export function OrderDisputePanel({ order }) {
               aria-describedby={errors.imageUrlsText ? 'dispute-images-error' : undefined}
               placeholder={t('disputes.imagesPlaceholder')}
               {...register('imageUrlsText')}
+            />
+            <MediaUploadButton
+              purpose="DISPUTE_EVIDENCE"
+              disabled={createMutation.isPending}
+              onUploaded={(url) => {
+                const current = getValues('imageUrlsText')?.trim()
+                setValue('imageUrlsText', current ? `${current}\n${url}` : url, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }}
             />
             {errors.imageUrlsText && (
               <p id="dispute-images-error" role="alert" className="text-xs text-destructive">

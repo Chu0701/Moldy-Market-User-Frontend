@@ -41,9 +41,26 @@ export function useNotifications() {
       await client.cancelQueries({ queryKey: key, exact: true })
       if (!isCurrent(actor)) return
       const cached = client.getQueryData(key)
-      const item = cached?.pages
-        .flatMap((page) => page.items)
-        .find((row) => row.id === id && row.userId === actor && !row.deleted)
+      const allItems = cached?.pages.flatMap((page) => page.items) ?? []
+
+      if (action === 'readAll') {
+        const unreadIds = [
+          ...new Set(
+            allItems
+              .filter((row) => row.userId === actor && !row.deleted && !row.read)
+              .map((row) => row.id),
+          ),
+        ]
+        if (unreadIds.length === 0) return
+        const results = await Promise.allSettled(
+          unreadIds.map((unreadId) => markNotificationRead({ id: unreadId })),
+        )
+        const failed = results.find((result) => result.status === 'rejected')
+        if (failed) throw failed.reason
+        return
+      }
+
+      const item = allItems.find((row) => row.id === id && row.userId === actor && !row.deleted)
       if (!item || client.getQueryState(key)?.error) {
         throw new ApiError({
           status: 400,
@@ -88,6 +105,18 @@ export function useNotifications() {
             return true
           })
 
+  const unreadCount = items.filter((item) => !item.read).length
+
+  async function markAllRead() {
+    if (locked.current || !isCurrent(userId) || unreadCount === 0) return
+    locked.current = true
+    try {
+      await mutation.mutateAsync({ actor: userId, action: 'readAll' })
+    } finally {
+      locked.current = false
+    }
+  }
+
   async function refresh() {
     if (locked.current || !isCurrent(userId)) return
     mutation.reset()
@@ -95,5 +124,16 @@ export function useNotifications() {
     await client.resetQueries({ queryKey, exact: true })
   }
 
-  return { query, mutation, items, update, refresh, accessError: error, profileQuery, userId }
+  return {
+    query,
+    mutation,
+    items,
+    unreadCount,
+    update,
+    markAllRead,
+    refresh,
+    accessError: error,
+    profileQuery,
+    userId,
+  }
 }

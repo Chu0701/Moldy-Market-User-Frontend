@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
 import { useEditProductForm } from '@/features/products/hooks/useEditProductForm'
 
@@ -91,6 +92,17 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
           }
           rows={3}
           readOnly={isSubmitting}
+        />
+        <MediaUploadButton
+          purpose="PRODUCT_IMAGE"
+          disabled={isSubmitting || hasConflict}
+          onUploaded={(url) => {
+            const current = form.getValues('images')?.trim()
+            form.setValue('images', current ? `${current}\n${url}` : url, {
+              shouldValidate: true,
+              shouldDirty: true,
+            })
+          }}
         />
         <p id="product-edit-images-hint" className="profile-edit-hint">
           {t('products.create.imagesHint')}

@@ -40,8 +40,16 @@
     "main": "Điều hướng chính",
     "login": "Đăng nhập",
     "search": "Tìm kiếm sản phẩm",
+    "quickSearch": "Tìm nhanh trên thanh điều hướng",
+    "quickSearchPlaceholder": "Tìm đồ cũ, máy ảnh, bàn phím, sách…",
+    "quickSearchSubmit": "Tìm nhanh",
+    "recentSearches": "Tìm kiếm gần đây",
+    "clearRecentSearches": "Xóa lịch sử",
+    "removeRecentSearch": "Xóa từ khóa {{term}}",
+    "sellNow": "Đăng bán",
     "logout": "Đăng xuất",
-    "signingOut": "Đang đăng xuất…"
+    "signingOut": "Đang đăng xuất…",
+    "more": "Tiện ích"
   },
   "auth": {
     "verify": {
@@ -103,11 +111,24 @@
     "productsTitle": "Sản phẩm trong danh mục"
   },
   "hero": {
-    "eyebrow": "Mua bán đồ đã qua sử dụng",
+    "eyebrow": "Chợ đồ cũ giao dịch ký quỹ",
     "title": "Món đồ cũ, khởi đầu mới.",
-    "description": "Khám phá những món đồ còn nhiều giá trị và tìm lựa chọn phù hợp cho cuộc sống của bạn.",
+    "description": "Tìm món đồ chất lượng với giá hợp lý, xem ảnh và video thật, thanh toán qua cơ chế giữ tiền an toàn.",
     "explore": "Khám phá ngay",
-    "browseCategories": "Xem danh mục"
+    "browseCategories": "Xem danh mục",
+    "searchPlaceholder": "Bạn đang tìm món gì? (VD: bàn phím cơ, áo khoác, máy ảnh…)",
+    "quickConditions": "Gợi ý nhanh:",
+    "quickNew": "Hàng mới",
+    "quickLikeNew": "Hàng như mới",
+    "quickUsed": "Đồ đã dùng",
+    "quickLowPrice": "Giá thấp trước",
+    "howItWorksTitle": "Giao dịch an tâm trong 3 bước",
+    "step1Title": "Xem đúng tình trạng thật",
+    "step1Desc": "Ảnh, video chi tiết và thông số rõ ràng trước khi chốt đơn.",
+    "step2Title": "Thanh toán ký quỹ an toàn",
+    "step2Desc": "Tiền được hệ thống giữ bảo vệ cho đến khi bạn nhận hàng.",
+    "step3Title": "Kiểm tra & hỗ trợ khiếu nại",
+    "step3Desc": "Xác nhận hài lòng hoặc mở khiếu nại hoàn tiền minh bạch về ví."
   },
   "products": {
     "mine": {
@@ -180,7 +201,9 @@
     "gallery": {
       "label": "Ảnh sản phẩm",
       "selectImage": "Xem ảnh {{number}}",
-      "position": "Ảnh {{current}} / {{total}}"
+      "position": "Ảnh {{current}} / {{total}}",
+      "previous": "Ảnh trước",
+      "next": "Ảnh tiếp theo"
     },
     "delete": {
       "action": "Xóa tin",
@@ -220,16 +243,32 @@
       "backToProducts": "Xem sản phẩm khác",
       "attributesTitle": "Thuộc tính sản phẩm",
       "attributeYes": "Có",
-      "attributeNo": "Không"
+      "attributeNo": "Không",
+      "share": "Chia sẻ",
+      "copied": "Đã sao chép!",
+      "shareError": "Không sao chép được liên kết.",
+      "breadcrumbLabel": "Đường dẫn trang",
+      "protectionTitle": "Bảo vệ người mua Moldy Escrow",
+      "protectionDesc": "Tiền thanh toán chỉ được chuyển cho người bán sau khi bạn xác nhận nhận đúng sản phẩm.",
+      "similarTitle": "Sản phẩm tương tự",
+      "similarDescription": "Những món đồ khác trong cùng danh mục bạn có thể quan tâm.",
+      "similarViewMore": "Xem thêm cùng danh mục",
+      "mobilePriceLabel": "Giá bán",
+      "jumpToPurchase": "Chọn mua / Nhắn tin"
     },
     "filters": {
       "condition": "Tình trạng",
+      "allConditions": "Tất cả",
+      "quickConditionLabel": "Lọc nhanh theo tình trạng sản phẩm",
       "price": "Khoảng giá (₫)",
       "minPrice": "Giá tối thiểu",
       "maxPrice": "Giá tối đa",
       "invalidPriceRange": "Giá tối thiểu phải nhỏ hơn hoặc bằng giá tối đa.",
       "category": "Danh mục",
-      "categoryLimit": "Chọn tối đa 20 danh mục."
+      "categoryLimit": "Chọn tối đa 20 danh mục.",
+      "resultCount": "{{count}} sản phẩm phù hợp",
+      "toggleButton": "Hiện bộ lọc",
+      "hideButton": "Ẩn bộ lọc"
     }
   },
   "cart": {
@@ -293,7 +332,27 @@
     "uncertain": "Chưa xác định được đơn đã tạo hay chưa. Hãy kiểm tra Đơn mua trước khi đặt lại.",
     "forbidden": "Bạn chưa được phép tạo checkout này.",
     "submitError": "Chưa tạo được đơn. Vui lòng kiểm tra thông tin và thử lại.",
-    "checkOrders": "Kiểm tra đơn mua"
+    "checkOrders": "Kiểm tra đơn mua",
+    "estimatedTotal": "Tạm tính thanh toán",
+    "voucher": {
+      "label": "Mã giảm giá (tùy chọn)",
+      "placeholder": "Nhập mã voucher",
+      "apply": "Áp dụng",
+      "checking": "Đang kiểm tra…",
+      "remove": "Xóa",
+      "emptyCode": "Vui lòng nhập mã giảm giá.",
+      "applied": "Đã áp dụng mã {{code}}.",
+      "discountLabel": "Giảm giá ({{code}})"
+    },
+    "voucherErrors": {
+      "notFound": "Không tìm thấy mã giảm giá này.",
+      "expired": "Mã giảm giá đã hết hạn.",
+      "outOfStock": "Mã giảm giá đã hết lượt sử dụng.",
+      "notApplicable": "Mã giảm giá hiện không thể áp dụng.",
+      "minimumOrderNotMet": "Đơn hàng chưa đạt giá trị tối thiểu để dùng mã này.",
+      "storeMismatch": "Mã giảm giá này chỉ áp dụng cho gian hàng khác.",
+      "checkFailed": "Chưa kiểm tra được mã giảm giá. Vui lòng thử lại."
+    }
   },
   "checkoutPayment": {
     "title": "Thanh toán đơn mua",
@@ -304,6 +363,7 @@
     "notFoundDescription": "Checkout không tồn tại hoặc tài khoản hiện tại không được xem.",
     "refreshError": "Chưa cập nhật được trạng thái. Thông tin bên dưới là lần tải trước; hãy thử cập nhật lại.",
     "total": "Tổng thanh toán",
+    "discount": "Giảm giá voucher",
     "method": "Phương thức",
     "unknownMethod": "Chưa có thông tin",
     "serverAmount": "Chuyển đúng số tiền được xác nhận cho checkout này.",
@@ -345,6 +405,12 @@
     "title": "Gian hàng",
     "myStoreTitle": "Gian hàng của tôi",
     "workspaceTitle": "Gian hàng làm việc",
+    "dashboard": {
+      "sectionTitle": "Quản lý gian hàng",
+      "navLabel": "Điều hướng gian hàng",
+      "overview": "Tổng quan gian hàng",
+      "statusLabel": "Trạng thái gian hàng"
+    },
     "loading": "Đang tải thông tin gian hàng…",
     "loadError": "Chưa tải được thông tin gian hàng.",
     "unavailableTitle": "Gian hàng tạm không khả dụng",
@@ -484,6 +550,8 @@
     "unitPrice": "Đơn giá:",
     "total": "Tổng tiền đơn",
     "shippingFee": "Phí vận chuyển",
+    "shopDiscount": "Giảm giá gian hàng",
+    "platformDiscount": "Giảm giá sàn",
     "deliveryTitle": "Thông tin nhận hàng",
     "receiverName": "Người nhận",
     "receiverPhone": "Số điện thoại",
@@ -502,6 +570,20 @@
       "refunded": "Đã hoàn tiền",
       "unknown": "Đang cập nhật trạng thái",
       "pendingConfirmed": "Chờ gian hàng xác nhận"
+    },
+    "timeline": {
+      "title": "Tiến trình đơn hàng",
+      "listLabel": "Các mốc thời gian đơn hàng",
+      "empty": "Chưa có mốc thời gian được ghi nhận."
+    },
+    "cancel": {
+      "action": "Hủy đơn hàng",
+      "confirmPrompt": "Bạn chắc chắn muốn hủy đơn hàng này? Sản phẩm sẽ được mở bán lại.",
+      "confirm": "Xác nhận hủy đơn",
+      "pending": "Đang hủy đơn…",
+      "keep": "Giữ lại đơn",
+      "stateChanged": "Trạng thái đơn đã thay đổi nên không thể hủy. Vui lòng tải lại.",
+      "error": "Chưa hủy được đơn hàng. Vui lòng thử lại."
     }
   },
   "chat": {
@@ -686,7 +768,13 @@
     "moreAvailable": "Trang này không còn thông báo hiển thị. Bạn có thể tải tiếp các thông báo cũ hơn.",
     "emptyTitle": "Chưa có thông báo",
     "emptyDescription": "Những cập nhật dành cho bạn sẽ xuất hiện tại đây.",
-    "loadMore": "Tải thêm"
+    "loadMore": "Tải thêm",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "filterLabel": "Lọc thông báo",
+    "filterAll": "Tất cả ({{count}})",
+    "filterUnread": "Chưa đọc ({{count}})",
+    "emptyUnreadTitle": "Không còn thông báo chưa đọc",
+    "emptyUnreadDescription": "Bạn đã xem hết tất cả thông báo hiện tại."
   },
   "wishlist": {
     "title": "Yêu thích",
@@ -907,5 +995,89 @@
       "FAILED": "Thất bại",
       "EXPIRED": "Hết hạn"
     }
+  },
+  "wallet": {
+    "title": "Ví của tôi",
+    "subtitle": "Theo dõi số dư khả dụng, tiền hoàn tranh chấp và yêu cầu rút tiền về tài khoản ngân hàng.",
+    "loading": "Đang tải thông tin ví…",
+    "loadError": "Không tải được thông tin ví",
+    "availableBalance": "Số dư khả dụng",
+    "pendingWithdrawBalance": "Đang chờ rút",
+    "heldBalance": "Đang tạm giữ",
+    "withdrawTitle": "Yêu cầu rút tiền",
+    "withdrawHint": "Nhập số tiền cần rút và thông tin tài khoản ngân hàng nhận tiền.",
+    "submitWithdraw": "Gửi yêu cầu rút tiền",
+    "submitting": "Đang gửi yêu cầu…",
+    "withdrawCreated": "Đã gửi yêu cầu rút tiền.",
+    "withdrawCancelled": "Đã hủy yêu cầu rút tiền và hoàn lại số dư khả dụng.",
+    "cancelWithdrawal": "Hủy yêu cầu",
+    "cancelling": "Đang hủy…",
+    "withdrawalsTitle": "Lịch sử rút tiền",
+    "loadingWithdrawals": "Đang tải danh sách rút tiền…",
+    "withdrawalsLoadError": "Không tải được lịch sử rút tiền",
+    "emptyWithdrawalsTitle": "Chưa có yêu cầu rút tiền",
+    "emptyWithdrawalsDescription": "Các yêu cầu rút tiền từ ví sẽ hiển thị tại đây.",
+    "rejectionReason": "Lý do: {{reason}}",
+    "transactionsTitle": "Biến động số dư",
+    "loadingTransactions": "Đang tải lịch sử biến động…",
+    "transactionsLoadError": "Không tải được biến động số dư",
+    "emptyTransactionsTitle": "Chưa có biến động số dư",
+    "emptyTransactionsDescription": "Tiền hoàn đơn tranh chấp và giao dịch rút tiền sẽ được ghi nhận tại đây.",
+    "balanceAfter": "Số dư sau GD",
+    "fields": {
+      "amount": "Số tiền rút (VND)",
+      "bankName": "Tên ngân hàng",
+      "bankAccountNumber": "Số tài khoản",
+      "bankAccountHolder": "Tên chủ tài khoản"
+    },
+    "validation": {
+      "required": "Vui lòng nhập thông tin này.",
+      "amountInvalid": "Vui lòng nhập số tiền hợp lệ.",
+      "amountPositive": "Số tiền rút phải lớn hơn 0.",
+      "accountNumberInvalid": "Số tài khoản ngân hàng chưa hợp lệ."
+    },
+    "errors": {
+      "insufficientBalance": "Số dư khả dụng không đủ để thực hiện yêu cầu này.",
+      "submitFailed": "Không gửi được yêu cầu rút tiền. Vui lòng thử lại.",
+      "cancelFailed": "Không hủy được yêu cầu rút tiền. Vui lòng tải lại trạng thái."
+    },
+    "withdrawalStatuses": {
+      "REQUESTED": "Chờ duyệt",
+      "PROCESSING": "Đang chuyển khoản",
+      "COMPLETED": "Hoàn tất",
+      "REJECTED": "Bị từ chối",
+      "FAILED": "Thất bại",
+      "CANCELLED": "Đã hủy"
+    },
+    "transactionTypes": {
+      "REFUND": "Hoàn tiền tranh chấp",
+      "WITHDRAWAL_HOLD": "Tạm giữ rút tiền",
+      "WITHDRAWAL_DONE": "Hoàn tất rút tiền",
+      "WITHDRAWAL_REVERSE": "Hoàn trả rút tiền",
+      "HOLD": "Tạm giữ ký quỹ",
+      "CAPTURE": "Giải ngân ký quỹ",
+      "RELEASE": "Hoàn tiền ký quỹ",
+      "FEE": "Phí nền tảng",
+      "ADJUSTMENT": "Điều chỉnh số dư"
+    }
+  },
+  "upload": {
+    "chooseImage": "Tải ảnh từ máy",
+    "chooseMedia": "Tải ảnh / video từ máy",
+    "uploading": "Đang tải tệp lên…",
+    "imageHint": "Hỗ trợ JPG, PNG, WebP (tối đa 10MB) hoặc dán URL trực tiếp.",
+    "mediaHint": "Hỗ trợ ảnh JPG/PNG/WebP (≤10MB) hoặc video MP4/WebM (≤50MB).",
+    "errors": {
+      "invalidType": "Định dạng tệp chưa được hỗ trợ.",
+      "imageTooLarge": "Ảnh vượt quá giới hạn 10MB.",
+      "videoTooLarge": "Video vượt quá giới hạn 50MB.",
+      "storageUnavailable": "Dịch vụ lưu trữ S3 chưa sẵn sàng. Bạn có thể dán URL ảnh trực tiếp vào ô trên.",
+      "generic": "Chưa tải được tệp lên. Bạn có thể thử lại hoặc dán URL trực tiếp."
+    }
+  },
+  "footer": {
+    "marketplace": "Khám phá",
+    "account": "Tài khoản & Giao dịch",
+    "escrowNote": "Nền tảng mua bán đồ cũ với cơ chế thanh toán ký quỹ minh bạch."
   }
 }

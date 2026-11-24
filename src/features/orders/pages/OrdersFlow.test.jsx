@@ -17,9 +17,11 @@ import i18n from '@/i18n'
 import { clearAccessToken, setAccessToken } from '@/lib/tokenStorage'
 import { apiClient } from '@/services/api/client'
 import { getMyOrders } from '@/services/orders/orderService'
+import { cancelMyOrder } from '@/services/orders/cancelOrderService'
 import { getMe } from '@/services/users/userService'
 
 vi.mock('@/services/orders/orderService', () => ({ getMyOrders: vi.fn() }))
+vi.mock('@/services/orders/cancelOrderService', () => ({ cancelMyOrder: vi.fn() }))
 vi.mock('@/services/users/userService', () => ({ getMe: vi.fn() }))
 vi.mock('@/services/api/authRefreshInterceptor', () => ({
   waitForPendingRefresh: vi.fn().mockResolvedValue(undefined),
@@ -187,4 +189,29 @@ test('clears the buyer-specific order cache on logout', async () => {
   await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
   expect(queryClient.getQueryData(['orders', 'mine', 'current-buyer'])).toBeUndefined()
   expect(within(screen.getByRole('main')).queryByText(order.receiverName)).not.toBeInTheDocument()
+})
+
+test('shows milestone timeline and allows cancelling a cancellable COD order on OrderDetailPage', async () => {
+  const codOrder = {
+    ...order,
+    status: 'PENDING_CONFIRMED',
+    paymentMethod: 'COD',
+    paymentStatus: 'PENDING',
+    confirmedAt: null,
+  }
+  const cancelledOrder = {
+    ...codOrder,
+    status: 'CANCELLED',
+    cancelledAt: '2026-11-19T04:00:00Z',
+  }
+  vi.mocked(getMyOrders).mockResolvedValueOnce([codOrder]).mockResolvedValue([cancelledOrder])
+  vi.mocked(cancelMyOrder).mockResolvedValue(cancelledOrder)
+
+  const user = renderRoute('/orders/order-id')
+  await screen.findByRole('heading', { name: 'Tiến trình đơn hàng' }, { timeout: 4000 })
+  await user.click(screen.getByRole('button', { name: 'Hủy đơn hàng' }))
+  await user.click(screen.getByRole('button', { name: 'Xác nhận hủy đơn' }))
+
+  await waitFor(() => expect(cancelMyOrder).toHaveBeenCalledWith({ orderId: 'order-id' }))
+  await waitFor(() => expect(screen.getAllByText('Đã hủy').length).toBeGreaterThanOrEqual(2))
 })

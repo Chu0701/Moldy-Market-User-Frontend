@@ -28,6 +28,29 @@ test('creates from selected ids and delivery fields without client prices or acc
     note: '',
   })
 })
+test('forwards a trimmed voucherCode when provided', async () => {
+  const post = vi.spyOn(apiClient, 'post').mockResolvedValue(response)
+  await expect(
+    createCheckout({
+      productIds: ['one'],
+      receiverName: 'Chu',
+      phoneNumber: '0901234567',
+      shippingAddress: 'Address',
+      method: 'COD',
+      note: '',
+      voucherCode: '  SAVE10  ',
+    }),
+  ).resolves.toEqual(checkout)
+  expect(post).toHaveBeenCalledExactlyOnceWith('/api/v1/checkout-groups', {
+    orderItems: [{ productId: 'one' }],
+    receiverName: 'Chu',
+    phoneNumber: '0901234567',
+    shippingAddress: 'Address',
+    method: 'COD',
+    note: '',
+    voucherCode: 'SAVE10',
+  })
+})
 test('reloads an encoded checkout id and forwards cancellation', async () => {
   const get = vi.spyOn(apiClient, 'get').mockResolvedValue(response)
   const signal = new AbortController().signal

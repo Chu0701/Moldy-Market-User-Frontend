@@ -33,7 +33,7 @@ Router đã được triển khai tại `src/app/router/routes.js` với `MainLa
 |---|---|---|---|---|
 | `MainLayout` | `[ĐÃ TRIỂN KHAI]` | Mọi trang công khai, trang cần đăng nhập và toàn bộ `/store/*` | Header (`Logo`, `LanguageSwitcher`, nav, badge tin nhắn chưa đọc, menu shop/nhân viên động, logout), `ChatRealtimeContext`, `Outlet`, Footer | Quản lý một kết nối STOMP/SockJS dùng chung theo phiên |
 | `AuthLayout` | `[ĐÃ TRIỂN KHAI]` | `/login`, `/register`, `/verify-email`, `*` (`NotFoundPage`) | Khung gọn, căn giữa, `Logo`, `LanguageSwitcher` | `/login` bọc trong `GuestOnly` |
-| `StoreDashboardLayout` | `[ĐỀ XUẤT — CHƯA TẠO]` | Dự kiến tách riêng cho `/store/*` sau này | Sidebar trái theo quyền | Hiện tại toàn bộ `/store/*` đang render trong `MainLayout` |
+| `StoreDashboardLayout` | `[ĐÃ TRIỂN KHAI]` | Toàn bộ `/store/*` | Sidebar trái theo quyền chủ / nhân viên gian hàng | Bọc bên trong `MainLayout`, tự ẩn sidebar khi chưa mở gian hàng |
 
 Trang người thẩm định (`/appraiser/*`) dự kiến dùng `MainLayout` (xem `HANDOFF-APPRAISER-FRONTEND.md`).
 
@@ -78,16 +78,17 @@ Ghi chú các cột:
 | `/my-products/new` | Redirect → `/store/products/new` | Áp dụng luồng đăng bán qua gian hàng | — | `IMPLEMENTED_LOCAL` |
 | `/my-products/:productId/edit` | `ProductEditPage` | `GET /api/v1/products/{id}`, `PUT /api/v1/products/{id}` (bắt buộc `version`), `DELETE`, `PATCH /{id}/status?status=` | `IMPLEMENTED` | `IMPLEMENTED_LOCAL` |
 | `/cart` | `CartPage` | GET `/api/v1/carts`, POST `/items`, DELETE `/items/{listingId}` (Q7 doc 14) | Ba endpoint đã sửa và test Backend local | INTEGRATED local; Chu xác nhận thêm, xem, tải lại và xóa ngày 2026-11-18 |
-| `/checkout` | `CheckoutPage` | Form và POST /api/v1/checkout-groups; không tự retry POST; chuyển sang trang thanh toán | Backend IMPLEMENTED_LOCAL, doc 14 mục 5.7.2 | INTEGRATED_LOCAL_SANDBOX: Chu đã kiểm thử tạo checkout online và thanh toán qua SePay Test mode; chưa Live |
-| `/checkout/:checkoutGroupId` | `CheckoutPaymentPage` | GET /api/v1/checkout-groups/{id} cho reload và polling online 5 giây; COD cập nhật thủ công | Backend IMPLEMENTED_LOCAL (B12 đã sửa local) | INTEGRATED_LOCAL_SANDBOX: QR, webhook xác nhận tiền, xóa giỏ và reload đã được Chu kiểm thử; COD mới tạo đơn |
-| `/orders` | `OrderListPage` | `GET /api/v1/orders/me`; 404 ORDER_LIST_NOT_FOUND là danh sách rỗng | IMPLEMENTED local, audit doc 14 mục 5.7 | IMPLEMENTED_LOCAL: Chu đã chép, chờ xác minh HTTP/giao diện |
-| `/orders/:orderId` | `OrderDetailPage` | Tìm ID trong danh sách `/orders/me` của tài khoản hiện tại; B11 đã sửa trên bản Backend chọn lọc local; UI chưa đổi cách đọc | Dùng endpoint danh sách IMPLEMENTED local | IMPLEMENTED_LOCAL: Chu đã chép, chờ xác minh HTTP/giao diện |
+| `/checkout` | `CheckoutPage` | Form + áp dụng mã voucher (`GET /api/vouchers/{code}`) và `POST /api/v1/checkout-groups` (hỗ trợ `voucherCode`); không tự retry POST; chuyển sang trang thanh toán | `IMPLEMENTED_LOCAL` (có voucher) | `IMPLEMENTED_LOCAL` |
+| `/checkout/:checkoutGroupId` | `CheckoutPaymentPage` | GET /api/v1/checkout-groups/{id} cho reload và polling online 5 giây; hiển thị `discountAmount`/`voucherCode`; COD cập nhật thủ công | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` |
+| `/orders` | `OrderListPage` | `GET /api/v1/orders/me` (sắp xếp `createdAt DESC`); 404 ORDER_LIST_NOT_FOUND là danh sách rỗng | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` |
+| `/orders/:orderId` | `OrderDetailPage` | Tìm ID trong danh sách `/orders/me`, hiển thị timeline mốc thời gian, giảm giá voucher, nút Hủy đơn (`POST /api/v1/orders/buyer/{id}/cancel`), và khiếu nại (`OrderDisputePanel`) | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` |
 | `/notifications` | `NotificationsPage` | `GET /api/v1/notifications?limit&token` (cursor), `PATCH /{id}/read`, `PATCH /{id}/unread`, `DELETE /{id}`; restore API chưa có UI | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL`, RequireAuth |
 | `/chat` | `ChatPage` | GET conversations và STOMP /chat dùng chung từ MainLayout | IMPLEMENTED_LOCAL; badge unread ở menu/inbox | Có inbox và trạng thái kết nối/reconnect; manual UI chờ Chu |
 | `/chat/:conversationId` | `ChatPage` (cùng trang, chọn cuộc hội thoại) | REST history, PATCH read {messageId}, STOMP send/messages/errors/chat-reads | IMPLEMENTED_LOCAL; visible/focused read prefix và peer read receipt | Có gửi/nhận TEXT, giữ draft khi lỗi, reload REST sau event/reconnect; manual UI chờ Chu |
 | `/wishlist` | `WishlistPage` | `GET /api/v1/wishlists?page&size` (0-based Spring Page), `POST/DELETE /{productId}`, `GET /check/{productId}`, `GET /count` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
 | `/disputes` | `DisputeListPage` | `GET /api/v1/disputes/me`, `GET /{orderId}`, `POST /api/v1/disputes`, `POST /{orderId}/cancel` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
 | `/transactions` | `TransactionsPage` | `GET /api/v1/payments/my-payments`, `GET /api/v1/payments/{id}` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
+| `/wallet` | `WalletPage` | `GET /api/v1/wallets/me`, `GET /api/v1/wallets/me/transactions`, `GET /api/v1/withdrawals/me`, `POST /api/v1/withdrawals`, `POST /api/v1/withdrawals/{id}/cancel` | `IMPLEMENTED_LOCAL` (B2 fixed) | `IMPLEMENTED_LOCAL`, RequireAuth |
 | `/appraisals` | `MyAppraisalsPage` | `POST /api/pricing/appraiser/request`, `GET /api/pricing/requests/{requestId}`, `GET /api/pricing/{listingId}` (DTO chưa audit) | `IN_PROGRESS` | `NOT_STARTED` |
 
 ### 3.4 Người thẩm định (cần role `APPRAISER`, `MainLayout`) — Xem `HANDOFF-APPRAISER-FRONTEND.md`
@@ -104,7 +105,7 @@ Ghi chú các cột:
 
 Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role từ `GET /api/v1/users/me` để ẩn hiện menu (xem mục 4).
 
-### 3.5 Quản lý Gian hàng (hiện dùng `MainLayout` + `RequireAuth`, cần là chủ hoặc nhân viên gian hàng)
+### 3.5 Quản lý Gian hàng (`MainLayout` + `RequireAuth` + `StoreDashboardLayout`, cần là chủ hoặc nhân viên gian hàng)
 
 | Path | Page | Phụ thuộc Backend | Backend | FE |
 |---|---|---|---|---|

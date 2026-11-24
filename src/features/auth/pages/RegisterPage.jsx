@@ -79,7 +79,11 @@ export function RegisterPage() {
       } else {
         setError('root.server', {
           message:
-            error?.status === 429 ? 'auth.register.rateLimited' : 'auth.register.submitError',
+            error?.code === 'EMAIL_DELIVERY_FAILED'
+              ? 'auth.verify.deliveryFailed'
+              : error?.status === 429
+                ? 'auth.register.rateLimited'
+                : 'auth.register.submitError',
         })
       }
     }

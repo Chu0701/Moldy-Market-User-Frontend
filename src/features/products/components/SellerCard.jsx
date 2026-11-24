@@ -1,3 +1,4 @@
+import { Store } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -48,14 +49,28 @@ export function SellerCard({ storeId }) {
   if (!store) return null
 
   const description = store.description?.trim()
+  const initial = store.name?.trim().charAt(0).toUpperCase() || 'M'
 
   return (
     <section className="product-seller">
       <h2>{t('products.seller.title')}</h2>
-      <p className="product-seller-name">{store.name}</p>
+      <div className="flex w-full items-center gap-3">
+        <span
+          aria-hidden="true"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-heading text-base font-semibold text-primary-foreground"
+        >
+          {initial}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="product-seller-name truncate">{store.name}</p>
+        </div>
+      </div>
       {description && <p>{description}</p>}
-      <Button asChild variant="outline">
-        <Link to={`/stores/${encodeURIComponent(storeId)}`}>{t('products.seller.viewStore')}</Link>
+      <Button asChild variant="outline" className="min-h-10 gap-1.5 bg-background">
+        <Link to={`/stores/${encodeURIComponent(storeId)}`}>
+          <Store aria-hidden="true" className="size-4" />
+          <span>{t('products.seller.viewStore')}</span>
+        </Link>
       </Button>
     </section>
   )

@@ -15,11 +15,7 @@ afterEach(() => {
 })
 
 test.each([
-  [
-    verifyEmail,
-    '/api/v1/auth/verify-email',
-    { email: 'chu@example.com', code: '012345', password: 'final-password' },
-  ],
+  [verifyEmail, '/api/v1/auth/verify-email', { email: 'chu@example.com', code: '012345' }],
   [resendVerification, '/api/v1/auth/resend-verification', { email: 'chu@example.com' }],
 ])('sends the email verification request to its endpoint', async (request, path, payload) => {
   const post = vi.spyOn(apiClient, 'post').mockResolvedValue({

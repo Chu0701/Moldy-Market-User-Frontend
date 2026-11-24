@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import { ProductPrice } from '@/components/common/ProductPrice'
 
+import { CopyProductLinkButton } from './CopyProductLinkButton'
 import { ProductAttributes } from './ProductAttributes'
 import { SellerCard } from './SellerCard'
 
@@ -28,22 +29,44 @@ const statusKeys = {
  *  status: string,
  *  description?: string|null,
  *  attributes?: Record<string, unknown> | null,
- *  storeId?: string | null
+ *  storeId?: string | null,
+ *  actions?: import('react').ReactNode,
+ *  manageActions?: import('react').ReactNode,
+ *  priceHistory?: import('react').ReactNode,
  * }} props
  */
-export function ProductInfo({ title, price, condition, status, description, attributes, storeId }) {
+export function ProductInfo({
+  title,
+  price,
+  condition,
+  status,
+  description,
+  attributes,
+  storeId,
+  actions,
+  manageActions,
+  priceHistory,
+}) {
   const { t } = useTranslation()
 
   return (
-    <section className="product-info">
-      <h1>{title}</h1>
+    <section className="product-info product-detail-column">
+      <div>
+        <div className="product-info-header">
+          <h1>{title}</h1>
+          <CopyProductLinkButton />
+        </div>
 
-      <ProductPrice value={price} className="product-detail-price" />
+        <ProductPrice value={price} className="product-detail-price" />
 
-      <div className="product-info-badges">
-        <span>{t(conditionKeys[condition] ?? 'products.conditions.unknown')}</span>
-        <span data-status={status}>{t(statusKeys[status] ?? 'products.statuses.unknown')}</span>
+        <div className="product-info-badges">
+          <span>{t(conditionKeys[condition] ?? 'products.conditions.unknown')}</span>
+          <span data-status={status}>{t(statusKeys[status] ?? 'products.statuses.unknown')}</span>
+        </div>
       </div>
+
+      {actions}
+      {manageActions}
 
       <div className="product-description">
         <h2>{t('products.detail.descriptionTitle')}</h2>
@@ -51,6 +74,7 @@ export function ProductInfo({ title, price, condition, status, description, attr
       </div>
 
       <ProductAttributes attributes={attributes} />
+      {priceHistory}
       <SellerCard storeId={storeId} />
     </section>
   )

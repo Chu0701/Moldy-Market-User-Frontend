@@ -26,7 +26,6 @@ function OwnerStoreOverview({ profile }) {
   const userId = profile?.id
   const storeQuery = useMyStore(userId)
   const store = storeQuery.data
-  const canManageStaff = profile?.permissions?.includes('STORE_STAFF_MANAGE')
 
   if (!userId || storeQuery.error?.status === 403) {
     return <ForbiddenState />
@@ -60,32 +59,23 @@ function OwnerStoreOverview({ profile }) {
 
       {state?.storeProfileSaved === true && <p role="status">{t('stores.profile.saved')}</p>}
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        {store.status !== 'BLOCKED' && (
-          <Button asChild variant="outline">
-            <Link to="/store/orders">{t('storeOrders.title')}</Link>
-          </Button>
+      <dl className="mt-6 grid gap-3 rounded-xl border border-border bg-card p-5 text-sm sm:grid-cols-2">
+        <div>
+          <dt className="text-muted-foreground">{t('stores.dashboard.statusLabel')}</dt>
+          <dd className="mt-1 font-medium">{store.status ?? 'ACTIVE'}</dd>
+        </div>
+        {store.pickupAddress && (
+          <div>
+            <dt className="text-muted-foreground">{t('stores.profile.pickupAddress')}</dt>
+            <dd className="mt-1 font-medium">{store.pickupAddress}</dd>
+          </div>
         )}
-        <Button asChild variant="outline">
-          <Link to="/store/profile">{t('stores.profile.title')}</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link to="/store/products">{t('stores.productsTitle')}</Link>
-        </Button>
-        {store.status !== 'BLOCKED' && (
-          <Button asChild variant="outline">
-            <Link to="/store/vouchers">{t('vouchers.title')}</Link>
-          </Button>
-        )}
-        <Button asChild variant="outline">
-          <Link to="/store/revenue">{t('analytics.seller.title')}</Link>
-        </Button>
+      </dl>
 
-        {canManageStaff && store.status !== 'BLOCKED' && (
-          <Button asChild variant="outline">
-            <Link to="/store/staff">{t('stores.staff.title')}</Link>
-          </Button>
-        )}
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Button asChild variant="outline">
+          <Link to={`/stores/${encodeURIComponent(store.id)}`}>{t('stores.viewPublic')}</Link>
+        </Button>
       </div>
     </section>
   )

@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/api/client'
 import { unwrap } from '@/services/api/unwrap'
 
-/** @param {{ productIds: string[], receiverName: string, phoneNumber: string, shippingAddress: string, method: 'COD'|'ONLINE_BANKING', note?: string }} input */
+/** @param {{ productIds: string[], receiverName: string, phoneNumber: string, shippingAddress: string, method: 'COD'|'ONLINE_BANKING', note?: string, voucherCode?: string }} input */
 export async function createCheckout({
   productIds,
   receiverName,
@@ -9,7 +9,9 @@ export async function createCheckout({
   shippingAddress,
   method,
   note,
+  voucherCode,
 }) {
+  const normalizedVoucher = typeof voucherCode === 'string' ? voucherCode.trim() : ''
   const response = await apiClient.post('/api/v1/checkout-groups', {
     orderItems: productIds.map((productId) => ({ productId })),
     receiverName,
@@ -17,6 +19,7 @@ export async function createCheckout({
     shippingAddress,
     method,
     note,
+    ...(normalizedVoucher ? { voucherCode: normalizedVoucher } : {}),
   })
   return unwrap(response)
 }

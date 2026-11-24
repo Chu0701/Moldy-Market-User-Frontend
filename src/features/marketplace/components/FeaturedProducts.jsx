@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -9,18 +10,24 @@ export function FeaturedProducts({ children }) {
   const { t } = useTranslation()
 
   return (
-    <section aria-labelledby="newest-products-heading" className="py-12 sm:py-16">
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+    <section
+      aria-labelledby="newest-products-heading"
+      className="border-t border-border py-10 sm:py-12"
+    >
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 id="newest-products-heading" className="text-2xl font-semibold">
+          <h2 id="newest-products-heading" className="text-2xl font-semibold sm:text-3xl">
             {t('products.newestTitle')}
           </h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
             {t('products.newestDescription')}
           </p>
         </div>
         <Button asChild variant="outline" className="min-h-11">
-          <Link to="/products">{t('products.viewAll')}</Link>
+          <Link to="/products">
+            <span>{t('products.viewAll')}</span>
+            <ArrowRight aria-hidden="true" className="size-4" />
+          </Link>
         </Button>
       </div>
       <ProductGrid>{children}</ProductGrid>

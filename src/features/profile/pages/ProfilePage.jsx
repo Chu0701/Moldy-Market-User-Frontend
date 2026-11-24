@@ -39,14 +39,28 @@ export function ProfilePage() {
         <EmptyState title={t('profile.emptyTitle')} description={t('profile.emptyDescription')} />
       )}
 
-      {canEdit && (
+      <div className="flex flex-wrap gap-3">
+        {canEdit && (
+          <Button asChild variant="outline">
+            <Link to="/profile/edit">{t('profile.edit.title')}</Link>
+          </Button>
+        )}
         <Button asChild variant="outline">
-          <Link to="/profile/edit">{t('profile.edit.title')}</Link>
+          <Link to="/account/settings">{t('account.title')}</Link>
         </Button>
-      )}
-      <Button asChild variant="outline">
-        <Link to="/account/settings">{t('account.title')}</Link>
-      </Button>
+        <Button asChild variant="outline">
+          <Link to="/wallet">{t('wallet.title')}</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/wishlist">{t('wishlist.title')}</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/disputes">{t('disputes.title')}</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/transactions">{t('transactions.title')}</Link>
+        </Button>
+      </div>
     </section>
   )
 }

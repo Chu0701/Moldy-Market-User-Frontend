@@ -227,3 +227,23 @@ test('mutation 403 hides existing cached notification content', async () => {
   expect(await screen.findByRole('alert')).toHaveTextContent('Bạn không có quyền xem thông báo')
   expect(screen.queryByText(item.title)).not.toBeInTheDocument()
 })
+
+test('filters unread notifications and marks all unread items as read', async () => {
+  const unreadOne = { ...item, id: 'u1', title: 'Unread order', read: false }
+  const readTwo = { ...item, id: 'r1', title: 'Already read', read: true }
+  vi.mocked(getNotifications)
+    .mockResolvedValueOnce(page([unreadOne, readTwo]))
+    .mockResolvedValue(page([{ ...unreadOne, read: true }, readTwo]))
+
+  const user = mount()
+  expect(await screen.findByText('Unread order')).toBeInTheDocument()
+  expect(screen.getByText('Already read')).toBeInTheDocument()
+
+  await user.click(screen.getByRole('button', { name: 'Chưa đọc (1)' }))
+  expect(screen.getByText('Unread order')).toBeInTheDocument()
+  expect(screen.queryByText('Already read')).not.toBeInTheDocument()
+
+  await user.click(screen.getByRole('button', { name: 'Đánh dấu tất cả đã đọc' }))
+  await waitFor(() => expect(markNotificationRead).toHaveBeenCalledExactlyOnceWith({ id: 'u1' }))
+  expect(await screen.findByText('Không còn thông báo chưa đọc')).toBeInTheDocument()
+})

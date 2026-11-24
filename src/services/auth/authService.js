@@ -57,12 +57,11 @@ export async function registerAccount({ email, password, fullName, phone }) {
   return unwrap(response)
 }
 
-/** @param {{ email: string, code: string, password: string }} verification */
-export async function verifyEmail({ email, code, password }) {
+/** @param {{ email: string, code: string }} verification */
+export async function verifyEmail({ email, code }) {
   const response = await apiClient.post('/api/v1/auth/verify-email', {
     email,
     code,
-    password,
   })
   unwrap(response)
 }

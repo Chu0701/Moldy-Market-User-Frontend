@@ -5,6 +5,8 @@ import { ProductPrice } from '@/components/common/ProductPrice'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
+import { BuyerOrderTimeline } from '@/features/orders/components/BuyerOrderTimeline'
+import { CancelOrderButton } from '@/features/orders/components/CancelOrderButton'
 import { OrderDate } from '@/features/orders/components/OrderDate'
 import { OrderItems } from '@/features/orders/components/OrderItems'
 import { OrderStatusLabel } from '@/features/orders/components/OrderStatusLabel'
@@ -73,6 +75,7 @@ export function OrderDetailPage() {
               {t('checkoutPayment.continuePayment')}
             </Link>
           )}
+          <CancelOrderButton order={order} />
         </div>
       </div>
 
@@ -88,6 +91,22 @@ export function OrderDetailPage() {
             <p className="flex flex-wrap justify-between gap-3 text-sm text-muted-foreground">
               <span>{t('orders.shippingFee')}</span>
               <ProductPrice value={order.shippingFee} />
+            </p>
+          )}
+          {Number(order.shopDiscount) > 0 && (
+            <p className="flex flex-wrap justify-between gap-3 text-sm text-primary">
+              <span>{t('orders.shopDiscount')}</span>
+              <span>
+                -<ProductPrice value={order.shopDiscount} />
+              </span>
+            </p>
+          )}
+          {Number(order.platformDiscount) > 0 && (
+            <p className="flex flex-wrap justify-between gap-3 text-sm text-primary">
+              <span>{t('orders.platformDiscount')}</span>
+              <span>
+                -<ProductPrice value={order.platformDiscount} />
+              </span>
             </p>
           )}
         </section>
@@ -110,6 +129,8 @@ export function OrderDetailPage() {
           </dl>
         </section>
       </div>
+
+      <BuyerOrderTimeline order={order} />
 
       <OrderDisputePanel order={order} />
     </section>

@@ -86,6 +86,18 @@ export function CheckoutPaymentPage() {
         <aside className="checkout-panel" aria-labelledby="checkout-payment-total">
           <h2 id="checkout-payment-total">{t('checkoutPayment.total')}</h2>
           <ProductPrice value={checkout.totalAmount} className="text-2xl font-semibold" />
+          {Number(checkout.discountAmount) > 0 && (
+            <p className="flex flex-wrap justify-between gap-3 text-sm text-primary">
+              <span>
+                {checkout.voucherCode
+                  ? t('checkout.voucher.discountLabel', { code: checkout.voucherCode })
+                  : t('checkoutPayment.discount')}
+              </span>
+              <span>
+                -<ProductPrice value={checkout.discountAmount} />
+              </span>
+            </p>
+          )}
           <p>
             {t('checkoutPayment.method')}:{' '}
             {['COD', 'ONLINE_BANKING'].includes(checkout.paymentResponse?.method)

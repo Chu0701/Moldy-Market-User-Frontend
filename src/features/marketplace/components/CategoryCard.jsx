@@ -6,10 +6,13 @@ export function CategoryCard({ name, to }) {
   return (
     <Link
       to={to}
-      className="group flex min-h-32 min-w-0 flex-col justify-between gap-6 rounded-xl border border-border bg-card p-4 text-card-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring lg:p-6"
+      className="group flex min-h-14 min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-card-foreground transition-[border-color,background-color] outline-none hover:border-foreground/40 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <ArrowUpRight aria-hidden="true" className="size-5 self-end text-muted-foreground" />
-      <span className="text-sm leading-6 font-medium break-words sm:text-base">{name}</span>
+      <span className="line-clamp-2 text-sm leading-5 font-medium break-words">{name}</span>
+      <ArrowUpRight
+        aria-hidden="true"
+        className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground motion-reduce:transform-none"
+      />
     </Link>
   )
 }

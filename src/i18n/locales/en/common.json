@@ -40,8 +40,16 @@
     "main": "Main navigation",
     "login": "Log in",
     "search": "Search products",
+    "quickSearch": "Quick header search",
+    "quickSearchPlaceholder": "Search vintage gear, cameras, books, apparel…",
+    "quickSearchSubmit": "Quick search",
+    "recentSearches": "Recent searches",
+    "clearRecentSearches": "Clear all",
+    "removeRecentSearch": "Remove {{term}}",
+    "sellNow": "Sell",
     "logout": "Sign out",
-    "signingOut": "Signing out…"
+    "signingOut": "Signing out…",
+    "more": "More"
   },
   "auth": {
     "verify": {
@@ -103,11 +111,24 @@
     "productsTitle": "Products in this category"
   },
   "hero": {
-    "eyebrow": "A marketplace for second-hand finds",
+    "eyebrow": "Escrow-protected secondhand marketplace",
     "title": "Pre-loved finds, new beginnings.",
-    "description": "Discover items with more to give and find something that fits your everyday life.",
+    "description": "Shop curated secondhand items with real photos, inspection videos, and built-in escrow protection.",
     "explore": "Explore now",
-    "browseCategories": "Browse categories"
+    "browseCategories": "Browse categories",
+    "searchPlaceholder": "What are you looking for? (e.g. mechanical keyboard, jacket, camera…)",
+    "quickConditions": "Quick picks:",
+    "quickNew": "Brand new",
+    "quickLikeNew": "Like-new finds",
+    "quickUsed": "Pre-owned",
+    "quickLowPrice": "Lowest price first",
+    "howItWorksTitle": "How safe trading works",
+    "step1Title": "Inspect real condition",
+    "step1Desc": "High-res photos, product videos, and clear condition grading before you buy.",
+    "step2Title": "Escrow payment protection",
+    "step2Desc": "Funds stay held safely until your order arrives as described.",
+    "step3Title": "Confirm or dispute fairly",
+    "step3Desc": "Release payment when satisfied, or open a dispute with transparent wallet refunds."
   },
   "products": {
     "mine": {
@@ -180,7 +201,9 @@
     "gallery": {
       "label": "Product images",
       "selectImage": "View image {{number}}",
-      "position": "Image {{current}} of {{total}}"
+      "position": "Image {{current}} of {{total}}",
+      "previous": "Previous image",
+      "next": "Next image"
     },
     "delete": {
       "action": "Delete listing",
@@ -220,16 +243,32 @@
       "backToProducts": "Explore other products",
       "attributesTitle": "Product attributes",
       "attributeYes": "Yes",
-      "attributeNo": "No"
+      "attributeNo": "No",
+      "share": "Share",
+      "copied": "Link copied!",
+      "shareError": "Could not copy link.",
+      "breadcrumbLabel": "Breadcrumb",
+      "protectionTitle": "Moldy Escrow Buyer Protection",
+      "protectionDesc": "Payment is held safely and only released to the seller once you confirm delivery.",
+      "similarTitle": "Similar items",
+      "similarDescription": "More finds in the same category you might like.",
+      "similarViewMore": "View more in category",
+      "mobilePriceLabel": "Price",
+      "jumpToPurchase": "Buy / Contact"
     },
     "filters": {
       "condition": "Condition",
+      "allConditions": "All",
+      "quickConditionLabel": "Quick filter by condition",
       "price": "Price range (₫)",
       "minPrice": "Minimum price",
       "maxPrice": "Maximum price",
       "invalidPriceRange": "Minimum price must be less than or equal to maximum price.",
       "category": "Category",
-      "categoryLimit": "Select up to 20 categories."
+      "categoryLimit": "Select up to 20 categories.",
+      "resultCount": "{{count}} matching items",
+      "toggleButton": "Show filters",
+      "hideButton": "Hide filters"
     }
   },
   "cart": {
@@ -293,7 +332,27 @@
     "uncertain": "The checkout outcome is unknown. Check your orders before submitting again.",
     "forbidden": "You are not allowed to create this checkout.",
     "submitError": "Could not create the checkout. Review the information and try again.",
-    "checkOrders": "Check my orders"
+    "checkOrders": "Check my orders",
+    "estimatedTotal": "Estimated payable",
+    "voucher": {
+      "label": "Voucher code (optional)",
+      "placeholder": "Enter voucher code",
+      "apply": "Apply",
+      "checking": "Checking…",
+      "remove": "Remove",
+      "emptyCode": "Please enter a voucher code.",
+      "applied": "Voucher {{code}} applied.",
+      "discountLabel": "Discount ({{code}})"
+    },
+    "voucherErrors": {
+      "notFound": "Voucher code was not found.",
+      "expired": "This voucher has expired.",
+      "outOfStock": "This voucher is out of stock.",
+      "notApplicable": "This voucher cannot be applied.",
+      "minimumOrderNotMet": "Order total does not meet the voucher minimum.",
+      "storeMismatch": "This voucher applies to a different store.",
+      "checkFailed": "Could not check the voucher code. Please try again."
+    }
   },
   "checkoutCancel": {
     "action": "Cancel checkout",
@@ -314,6 +373,7 @@
     "notFoundDescription": "The checkout does not exist or is unavailable to this account.",
     "refreshError": "Could not refresh status. The information below is from the previous response; try refreshing again.",
     "total": "Checkout total",
+    "discount": "Voucher discount",
     "method": "Payment method",
     "unknownMethod": "Not available",
     "serverAmount": "Transfer the confirmed amount for this checkout.",
@@ -355,6 +415,12 @@
     "title": "Store",
     "myStoreTitle": "My store",
     "workspaceTitle": "Store workspace",
+    "dashboard": {
+      "sectionTitle": "Store dashboard",
+      "navLabel": "Store navigation",
+      "overview": "Store overview",
+      "statusLabel": "Store status"
+    },
     "loading": "Loading store information…",
     "loadError": "Unable to load store information.",
     "unavailableTitle": "Store temporarily unavailable",
@@ -494,6 +560,8 @@
     "unitPrice": "Unit price:",
     "total": "Order total",
     "shippingFee": "Shipping fee",
+    "shopDiscount": "Store discount",
+    "platformDiscount": "Platform discount",
     "deliveryTitle": "Delivery information",
     "receiverName": "Recipient",
     "receiverPhone": "Phone number",
@@ -512,6 +580,20 @@
       "refunded": "Refunded",
       "unknown": "Status updating",
       "pendingConfirmed": "Awaiting store confirmation"
+    },
+    "timeline": {
+      "title": "Order timeline",
+      "listLabel": "Order milestone timestamps",
+      "empty": "No milestone timestamps have been recorded yet."
+    },
+    "cancel": {
+      "action": "Cancel order",
+      "confirmPrompt": "Cancel this order? Reserved products will be released.",
+      "confirm": "Confirm cancellation",
+      "pending": "Cancelling…",
+      "keep": "Keep order",
+      "stateChanged": "Order status changed and cannot be cancelled. Please refresh.",
+      "error": "Could not cancel this order. Please try again."
     }
   },
   "chat": {
@@ -686,7 +768,13 @@
     "moreAvailable": "This page has no visible notifications. You can continue loading older updates.",
     "emptyTitle": "No notifications yet",
     "emptyDescription": "Updates for you will appear here.",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "markAllRead": "Mark all as read",
+    "filterLabel": "Filter notifications",
+    "filterAll": "All ({{count}})",
+    "filterUnread": "Unread ({{count}})",
+    "emptyUnreadTitle": "All caught up",
+    "emptyUnreadDescription": "You have read all current notifications."
   },
   "wishlist": {
     "title": "Wishlist",
@@ -907,5 +995,89 @@
       "FAILED": "Failed",
       "EXPIRED": "Expired"
     }
+  },
+  "wallet": {
+    "title": "My wallet",
+    "subtitle": "Track available balance, dispute refunds, and bank withdrawal requests.",
+    "loading": "Loading wallet…",
+    "loadError": "Could not load wallet",
+    "availableBalance": "Available balance",
+    "pendingWithdrawBalance": "Pending withdrawal",
+    "heldBalance": "Held balance",
+    "withdrawTitle": "Request withdrawal",
+    "withdrawHint": "Enter the amount and your receiving bank account details.",
+    "submitWithdraw": "Submit withdrawal",
+    "submitting": "Submitting…",
+    "withdrawCreated": "Withdrawal request submitted.",
+    "withdrawCancelled": "Withdrawal request cancelled and balance restored.",
+    "cancelWithdrawal": "Cancel request",
+    "cancelling": "Cancelling…",
+    "withdrawalsTitle": "Withdrawal history",
+    "loadingWithdrawals": "Loading withdrawals…",
+    "withdrawalsLoadError": "Could not load withdrawals",
+    "emptyWithdrawalsTitle": "No withdrawals yet",
+    "emptyWithdrawalsDescription": "Your withdrawal requests will appear here.",
+    "rejectionReason": "Reason: {{reason}}",
+    "transactionsTitle": "Balance history",
+    "loadingTransactions": "Loading balance history…",
+    "transactionsLoadError": "Could not load balance history",
+    "emptyTransactionsTitle": "No wallet transactions yet",
+    "emptyTransactionsDescription": "Dispute refunds and withdrawal movements will appear here.",
+    "balanceAfter": "Balance after",
+    "fields": {
+      "amount": "Withdrawal amount (VND)",
+      "bankName": "Bank name",
+      "bankAccountNumber": "Account number",
+      "bankAccountHolder": "Account holder name"
+    },
+    "validation": {
+      "required": "Please enter this information.",
+      "amountInvalid": "Please enter a valid amount.",
+      "amountPositive": "Amount must be greater than 0.",
+      "accountNumberInvalid": "Please enter a valid bank account number."
+    },
+    "errors": {
+      "insufficientBalance": "Available balance is not enough for this withdrawal.",
+      "submitFailed": "Could not submit the withdrawal request. Please try again.",
+      "cancelFailed": "Could not cancel this withdrawal. Please refresh and try again."
+    },
+    "withdrawalStatuses": {
+      "REQUESTED": "Pending review",
+      "PROCESSING": "Processing",
+      "COMPLETED": "Completed",
+      "REJECTED": "Rejected",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled"
+    },
+    "transactionTypes": {
+      "REFUND": "Dispute refund",
+      "WITHDRAWAL_HOLD": "Withdrawal hold",
+      "WITHDRAWAL_DONE": "Withdrawal completed",
+      "WITHDRAWAL_REVERSE": "Withdrawal reversed",
+      "HOLD": "Escrow hold",
+      "CAPTURE": "Escrow capture",
+      "RELEASE": "Escrow release",
+      "FEE": "Platform fee",
+      "ADJUSTMENT": "Balance adjustment"
+    }
+  },
+  "upload": {
+    "chooseImage": "Upload image",
+    "chooseMedia": "Upload image / video",
+    "uploading": "Uploading file…",
+    "imageHint": "Supports JPG, PNG, WebP (max 10MB) or paste a direct URL.",
+    "mediaHint": "Supports JPG/PNG/WebP images (≤10MB) or MP4/WebM videos (≤50MB).",
+    "errors": {
+      "invalidType": "Unsupported file format.",
+      "imageTooLarge": "Image exceeds the 10MB limit.",
+      "videoTooLarge": "Video exceeds the 50MB limit.",
+      "storageUnavailable": "File storage is unavailable. You can paste an image URL directly above.",
+      "generic": "Could not upload the file. Try again or paste a direct URL."
+    }
+  },
+  "footer": {
+    "marketplace": "Marketplace",
+    "account": "Account & Orders",
+    "escrowNote": "Secondhand marketplace built with transparent escrow buyer protection."
   }
 }

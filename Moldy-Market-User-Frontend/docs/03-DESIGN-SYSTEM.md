@@ -37,11 +37,12 @@ Vì sao dùng biến CSS thay vì viết thẳng màu: đổi một giá trị �
 | Token | Giá trị | Class Tailwind | Dùng cho |
 |---|---|---|---|
 | `--background` | `#ffffff` | `bg-background` | Nền trang |
+| `--surface-subtle` | `#fafafa` | `bg-surface-subtle` | Nền khối phụ tinh tế (hero, bảng thuộc tính, khung hành động, footer) |
 | `--foreground` | `#252525` | `text-foreground` | Chữ chính |
 | `--primary` | `#252525` | `bg-primary` | Nút chính, điểm nhấn chính |
 | `--primary-foreground` | trắng | `text-primary-foreground` | Chữ trên nền primary |
 | `--secondary`, `--muted`, `--accent` | `#f3f4f6` | `bg-secondary`, `bg-muted`, `bg-accent` | Bề mặt phụ (surface): thẻ nhạt, vùng nhóm, hover |
-| `--muted-foreground` | `#777777` | `text-muted-foreground` | Chữ phụ, chú thích |
+| `--muted-foreground` | `#595959` | `text-muted-foreground` | Chữ phụ, chú thích (đã tăng tương phản đạt WCAG AA ≥ 4,5:1 kể cả trên `#f3f4f6`) |
 | `--card`, `--popover` | trắng | `bg-card`, `bg-popover` | Thẻ, hộp nổi |
 | `--border`, `--input` | `oklch(0.922 0 0)` | `border-border`, `border-input` | Viền, viền ô nhập |
 | `--ring` | `oklch(0.708 0 0)` | `ring-ring` | Viền focus |

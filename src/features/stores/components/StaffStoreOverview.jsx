@@ -27,7 +27,7 @@ export function StaffStoreOverview({ profile }) {
   return <LinkedStaffStore {...context} />
 }
 
-function LinkedStaffStore({ storeId, canCreateProduct, canReadOrders, canManageProducts }) {
+function LinkedStaffStore({ storeId }) {
   const { t } = useTranslation()
   const query = usePublicStore(storeId)
 
@@ -60,21 +60,6 @@ function LinkedStaffStore({ storeId, canCreateProduct, canReadOrders, canManageP
       </header>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        {canManageProducts && store.status !== 'BLOCKED' && (
-          <Button asChild variant="outline">
-            <Link to="/store/products">{t('stores.productsTitle')}</Link>
-          </Button>
-        )}
-        {canReadOrders && store.status !== 'BLOCKED' && (
-          <Button asChild variant="outline">
-            <Link to="/store/orders">{t('storeOrders.title')}</Link>
-          </Button>
-        )}
-        {canCreateProduct && store.status !== 'BLOCKED' && (
-          <Button asChild>
-            <Link to="/store/products/new">{t('products.create.pageTitle')}</Link>
-          </Button>
-        )}
         <Button asChild variant="outline">
           <Link to={`/stores/${encodeURIComponent(storeId)}`}>{t('stores.viewPublic')}</Link>
         </Button>

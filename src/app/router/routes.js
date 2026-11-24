@@ -2,6 +2,7 @@ import { redirect } from 'react-router'
 
 import { AuthLayout } from '@/app/layouts/AuthLayout'
 import { MainLayout } from '@/app/layouts/MainLayout'
+import { StoreDashboardLayout } from '@/app/layouts/StoreDashboardLayout'
 import { RouteErrorPage } from '@/features/system/pages/RouteErrorPage'
 import { RouteLoading } from '@/components/feedback/RouteLoading'
 import { GuestOnly } from '@/app/router/GuestOnly'
@@ -107,6 +108,12 @@ export const routes = [
                 }),
               },
               {
+                path: 'wallet',
+                lazy: async () => ({
+                  Component: (await import('@/features/wallet/pages/WalletPage')).WalletPage,
+                }),
+              },
+              {
                 path: 'checkout',
                 lazy: async () => ({
                   Component: (await import('@/features/checkout/pages/CheckoutPage')).CheckoutPage,
@@ -152,64 +159,8 @@ export const routes = [
                 }),
               },
               {
-                path: 'store/profile',
-                lazy: async () => ({
-                  Component: (await import('@/features/stores/pages/StoreProfilePage'))
-                    .StoreProfilePage,
-                }),
-              },
-              {
-                path: 'store/staff',
-                lazy: async () => ({
-                  Component: (await import('@/features/stores/pages/StoreStaffPage'))
-                    .StoreStaffPage,
-                }),
-              },
-              {
-                path: 'store/orders',
-                lazy: async () => ({
-                  Component: (await import('@/features/orders/pages/StoreOrdersPage'))
-                    .StoreOrdersPage,
-                }),
-              },
-              {
-                path: 'store/vouchers',
-                lazy: async () => ({
-                  Component: (await import('@/features/vouchers/pages/StoreVouchersPage'))
-                    .StoreVouchersPage,
-                }),
-              },
-              {
-                path: 'store/revenue',
-                lazy: async () => ({
-                  Component: (await import('@/features/analytics/pages/StoreRevenuePage'))
-                    .StoreRevenuePage,
-                }),
-              },
-              {
-                path: 'store/products',
-                lazy: async () => ({
-                  Component: (await import('@/features/stores/pages/StoreProductsPage'))
-                    .StoreProductsPage,
-                }),
-              },
-              {
                 path: 'my-products/new',
                 loader: () => redirect('/store/products/new'),
-              },
-              {
-                path: 'store/products/new',
-                lazy: async () => ({
-                  Component: (await import('@/features/products/pages/ProductCreatePage'))
-                    .ProductCreatePage,
-                }),
-              },
-              {
-                path: 'store/products/:productId/edit',
-                lazy: async () => ({
-                  Component: (await import('@/features/products/pages/ProductEditPage'))
-                    .ProductEditPage,
-                }),
               },
               {
                 path: 'my-products/:productId/edit',
@@ -217,6 +168,75 @@ export const routes = [
                   Component: (await import('@/features/products/pages/ProductEditPage'))
                     .ProductEditPage,
                 }),
+              },
+              {
+                path: 'store',
+                Component: StoreDashboardLayout,
+                children: [
+                  {
+                    index: true,
+                    lazy: async () => ({
+                      Component: (await import('@/features/stores/pages/StoreOverviewPage'))
+                        .StoreOverviewPage,
+                    }),
+                  },
+                  {
+                    path: 'profile',
+                    lazy: async () => ({
+                      Component: (await import('@/features/stores/pages/StoreProfilePage'))
+                        .StoreProfilePage,
+                    }),
+                  },
+                  {
+                    path: 'staff',
+                    lazy: async () => ({
+                      Component: (await import('@/features/stores/pages/StoreStaffPage'))
+                        .StoreStaffPage,
+                    }),
+                  },
+                  {
+                    path: 'orders',
+                    lazy: async () => ({
+                      Component: (await import('@/features/orders/pages/StoreOrdersPage'))
+                        .StoreOrdersPage,
+                    }),
+                  },
+                  {
+                    path: 'vouchers',
+                    lazy: async () => ({
+                      Component: (await import('@/features/vouchers/pages/StoreVouchersPage'))
+                        .StoreVouchersPage,
+                    }),
+                  },
+                  {
+                    path: 'revenue',
+                    lazy: async () => ({
+                      Component: (await import('@/features/analytics/pages/StoreRevenuePage'))
+                        .StoreRevenuePage,
+                    }),
+                  },
+                  {
+                    path: 'products',
+                    lazy: async () => ({
+                      Component: (await import('@/features/stores/pages/StoreProductsPage'))
+                        .StoreProductsPage,
+                    }),
+                  },
+                  {
+                    path: 'products/new',
+                    lazy: async () => ({
+                      Component: (await import('@/features/products/pages/ProductCreatePage'))
+                        .ProductCreatePage,
+                    }),
+                  },
+                  {
+                    path: 'products/:productId/edit',
+                    lazy: async () => ({
+                      Component: (await import('@/features/products/pages/ProductEditPage'))
+                        .ProductEditPage,
+                    }),
+                  },
+                ],
               },
               {
                 path: 'account/settings',
@@ -229,13 +249,6 @@ export const routes = [
                 path: 'open-store',
                 lazy: async () => ({
                   Component: (await import('@/features/stores/pages/OpenStorePage')).OpenStorePage,
-                }),
-              },
-              {
-                path: 'store',
-                lazy: async () => ({
-                  Component: (await import('@/features/stores/pages/StoreOverviewPage'))
-                    .StoreOverviewPage,
                 }),
               },
             ],

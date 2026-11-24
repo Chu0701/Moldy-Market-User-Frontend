@@ -9,21 +9,10 @@ import { Button } from '@/components/ui/button'
 import { loginSchema } from '@/features/auth/schemas/loginSchema'
 import { resendVerification, verifyEmail } from '@/services/auth/authService'
 
-const verificationSchema = z
-  .object({
-    email: loginSchema.shape.email,
-    code: z.string().regex(/^[0-9]{6}$/, 'auth.verify.codeInvalid'),
-    password: z
-      .string()
-      .min(8, 'auth.register.passwordTooShort')
-      .max(100, 'auth.register.passwordTooLong')
-      .refine((value) => value.trim().length > 0, 'auth.login.passwordRequired'),
-    confirmPassword: z.string(),
-  })
-  .refine(({ password, confirmPassword }) => password === confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'auth.register.passwordMismatch',
-  })
+const verificationSchema = z.object({
+  email: loginSchema.shape.email,
+  code: z.string().regex(/^[0-9]{6}$/, 'auth.verify.codeInvalid'),
+})
 
 const errorKeys = new Map([
   ['OTP_INVALID', 'auth.verify.invalid'],
@@ -54,7 +43,7 @@ export function VerifyEmailForm({ initialEmail = '', codeSent = false }) {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(verificationSchema),
-    defaultValues: { email: initialEmail, code: '', password: '', confirmPassword: '' },
+    defaultValues: { email: initialEmail, code: '' },
     mode: 'onTouched',
   })
 
@@ -166,37 +155,6 @@ export function VerifyEmailForm({ initialEmail = '', codeSent = false }) {
           </p>
         )}
       </div>
-
-      <p className="text-sm text-muted-foreground">{t('auth.verify.passwordHint')}</p>
-
-      {[
-        ['password', 'auth.login.password'],
-        ['confirmPassword', 'auth.register.confirmPassword'],
-      ].map(([name, label]) => {
-        const id = `verify-${name}`
-        const error = errors[name]
-
-        return (
-          <div key={name} className="login-field">
-            <label htmlFor={id}>{t(label)}</label>
-            <input
-              id={id}
-              type="password"
-              autoComplete="new-password"
-              required
-              readOnly={busy}
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? `${id}-error` : undefined}
-              {...register(name)}
-            />
-            {error && (
-              <p id={`${id}-error`} role="alert">
-                {t(error.message)}
-              </p>
-            )}
-          </div>
-        )
-      })}
 
       {errors.root?.server && (
         <p className="login-form-error" role="alert">

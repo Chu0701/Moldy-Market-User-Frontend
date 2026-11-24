@@ -20,6 +20,11 @@ import { getCart, removeCartItem } from '@/services/cart/cartService'
 import { getProductById } from '@/services/products/productService'
 import { getMyOrders } from '@/services/orders/orderService'
 import { getMe } from '@/services/users/userService'
+import { checkVoucher } from '@/services/vouchers/voucherService'
+
+vi.mock('@/services/vouchers/voucherService', () => ({
+  checkVoucher: vi.fn(),
+}))
 
 vi.mock('@/services/checkout/checkoutService', () => ({
   createCheckout: vi.fn(),
@@ -337,6 +342,35 @@ test('an unpaid buyer order exposes a recovery link to the existing checkout', a
   await user.click(link)
   await screen.findByRole('heading', { name: 'Đã tạo đơn COD' })
   expect(createCheckout).not.toHaveBeenCalled()
+})
+test('applies a valid voucher code, previews estimated discount, and sends voucherCode on checkout', async () => {
+  vi.mocked(checkVoucher).mockResolvedValue({
+    code: 'SAVE10',
+    discountType: 'PERCENT',
+    discountValue: 10,
+    valid: true,
+    issuer: 'PLATFORM',
+    storeId: null,
+    minimumOrderValue: 50000,
+    maximumDiscount: 50000,
+  })
+  const user = open('/checkout?productId=product-1')
+  await fill(user)
+  await user.type(screen.getByLabelText('Mã giảm giá (tùy chọn)'), 'save10')
+  await user.click(screen.getByRole('button', { name: 'Áp dụng' }))
+  await screen.findByText('Đã áp dụng mã SAVE10.')
+  expect(screen.getByText(/108\.000/)).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Đặt hàng' }))
+  await screen.findByRole('heading', { name: 'Đã tạo đơn COD' }, { timeout: 4000 })
+  expect(createCheckout).toHaveBeenCalledExactlyOnceWith({
+    productIds: ['product-1'],
+    receiverName: 'Chu',
+    phoneNumber: profile.phone,
+    shippingAddress: 'Delivery address',
+    method: 'COD',
+    note: '',
+    voucherCode: 'SAVE10',
+  })
 })
 test('delivery validation blocks POST before a complete address is entered', async () => {
   const user = open('/checkout?productId=product-1')

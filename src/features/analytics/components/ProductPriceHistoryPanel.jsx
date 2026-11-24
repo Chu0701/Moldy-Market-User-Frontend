@@ -18,7 +18,7 @@ export function ProductPriceHistoryPanel({ productId }) {
 
   return (
     <section
-      className="space-y-3 rounded-xl border border-border bg-background p-4 md:col-start-2"
+      className="space-y-3 rounded-lg border border-border bg-surface-subtle p-4"
       aria-labelledby="price-history-heading"
     >
       <h2 id="price-history-heading" className="text-lg font-semibold">

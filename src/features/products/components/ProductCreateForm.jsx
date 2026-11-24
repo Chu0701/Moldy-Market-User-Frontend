@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
 import {
   createProductSchema,
@@ -24,6 +25,7 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
     handleSubmit,
     setError,
     setValue,
+    getValues,
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -158,6 +160,17 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
           }
           rows={3}
           readOnly={isSubmitting}
+        />
+        <MediaUploadButton
+          purpose="PRODUCT_IMAGE"
+          disabled={isSubmitting}
+          onUploaded={(url) => {
+            const current = getValues('images')?.trim()
+            setValue('images', current ? `${current}\n${url}` : url, {
+              shouldValidate: true,
+              shouldDirty: true,
+            })
+          }}
         />
         <p id="product-create-images-hint" className="profile-edit-hint">
           {t('products.create.imagesHint')}

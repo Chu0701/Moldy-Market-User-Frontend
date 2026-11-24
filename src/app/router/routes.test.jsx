@@ -1544,8 +1544,9 @@ describe('user app routing', () => {
           phone: '0901234567',
           password: ' password ',
         })
-        expect(screen.getByLabelText('Mật khẩu')).toHaveValue('')
+        expect(screen.queryByLabelText('Mật khẩu')).not.toBeInTheDocument()
         expect(screen.getByLabelText('Email')).toHaveValue('chu@example.com')
+        expect(screen.getByLabelText('Mã OTP')).toHaveValue('')
         expect(
           await screen.findByRole('button', { name: 'Gửi lại sau 60 giây' }, { timeout: 2000 }),
         ).toBeDisabled()
@@ -1576,7 +1577,7 @@ describe('user app routing', () => {
 
       expect(await screen.findByLabelText('Mã OTP')).toHaveValue('')
       expect(screen.getByLabelText('Email')).toHaveValue('chu@example.com')
-      expect(screen.getByLabelText('Mật khẩu')).toHaveValue('')
+      expect(screen.queryByLabelText('Mật khẩu')).not.toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: 'Gửi lại mã' }))
       expect(resendVerification).toHaveBeenCalledExactlyOnceWith({ email: 'chu@example.com' })
       expect(login).not.toHaveBeenCalled()
@@ -1597,11 +1598,9 @@ describe('user app routing', () => {
   })
 
   describe('verifying an email', () => {
-    async function fillVerification(user, code = '012345', confirmation = ' final-password ') {
+    async function fillVerification(user, code = '012345') {
       await user.type(await screen.findByLabelText('Email'), ' chu@example.com ')
       await user.type(screen.getByLabelText('Mã OTP'), code)
-      await user.type(screen.getByLabelText('Mật khẩu'), ' final-password ')
-      await user.type(screen.getByLabelText('Nhập lại mật khẩu'), confirmation)
       await user.click(screen.getByRole('button', { name: 'Xác nhận email' }))
     }
 
@@ -1614,8 +1613,6 @@ describe('user app routing', () => {
       expect(verifyEmail).toHaveBeenCalledExactlyOnceWith({
         email: 'chu@example.com',
         code: '012345',
-        password: ' final-password ',
-        confirmPassword: ' final-password ',
       })
       expect(screen.queryByLabelText('Mã OTP')).not.toBeInTheDocument()
       expect(getAccessToken()).toBeNull()
@@ -1627,13 +1624,6 @@ describe('user app routing', () => {
       const user = renderRoute('/verify-email')
       await fillVerification(user, '12345')
       expect(await screen.findByRole('alert')).toHaveTextContent('Vui lòng nhập mã gồm 6 chữ số.')
-      expect(verifyEmail).not.toHaveBeenCalled()
-    })
-
-    test('rejects mismatched final passwords before sending the OTP', async () => {
-      const user = renderRoute('/verify-email')
-      await fillVerification(user, '012345', 'different-password')
-      expect(await screen.findByRole('alert')).toHaveTextContent('Hai mật khẩu không khớp.')
       expect(verifyEmail).not.toHaveBeenCalled()
     })
 

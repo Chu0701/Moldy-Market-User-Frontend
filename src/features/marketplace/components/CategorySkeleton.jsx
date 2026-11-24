@@ -8,15 +8,15 @@ export function CategorySkeleton() {
       <span className="sr-only">{t('categories.loading')}</span>
       <div
         aria-hidden="true"
-        className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6"
+        className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-4 xl:grid-cols-5"
       >
-        {Array.from({ length: 8 }, (_, index) => (
+        {Array.from({ length: 10 }, (_, index) => (
           <div
             key={index}
-            className="flex min-h-32 flex-col justify-between gap-6 rounded-xl border border-border p-4 motion-safe:animate-pulse lg:p-6"
+            className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-border px-4 py-3 motion-safe:animate-pulse"
           >
-            <div className="size-5 self-end rounded-sm bg-muted" />
-            <div className="h-6 w-3/4 rounded-sm bg-muted" />
+            <div className="h-4 w-3/4 rounded-sm bg-muted" />
+            <div className="size-4 shrink-0 rounded-sm bg-muted" />
           </div>
         ))}
       </div>
