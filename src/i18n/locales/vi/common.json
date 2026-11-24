@@ -584,6 +584,14 @@
       "keep": "Giữ lại đơn",
       "stateChanged": "Trạng thái đơn đã thay đổi nên không thể hủy. Vui lòng tải lại.",
       "error": "Chưa hủy được đơn hàng. Vui lòng thử lại."
+    },
+    "confirmReceived": {
+      "action": "Đã nhận được hàng",
+      "confirmPrompt": "Bạn đã kiểm tra và hài lòng với sản phẩm? Xác nhận sẽ hoàn tất đơn và giải ngân tiền cho người bán.",
+      "confirm": "Xác nhận hoàn tất",
+      "pending": "Đang xác nhận…",
+      "stateChanged": "Trạng thái đơn đã thay đổi nên chưa thể xác nhận. Vui lòng tải lại.",
+      "error": "Chưa xác nhận được đơn hàng. Vui lòng thử lại."
     }
   },
   "chat": {
@@ -1079,5 +1087,20 @@
     "marketplace": "Khám phá",
     "account": "Tài khoản & Giao dịch",
     "escrowNote": "Nền tảng mua bán đồ cũ với cơ chế thanh toán ký quỹ minh bạch."
+  },
+  "reviews": {
+    "orderTitle": "Đánh giá người bán",
+    "storeTitle": "Đánh giá từ người mua",
+    "ratingLabel": "Mức độ hài lòng",
+    "selectStar": "Chọn {{count}} sao",
+    "starsLabel": "{{count}} trên 5 sao",
+    "countLabel": "{{count}} đánh giá",
+    "commentLabel": "Nhận xét (tùy chọn)",
+    "commentPlaceholder": "Chia sẻ cảm nhận về tình trạng món đồ, đóng gói và tốc độ giao hàng…",
+    "submit": "Gửi đánh giá",
+    "submitting": "Đang gửi đánh giá…",
+    "submittedHint": "Cảm ơn bạn đã chia sẻ đánh giá cho đơn hàng này.",
+    "alreadySubmitted": "Đơn hàng này đã được đánh giá trước đó.",
+    "submitError": "Chưa gửi được đánh giá. Vui lòng thử lại."
   }
 }

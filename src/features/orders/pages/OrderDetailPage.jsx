@@ -12,6 +12,8 @@ import { OrderItems } from '@/features/orders/components/OrderItems'
 import { OrderStatusLabel } from '@/features/orders/components/OrderStatusLabel'
 import { useMyOrders } from '@/features/orders/hooks/useMyOrders'
 import { OrderDisputePanel } from '@/features/disputes/components/OrderDisputePanel'
+import { OrderReviewPanel } from '@/features/reviews/components/OrderReviewPanel'
+import { ConfirmReceivedButton } from '@/features/orders/components/ConfirmReceivedButton'
 
 export function OrderDetailPage() {
   const { t } = useTranslation()
@@ -75,6 +77,7 @@ export function OrderDetailPage() {
               {t('checkoutPayment.continuePayment')}
             </Link>
           )}
+          <ConfirmReceivedButton order={order} />
           <CancelOrderButton order={order} />
         </div>
       </div>
@@ -133,6 +136,7 @@ export function OrderDetailPage() {
       <BuyerOrderTimeline order={order} />
 
       <OrderDisputePanel order={order} />
+      <OrderReviewPanel order={order} />
     </section>
   )
 }

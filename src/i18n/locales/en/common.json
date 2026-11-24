@@ -594,6 +594,14 @@
       "keep": "Keep order",
       "stateChanged": "Order status changed and cannot be cancelled. Please refresh.",
       "error": "Could not cancel this order. Please try again."
+    },
+    "confirmReceived": {
+      "action": "Confirm order received",
+      "confirmPrompt": "Have you inspected the items and are satisfied? Confirming will complete the order and release payment to the seller.",
+      "confirm": "Confirm & complete",
+      "pending": "Confirming…",
+      "stateChanged": "The order status has changed and cannot be confirmed. Please refresh.",
+      "error": "Could not confirm the order. Please try again."
     }
   },
   "chat": {
@@ -1079,5 +1087,20 @@
     "marketplace": "Marketplace",
     "account": "Account & Orders",
     "escrowNote": "Secondhand marketplace built with transparent escrow buyer protection."
+  },
+  "reviews": {
+    "orderTitle": "Rate the seller",
+    "storeTitle": "Buyer reviews",
+    "ratingLabel": "Your rating",
+    "selectStar": "Select {{count}} stars",
+    "starsLabel": "{{count}} out of 5 stars",
+    "countLabel": "{{count}} reviews",
+    "commentLabel": "Comment (optional)",
+    "commentPlaceholder": "Share how the item condition, packaging, and delivery went…",
+    "submit": "Submit review",
+    "submitting": "Submitting…",
+    "submittedHint": "Thank you for reviewing this order.",
+    "alreadySubmitted": "You have already submitted a review for this order.",
+    "submitError": "Could not submit your review. Please try again."
   }
 }

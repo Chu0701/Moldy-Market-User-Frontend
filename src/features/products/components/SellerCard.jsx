@@ -1,14 +1,16 @@
-import { Store } from 'lucide-react'
+import { Star, Store } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import { useStoreReviews } from '@/features/reviews/hooks/useReviews'
 import { usePublicStore } from '@/features/stores/hooks/usePublicStore'
 
 /** @param {{ storeId?: string | null }} props */
 export function SellerCard({ storeId }) {
   const { t } = useTranslation()
   const query = usePublicStore(storeId)
+  const reviewsQuery = useStoreReviews(storeId)
 
   if (!storeId) return null
 
@@ -50,6 +52,8 @@ export function SellerCard({ storeId }) {
 
   const description = store.description?.trim()
   const initial = store.name?.trim().charAt(0).toUpperCase() || 'M'
+  const reviewCount = reviewsQuery.isSuccess ? (reviewsQuery.data?.reviewCount ?? 0) : 0
+  const averageRating = reviewsQuery.isSuccess ? (reviewsQuery.data?.averageRating ?? 0) : 0
 
   return (
     <section className="product-seller">
@@ -63,6 +67,15 @@ export function SellerCard({ storeId }) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="product-seller-name truncate">{store.name}</p>
+          {reviewCount > 0 && (
+            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
+              <Star aria-hidden="true" className="size-3.5 fill-warning text-warning" />
+              <span className="font-semibold text-foreground">
+                {Number(averageRating).toFixed(1)}
+              </span>
+              <span>({t('reviews.countLabel', { count: reviewCount })})</span>
+            </p>
+          )}
         </div>
       </div>
       {description && <p>{description}</p>}

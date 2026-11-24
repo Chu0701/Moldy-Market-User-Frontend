@@ -13,3 +13,11 @@ export async function getMyOrders({ signal } = {}) {
     throw error
   }
 }
+
+/** @param {{ orderId: string }} input */
+export async function confirmOrderReceived({ orderId }) {
+  const response = await apiClient.post(
+    '/api/v1/orders/buyer/' + encodeURIComponent(orderId) + '/confirm-received',
+  )
+  return unwrap(response)
+}

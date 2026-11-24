@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { usePublicStore } from '@/features/stores/hooks/usePublicStore'
 import { ProductSearchPanel } from '@/features/products/components/ProductSearchPanel'
 import { StoreChatButton } from '@/features/chat/components/StoreChatButton'
+import { StoreReviewsSection } from '@/features/reviews/components/StoreReviewsSection'
 
 export function StorePublicPage() {
   const { t } = useTranslation()
@@ -78,6 +79,7 @@ export function StorePublicPage() {
         <h2>{t('stores.productsTitle')}</h2>
         <ProductSearchPanel storeId={store.id} />
       </section>
+      <StoreReviewsSection storeId={store.id} />
     </section>
   )
 }
