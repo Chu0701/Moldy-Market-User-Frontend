@@ -3,7 +3,6 @@ import { Clock, Search, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
-import { Button } from '@/components/ui/button'
 import {
   clearRecentSearches,
   getRecentSearches,
@@ -73,37 +72,25 @@ export function HeaderSearchBar() {
   const showDropdown = isOpen && recent.length > 0
 
   return (
-    <div
-      ref={containerRef}
-      className="relative order-3 w-full sm:order-2 sm:max-w-md sm:flex-1 lg:max-w-lg"
-    >
-      <form role="search" onSubmit={handleSubmit} className="flex w-full items-center gap-1.5">
-        <div className="relative flex-1">
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <input
-            type="search"
-            value={query}
-            onFocus={() => setIsOpen(true)}
-            onChange={(event) => setQuery(event.target.value)}
-            maxLength={100}
-            aria-label={t('navigation.quickSearch')}
-            placeholder={t('navigation.quickSearchPlaceholder')}
-            className="min-h-11 w-full rounded-full border border-input bg-surface-subtle pr-4 pl-9 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus:border-foreground/50 focus:bg-background focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
-          />
-        </div>
-        <Button
+    <div ref={containerRef} className="relative order-3 w-full md:order-2 md:max-w-2xl md:flex-1">
+      <form role="search" onSubmit={handleSubmit} className="relative w-full">
+        <input
+          type="search"
+          value={query}
+          onFocus={() => setIsOpen(true)}
+          onChange={(event) => setQuery(event.target.value)}
+          maxLength={100}
+          aria-label={t('navigation.quickSearch')}
+          placeholder={t('navigation.quickSearchPlaceholder')}
+          className="min-h-11 w-full rounded-full border border-input bg-surface-subtle pr-11 pl-4 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus:border-foreground/50 focus:bg-background focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+        />
+        <button
           type="submit"
-          variant="outline"
-          size="sm"
           aria-label={t('navigation.quickSearchSubmit')}
-          className="min-h-11 shrink-0 rounded-full px-4"
+          className="absolute top-1/2 right-1.5 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Search aria-hidden="true" className="size-4 sm:hidden" />
-          <span className="hidden sm:inline">{t('navigation.quickSearchSubmit')}</span>
-        </Button>
+          <Search aria-hidden="true" className="size-4.5" />
+        </button>
       </form>
 
       {showDropdown && (

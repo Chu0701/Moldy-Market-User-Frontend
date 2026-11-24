@@ -54,13 +54,19 @@ export function StoreVouchersPage() {
   }
 
   return (
-    <section className="mx-auto max-w-4xl space-y-6" aria-labelledby="store-vouchers-heading">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <section className="mx-auto max-w-5xl space-y-6" aria-labelledby="store-vouchers-heading">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
-          <Link to="/store" className="text-sm underline underline-offset-4">
+          <Link
+            to="/store"
+            className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
             {t('stores.myStoreTitle')}
           </Link>
-          <h1 id="store-vouchers-heading" className="text-3xl font-semibold sm:text-4xl">
+          <h1
+            id="store-vouchers-heading"
+            className="text-3xl font-semibold tracking-tight sm:text-4xl"
+          >
             {t('vouchers.title')}
           </h1>
           <p className="text-sm text-muted-foreground">{t('vouchers.description')}</p>
@@ -71,7 +77,7 @@ export function StoreVouchersPage() {
             {t('vouchers.createTitle')}
           </Button>
         )}
-      </div>
+      </header>
 
       {formMode && (
         <StoreVoucherForm
@@ -85,7 +91,10 @@ export function StoreVouchersPage() {
       )}
 
       {deactivateMutation.isError && (
-        <p role="alert" className="rounded-lg border border-border p-4 text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm font-medium text-destructive"
+        >
           {t('vouchers.errors.generic')}
         </p>
       )}
@@ -93,86 +102,113 @@ export function StoreVouchersPage() {
       {vouchers.length === 0 ? (
         <EmptyState title={t('vouchers.emptyTitle')} description={t('vouchers.emptyDescription')} />
       ) : (
-        <ul className="space-y-4" aria-label={t('vouchers.listLabel')}>
-          {vouchers.map((voucher) => (
-            <li
-              key={voucher.code}
-              className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-border bg-background p-4"
-            >
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-base font-semibold">{voucher.code}</span>
-                  <span className="rounded-md border border-border bg-accent px-2 py-0.5 text-xs">
-                    {t(voucher.active ? 'vouchers.status.active' : 'vouchers.status.inactive')}
-                  </span>
-                </div>
+        <div className="kn-table-card">
+          <div className="kn-table-toolbar">
+            <div className="flex items-baseline gap-2.5">
+              <h2 className="text-sm font-semibold tracking-tight">{t('vouchers.listLabel')}</h2>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {t('table.rowsCount', { count: vouchers.length })}
+              </span>
+            </div>
+          </div>
 
-                <p className="text-sm">
-                  {voucher.discountType === 'PERCENT' ? (
-                    t('vouchers.discountPercent', { value: voucher.discountValue })
-                  ) : (
-                    <span>
-                      {t('vouchers.discountFixedPrefix')}{' '}
-                      <ProductPrice value={voucher.discountValue} className="font-medium" />
-                    </span>
-                  )}
-                </p>
-
-                <p className="text-xs text-muted-foreground">
-                  {t('vouchers.remaining', { count: voucher.remainingQuantity })} ·{' '}
-                  {t('vouchers.expiresAt', {
-                    date: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    }).format(new Date(voucher.expiredAt)),
-                  })}
-                </p>
-
-                {(voucher.minimumOrderValue != null || voucher.maximumDiscount != null) && (
-                  <p className="text-xs text-muted-foreground">
-                    {voucher.minimumOrderValue != null && (
-                      <span>
-                        {t('vouchers.minOrderLabel')}:{' '}
-                        <ProductPrice value={voucher.minimumOrderValue} />{' '}
+          <div className="kn-table-scroll">
+            <table className="kn-table" aria-label={t('vouchers.listLabel')}>
+              <thead>
+                <tr>
+                  <th scope="col">{t('table.code')}</th>
+                  <th scope="col">{t('table.status')}</th>
+                  <th scope="col">{t('table.discount')}</th>
+                  <th scope="col">{t('table.conditions')}</th>
+                  <th scope="col" className="text-right">
+                    {t('table.actions')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {vouchers.map((voucher) => (
+                  <tr key={voucher.code}>
+                    <td className="font-mono text-sm font-semibold whitespace-nowrap text-foreground">
+                      {voucher.code}
+                    </td>
+                    <td className="whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-subtle px-2.5 py-0.5 text-xs font-medium text-foreground">
+                        <span
+                          className={`size-1.5 rounded-full ${voucher.active ? 'bg-success' : 'bg-muted-foreground'}`}
+                          aria-hidden="true"
+                        />
+                        {t(voucher.active ? 'vouchers.status.active' : 'vouchers.status.inactive')}
                       </span>
-                    )}
-                    {voucher.maximumDiscount != null && (
-                      <span>
-                        {t('vouchers.maxDiscountLabel')}:{' '}
-                        <ProductPrice value={voucher.maximumDiscount} />
-                      </span>
-                    )}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFormMode({ kind: 'edit', voucher })}
-                >
-                  {t('vouchers.editAction')}
-                </Button>
-                {voucher.active && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={
-                      deactivateMutation.isPending &&
-                      deactivateMutation.variables?.code === voucher.code
-                    }
-                    onClick={() => deactivateMutation.mutate({ code: voucher.code })}
-                  >
-                    {t('vouchers.deactivateAction')}
-                  </Button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+                    </td>
+                    <td className="whitespace-nowrap font-medium tabular-nums">
+                      {voucher.discountType === 'PERCENT' ? (
+                        t('vouchers.discountPercent', { value: voucher.discountValue })
+                      ) : (
+                        <span>
+                          {t('vouchers.discountFixedPrefix')}{' '}
+                          <ProductPrice value={voucher.discountValue} className="font-semibold" />
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        {t('vouchers.remaining', { count: voucher.remainingQuantity })} ·{' '}
+                        {t('vouchers.expiresAt', {
+                          date: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          }).format(new Date(voucher.expiredAt)),
+                        })}
+                      </p>
+                      {(voucher.minimumOrderValue != null || voucher.maximumDiscount != null) && (
+                        <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+                          {voucher.minimumOrderValue != null && (
+                            <span>
+                              {t('vouchers.minOrderLabel')}:{' '}
+                              <ProductPrice value={voucher.minimumOrderValue} />{' '}
+                            </span>
+                          )}
+                          {voucher.maximumDiscount != null && (
+                            <span>
+                              {t('vouchers.maxDiscountLabel')}:{' '}
+                              <ProductPrice value={voucher.maximumDiscount} />
+                            </span>
+                          )}
+                        </p>
+                      )}
+                    </td>
+                    <td className="text-right whitespace-nowrap">
+                      <div className="inline-flex flex-wrap justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFormMode({ kind: 'edit', voucher })}
+                        >
+                          {t('vouchers.editAction')}
+                        </Button>
+                        {voucher.active && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={
+                              deactivateMutation.isPending &&
+                              deactivateMutation.variables?.code === voucher.code
+                            }
+                            onClick={() => deactivateMutation.mutate({ code: voucher.code })}
+                          >
+                            {t('vouchers.deactivateAction')}
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </section>
   )

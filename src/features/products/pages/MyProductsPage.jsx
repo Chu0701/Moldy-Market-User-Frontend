@@ -68,6 +68,7 @@ export function MyProductsPage({ store = false } = {}) {
             title={product.title}
             price={product.price}
             imageUrl={product.images?.[0]}
+            createdAt={product.createdAt}
             conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
             statusLabel={t(
               product.status === 'HIDDEN' ? 'products.statuses.hidden' : 'products.statuses.active',

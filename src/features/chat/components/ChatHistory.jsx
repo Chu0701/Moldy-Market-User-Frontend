@@ -1,3 +1,5 @@
+import { ArrowLeft, MessageSquare, RefreshCw } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -6,18 +8,32 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { Button } from '@/components/ui/button'
 import { getChronologicalMessages } from '@/features/chat/chatMessages'
+import { ChatAvatar, ChatMessagesSkeleton } from '@/features/chat/components/ChatAvatar'
 import { ChatMessage } from '@/features/chat/components/ChatMessage'
+import { getDateKey } from '@/features/chat/chatDate'
 import { useConversationMessages } from '@/features/chat/hooks/useChat'
-import { ChatComposer } from './ChatComposer'
 import { useChatRead } from '@/features/chat/hooks/useChatRead'
+import { cn } from '@/lib/utils'
+import { ChatComposer } from './ChatComposer'
 
-const statusKeys = { ACTIVE: 'chat.active', CLOSED: 'chat.closed' }
+const GROUP_WINDOW_MS = 5 * 60 * 1000
 
-/** @param {{ conversation: object, userId: string, title: string }} props */
+function isWithinGroupWindow(prevSentAt, currSentAt) {
+  if (!prevSentAt || !currSentAt) return false
+  const prev = new Date(prevSentAt).getTime()
+  const curr = new Date(currSentAt).getTime()
+  if (Number.isNaN(prev) || Number.isNaN(curr)) return false
+  return Math.abs(curr - prev) <= GROUP_WINDOW_MS
+}
+
+/** @param {{ conversation: object, userId: string, title: string, realtime: object }} props */
 export function ChatHistory({ conversation, userId, title, realtime }) {
   const { t } = useTranslation()
   const query = useConversationMessages(conversation.id)
+  const scrollRef = useRef(null)
   const messages = getChronologicalMessages(query.data?.pages)
+  const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null
+
   const latestIncoming = messages
     .filter(
       (message) =>
@@ -26,19 +42,50 @@ export function ChatHistory({ conversation, userId, title, realtime }) {
         Number.isSafeInteger(message.id),
     )
     .reduce((latest, message) => Math.max(latest, message.id), 0)
+
+  const peerCursor =
+    conversation.participant1Id === userId
+      ? conversation.lastReadMessageIdParticipant2
+      : conversation.lastReadMessageIdParticipant1
+
+  const lastReadOwnMessageId = messages.reduce((latest, message) => {
+    const isMine = message.senderId === userId
+    const isRead =
+      isMine &&
+      message.conversationId === conversation.id &&
+      Number.isSafeInteger(peerCursor) &&
+      Number.isSafeInteger(message.id) &&
+      peerCursor >= message.id
+    return isRead ? message.id : latest
+  }, null)
+
   const read = useChatRead({
     conversation,
     userId,
     messageId: latestIncoming,
     enabled: query.isSuccess && !query.isRefetchError,
   })
-  let content
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container || latestMessageId == null) return
+    container.scrollTop = container.scrollHeight
+  }, [conversation.id, latestMessageId])
+
+  const subtitleKey =
+    conversation.status === 'CLOSED'
+      ? 'chat.closed'
+      : conversation.status === 'ACTIVE' && conversation.canSend !== true
+        ? 'chat.readOnly'
+        : null
+
   let olderLabel = 'chat.loadOlder'
   if (query.isFetchingNextPage) olderLabel = 'chat.loadingOlder'
   else if (query.isFetchNextPageError) olderLabel = 'chat.retryOlder'
 
+  let content
   if (query.isPending) {
-    content = <p role="status">{t('chat.loadingMessages')}</p>
+    content = <ChatMessagesSkeleton label={t('chat.loadingMessages')} />
   } else if (query.error?.status === 403) {
     content = <ForbiddenState />
   } else if (query.isError && !query.data) {
@@ -52,86 +99,142 @@ export function ChatHistory({ conversation, userId, title, realtime }) {
     )
   } else {
     content = (
-      <>
+      <div className="flex min-h-full flex-col">
         {query.hasNextPage && (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={query.isFetching}
-            onClick={() => void query.fetchNextPage()}
-          >
-            {t(olderLabel)}
-          </Button>
+          <div className="mb-3 flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full text-xs"
+              disabled={query.isFetching}
+              onClick={() => void query.fetchNextPage()}
+            >
+              {t(olderLabel)}
+            </Button>
+          </div>
         )}
-        {query.isFetchNextPageError && <p role="alert">{t('chat.olderError')}</p>}
+        {query.isFetchNextPageError && (
+          <p role="alert" className="mb-3 text-center text-xs font-medium text-destructive">
+            {t('chat.olderError')}
+          </p>
+        )}
         {query.isRefetchError && !query.isFetchNextPageError && (
-          <p role="alert">{t('chat.refreshError')}</p>
+          <p role="alert" className="mb-3 text-center text-xs font-medium text-destructive">
+            {t('chat.refreshError')}
+          </p>
         )}
-        <p role="status" className="text-sm text-muted-foreground">
-          {t('chat.loadedCount', { count: messages.length })}
-        </p>
 
         {messages.length === 0 ? (
-          <EmptyState
-            title={t('chat.emptyHistory')}
-            description={t('chat.emptyHistoryDescription')}
-          />
+          <div className="flex flex-1 items-center justify-center py-8">
+            <EmptyState
+              icon={MessageSquare}
+              title={t('chat.emptyHistory')}
+              description={t('chat.emptyHistoryDescription')}
+              className="w-full max-w-sm border-dashed bg-transparent shadow-none"
+            />
+          </div>
         ) : (
-          <ol className="chat-messages" aria-label={t('chat.historyLabel')}>
-            {messages.map((message) => (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                userId={userId}
-                conversation={conversation}
-                targetRef={message.id === latestIncoming ? read.targetRef : undefined}
-              />
-            ))}
+          <ol className="chat-messages mt-auto" aria-label={t('chat.historyLabel')}>
+            {messages.map((message, index) => {
+              const prev = messages[index - 1]
+              const next = messages[index + 1]
+              const currDateKey = getDateKey(message.sentAt)
+              const prevDateKey = prev ? getDateKey(prev.sentAt) : null
+              const nextDateKey = next ? getDateKey(next.sentAt) : null
+
+              const showDateDivider = Boolean(currDateKey) && currDateKey !== prevDateKey
+              const groupedWithPrev =
+                !showDateDivider &&
+                Boolean(prev) &&
+                prev.senderId === message.senderId &&
+                isWithinGroupWindow(prev.sentAt, message.sentAt)
+              const groupedWithNext =
+                Boolean(next) &&
+                currDateKey === nextDateKey &&
+                next.senderId === message.senderId &&
+                isWithinGroupWindow(message.sentAt, next.sentAt)
+
+              return (
+                <ChatMessage
+                  key={message.id}
+                  message={message}
+                  userId={userId}
+                  conversation={conversation}
+                  targetRef={message.id === latestIncoming ? read.targetRef : undefined}
+                  showDateDivider={showDateDivider}
+                  isFirstInGroup={!groupedWithPrev}
+                  isLastInGroup={!groupedWithNext}
+                  isLastReadOwn={message.id === lastReadOwnMessageId}
+                />
+              )
+            })}
           </ol>
         )}
-      </>
+      </div>
     )
   }
 
   return (
     <section className="chat-thread" aria-labelledby="chat-thread-title">
-      <Link to="/chat" className="underline underline-offset-4 lg:hidden">
-        {t('chat.backToList')}
-      </Link>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <h2 id="chat-thread-title">{title}</h2>
-          <p className="text-sm text-muted-foreground">
-            {t(
-              conversation.status === 'ACTIVE' && conversation.canSend !== true
-                ? 'chat.readOnly'
-                : (statusKeys[conversation.status] ?? 'chat.statusUnknown'),
-            )}
-          </p>
+      <header className="chat-thread-header">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            to="/chat"
+            aria-label={t('chat.backToList')}
+            title={t('chat.backToList')}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+          >
+            <ArrowLeft className="size-4.5" aria-hidden="true" />
+          </Link>
+          <ChatAvatar name={title} size="sm" />
+          <div className="min-w-0">
+            <h2 id="chat-thread-title" className="truncate font-sans text-sm font-semibold">
+              {title}
+            </h2>
+            {subtitleKey && <p className="text-xs text-muted-foreground">{t(subtitleKey)}</p>}
+          </div>
         </div>
+
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t('chat.refreshMessages')}
+          title={t('chat.refreshMessages')}
           disabled={query.isFetching}
           onClick={() => void query.refetch()}
+          className="shrink-0 rounded-full text-muted-foreground hover:text-foreground"
         >
-          {t('chat.refreshMessages')}
+          <RefreshCw
+            className={cn('size-4', query.isFetching && 'animate-spin')}
+            aria-hidden="true"
+          />
         </Button>
+      </header>
+
+      <div ref={scrollRef} className="chat-viewport">
+        {content}
       </div>
-      {content}
-      {read.hasError && (
-        <div role="alert" className="flex flex-wrap items-center gap-2 text-sm">
-          <span>{t('chat.readError')}</span>
-          <Button type="button" variant="outline" onClick={read.retry}>
-            {t('chat.retryRead')}
-          </Button>
-        </div>
-      )}
-      <ChatComposer
-        conversation={conversation}
-        realtime={realtime}
-        canSend={query.isSuccess && !query.isRefetchError}
-      />
+
+      <footer className="chat-thread-footer">
+        {read.hasError && (
+          <div
+            role="alert"
+            className="mb-2 flex flex-wrap items-center gap-2 text-xs text-destructive"
+          >
+            <span>{t('chat.readError')}</span>
+            <Button type="button" variant="outline" size="xs" onClick={read.retry}>
+              {t('chat.retryRead')}
+            </Button>
+          </div>
+        )}
+        <ChatComposer
+          conversation={conversation}
+          realtime={realtime}
+          canSend={query.isSuccess && !query.isRefetchError}
+        />
+      </footer>
     </section>
   )
 }

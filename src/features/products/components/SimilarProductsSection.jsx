@@ -75,6 +75,7 @@ export function SimilarProductsSection({ categoryId, currentProductId }) {
             title={product.title}
             price={product.price}
             imageUrl={product.images?.[0]}
+            createdAt={product.createdAt}
             conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
           />
         ))}

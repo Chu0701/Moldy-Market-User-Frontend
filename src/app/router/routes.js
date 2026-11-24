@@ -216,6 +216,13 @@ export const routes = [
                     }),
                   },
                   {
+                    path: 'reviews',
+                    lazy: async () => ({
+                      Component: (await import('@/features/reviews/pages/StoreReviewsPage'))
+                        .StoreReviewsPage,
+                    }),
+                  },
+                  {
                     path: 'products',
                     lazy: async () => ({
                       Component: (await import('@/features/stores/pages/StoreProductsPage'))

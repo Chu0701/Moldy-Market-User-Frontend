@@ -143,8 +143,10 @@ export function VerifyEmailForm({ initialEmail = '', codeSent = false }) {
           inputMode="numeric"
           autoComplete="one-time-code"
           maxLength={6}
+          placeholder="000000"
           required
           readOnly={busy}
+          className="text-center font-mono text-lg font-semibold tracking-[0.35em]"
           aria-invalid={Boolean(errors.code)}
           aria-describedby={errors.code ? 'verify-code-error' : undefined}
           {...register('code')}
@@ -162,7 +164,14 @@ export function VerifyEmailForm({ initialEmail = '', codeSent = false }) {
         </p>
       )}
 
-      {resent && <p role="status">{t('auth.verify.resent')}</p>}
+      {resent && (
+        <p
+          role="status"
+          className="rounded-lg border border-success/30 bg-success/10 px-3.5 py-2.5 text-sm text-foreground"
+        >
+          {t('auth.verify.resent')}
+        </p>
+      )}
 
       <Button type="submit" disabled={busy}>
         {t(action === 'verify' ? 'auth.verify.verifying' : 'auth.verify.title')}

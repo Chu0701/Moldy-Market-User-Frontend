@@ -55,10 +55,24 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         {fieldError('description')}
       </div>
 
-      <div className="product-create-field">
-        <label htmlFor="product-edit-price">{t('products.create.priceLabel')}</label>
-        <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
-        {fieldError('price')}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="product-create-field">
+          <label htmlFor="product-edit-price">{t('products.create.priceLabel')}</label>
+          <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
+          {fieldError('price')}
+        </div>
+
+        <div className="product-create-field">
+          <label htmlFor="product-edit-condition">{t('products.filters.condition')}</label>
+          <select {...fieldProps('condition')} required disabled={isSubmitting}>
+            {conditions.map(([value, label]) => (
+              <option key={value} value={value}>
+                {t(label)}
+              </option>
+            ))}
+          </select>
+          {fieldError('condition')}
+        </div>
       </div>
 
       <AutoPricingPanel
@@ -68,18 +82,6 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
           form.setValue('price', String(suggested), { shouldValidate: true, shouldDirty: true })
         }
       />
-
-      <div className="product-create-field">
-        <label htmlFor="product-edit-condition">{t('products.filters.condition')}</label>
-        <select {...fieldProps('condition')} required disabled={isSubmitting}>
-          {conditions.map(([value, label]) => (
-            <option key={value} value={value}>
-              {t(label)}
-            </option>
-          ))}
-        </select>
-        {fieldError('condition')}
-      </div>
 
       <div className="product-create-field">
         <label htmlFor="product-edit-images">{t('products.create.imagesLabel')}</label>

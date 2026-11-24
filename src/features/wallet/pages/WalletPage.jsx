@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowDownToLine, Clock, History } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -18,6 +19,34 @@ import {
   useRequestWithdrawal,
 } from '@/features/wallet/hooks/useWallet'
 import { withdrawalSchema } from '@/features/wallet/schemas/withdrawalSchema'
+import { cn } from '@/lib/utils'
+
+const COMMON_VN_BANKS = [
+  'Vietcombank',
+  'VietinBank',
+  'BIDV',
+  'Agribank',
+  'Techcombank',
+  'MB Bank',
+  'ACB',
+  'VPBank',
+  'TPBank',
+  'Sacombank',
+  'VIB',
+  'HDBank',
+  'OCB',
+  'MSB',
+  'SHB',
+]
+
+const CREDIT_TX_TYPES = new Set([
+  'REFUND',
+  'WITHDRAWAL_REVERSE',
+  'CAPTURE',
+  'RELEASE',
+  'ORDER_PAYOUT',
+])
+const DEBIT_TX_TYPES = new Set(['WITHDRAWAL_HOLD', 'WITHDRAWAL_DONE', 'HOLD', 'FEE'])
 
 function createIdempotencyKey() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -151,29 +180,45 @@ export function WalletPage() {
   }
 
   return (
-    <section className="grid gap-8" aria-labelledby="wallet-title">
-      <div className="grid gap-2">
-        <h1 id="wallet-title" className="text-2xl font-semibold tracking-tight">
+    <section className="mx-auto grid max-w-5xl gap-6" aria-labelledby="wallet-title">
+      <header className="grid gap-1.5">
+        <h1 id="wallet-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">
           {t('wallet.title')}
         </h1>
         <p className="text-sm text-muted-foreground">{t('wallet.subtitle')}</p>
-      </div>
+      </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <article className="grid gap-1 rounded-xl border border-border bg-card p-5">
-          <p className="text-sm text-muted-foreground">{t('wallet.availableBalance')}</p>
-          <ProductPrice value={wallet.availableBalance ?? 0} className="text-2xl font-semibold" />
+      <div className="kn-stats-band sm:grid-cols-3">
+        <article className="kn-stat-cell bg-surface-subtle">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-success" aria-hidden="true" />
+            <p className="text-xs font-semibold text-foreground">{t('wallet.availableBalance')}</p>
+          </div>
+          <ProductPrice
+            value={wallet.availableBalance ?? 0}
+            className="text-3xl font-semibold tracking-tight tabular-nums"
+          />
+          <p className="text-xs leading-5 text-muted-foreground">{t('wallet.availableHint')}</p>
         </article>
-        <article className="grid gap-1 rounded-xl border border-border bg-card p-5">
-          <p className="text-sm text-muted-foreground">{t('wallet.pendingWithdrawBalance')}</p>
+        <article className="kn-stat-cell">
+          <p className="text-xs font-medium text-muted-foreground">
+            {t('wallet.pendingWithdrawBalance')}
+          </p>
           <ProductPrice
             value={wallet.pendingWithdrawBalance ?? 0}
-            className="text-2xl font-semibold"
+            className="text-2xl font-semibold tracking-tight tabular-nums"
           />
+          <p className="text-xs leading-5 text-muted-foreground">
+            {t('wallet.pendingWithdrawHint')}
+          </p>
         </article>
-        <article className="grid gap-1 rounded-xl border border-border bg-card p-5">
-          <p className="text-sm text-muted-foreground">{t('wallet.heldBalance')}</p>
-          <ProductPrice value={wallet.heldBalance ?? 0} className="text-2xl font-semibold" />
+        <article className="kn-stat-cell">
+          <p className="text-xs font-medium text-muted-foreground">{t('wallet.heldBalance')}</p>
+          <ProductPrice
+            value={wallet.heldBalance ?? 0}
+            className="text-2xl font-semibold tracking-tight tabular-nums"
+          />
+          <p className="text-xs leading-5 text-muted-foreground">{t('wallet.heldHint')}</p>
         </article>
       </div>
 
@@ -182,248 +227,362 @@ export function WalletPage() {
           role={feedback.type === 'error' ? 'alert' : 'status'}
           className={
             feedback.type === 'error'
-              ? 'rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive'
-              : 'rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary'
+              ? 'rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive'
+              : 'rounded-xl border border-border bg-surface-subtle px-4 py-3 text-sm font-medium text-foreground'
           }
         >
           {feedback.message}
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6 lg:grid-cols-2">
         <section
-          className="grid content-start gap-4 rounded-xl border border-border bg-card p-6"
+          className="kn-table-card grid content-start"
           aria-labelledby="wallet-withdraw-heading"
         >
-          <div className="grid gap-1">
-            <h2 id="wallet-withdraw-heading" className="text-lg font-semibold">
-              {t('wallet.withdrawTitle')}
-            </h2>
-            <p className="text-sm text-muted-foreground">{t('wallet.withdrawHint')}</p>
+          <div className="kn-table-toolbar">
+            <div className="grid gap-0.5">
+              <h2 id="wallet-withdraw-heading" className="text-base font-semibold tracking-tight">
+                {t('wallet.withdrawTitle')}
+              </h2>
+              <p className="text-xs text-muted-foreground">{t('wallet.withdrawHint')}</p>
+            </div>
           </div>
 
           <form
             noValidate
             onSubmit={(event) => void handleSubmit(onSubmit)(event)}
-            className="grid gap-4"
+            className="grid gap-4 p-5"
           >
             <div className="grid gap-1.5">
-              <label htmlFor="withdraw-amount" className="text-sm font-medium">
-                {t('wallet.fields.amount')}
-              </label>
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="withdraw-amount" className="text-[13px] font-medium">
+                  {t('wallet.fields.amount')}
+                </label>
+                {availableBalance > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValue('amount', String(availableBalance), { shouldValidate: true })
+                    }
+                    className="text-xs font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
+                  >
+                    {t('wallet.withdrawMax')}
+                  </button>
+                )}
+              </div>
               <input
                 id="withdraw-amount"
                 type="number"
                 min="1"
                 step="1000"
+                aria-invalid={errors.amount ? 'true' : undefined}
                 {...register('amount')}
-                className="min-h-10 rounded-md border border-border bg-background px-3 text-sm"
+                className="kn-input tabular-nums"
               />
               {errors.amount && (
-                <p role="alert" className="text-sm text-destructive">
+                <p role="alert" className="text-xs font-medium text-destructive">
                   {t(errors.amount.message)}
                 </p>
               )}
             </div>
 
-            <div className="grid gap-1.5">
-              <label htmlFor="withdraw-bank-name" className="text-sm font-medium">
-                {t('wallet.fields.bankName')}
-              </label>
-              <input
-                id="withdraw-bank-name"
-                type="text"
-                {...bankNameReg}
-                onChange={(event) => {
-                  editedFields.current.add('bankName')
-                  void bankNameReg.onChange(event)
-                }}
-                className="min-h-10 rounded-md border border-border bg-background px-3 text-sm"
-              />
-              {errors.bankName && (
-                <p role="alert" className="text-sm text-destructive">
-                  {t(errors.bankName.message)}
-                </p>
-              )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-1.5">
+                <label htmlFor="withdraw-bank-name" className="text-[13px] font-medium">
+                  {t('wallet.fields.bankName')}
+                </label>
+                <input
+                  id="withdraw-bank-name"
+                  type="text"
+                  list="vn-banks-list"
+                  aria-invalid={errors.bankName ? 'true' : undefined}
+                  {...bankNameReg}
+                  onChange={(event) => {
+                    editedFields.current.add('bankName')
+                    void bankNameReg.onChange(event)
+                  }}
+                  className="kn-input"
+                />
+                <datalist id="vn-banks-list">
+                  {COMMON_VN_BANKS.map((bank) => (
+                    <option key={bank} value={bank} />
+                  ))}
+                </datalist>
+                {errors.bankName && (
+                  <p role="alert" className="text-xs font-medium text-destructive">
+                    {t(errors.bankName.message)}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-1.5">
+                <label htmlFor="withdraw-account-number" className="text-[13px] font-medium">
+                  {t('wallet.fields.bankAccountNumber')}
+                </label>
+                <input
+                  id="withdraw-account-number"
+                  type="text"
+                  aria-invalid={errors.bankAccountNumber ? 'true' : undefined}
+                  {...bankAccountNumberReg}
+                  onChange={(event) => {
+                    editedFields.current.add('bankAccountNumber')
+                    void bankAccountNumberReg.onChange(event)
+                  }}
+                  className="kn-input tabular-nums"
+                />
+                {errors.bankAccountNumber && (
+                  <p role="alert" className="text-xs font-medium text-destructive">
+                    {t(errors.bankAccountNumber.message)}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="grid gap-1.5">
-              <label htmlFor="withdraw-account-number" className="text-sm font-medium">
-                {t('wallet.fields.bankAccountNumber')}
-              </label>
-              <input
-                id="withdraw-account-number"
-                type="text"
-                {...bankAccountNumberReg}
-                onChange={(event) => {
-                  editedFields.current.add('bankAccountNumber')
-                  void bankAccountNumberReg.onChange(event)
-                }}
-                className="min-h-10 rounded-md border border-border bg-background px-3 text-sm"
-              />
-              {errors.bankAccountNumber && (
-                <p role="alert" className="text-sm text-destructive">
-                  {t(errors.bankAccountNumber.message)}
-                </p>
-              )}
-            </div>
-
-            <div className="grid gap-1.5">
-              <label htmlFor="withdraw-account-holder" className="text-sm font-medium">
+              <label htmlFor="withdraw-account-holder" className="text-[13px] font-medium">
                 {t('wallet.fields.bankAccountHolder')}
               </label>
               <input
                 id="withdraw-account-holder"
                 type="text"
+                aria-invalid={errors.bankAccountHolder ? 'true' : undefined}
                 {...bankAccountHolderReg}
                 onChange={(event) => {
                   editedFields.current.add('bankAccountHolder')
                   void bankAccountHolderReg.onChange(event)
                 }}
-                className="min-h-10 rounded-md border border-border bg-background px-3 text-sm"
+                className="kn-input"
               />
+              <p className="text-xs text-muted-foreground">{t('wallet.accountHolderHint')}</p>
               {errors.bankAccountHolder && (
-                <p role="alert" className="text-sm text-destructive">
+                <p role="alert" className="text-xs font-medium text-destructive">
                   {t(errors.bankAccountHolder.message)}
                 </p>
               )}
             </div>
 
-            <Button type="submit" disabled={createWithdrawal.isPending || availableBalance <= 0}>
-              {t(createWithdrawal.isPending ? 'wallet.submitting' : 'wallet.submitWithdraw')}
-            </Button>
+            <div className="grid gap-2 border-t border-border pt-4">
+              <Button
+                type="submit"
+                className="w-full sm:w-auto"
+                disabled={createWithdrawal.isPending || availableBalance <= 0}
+              >
+                {t(createWithdrawal.isPending ? 'wallet.submitting' : 'wallet.submitWithdraw')}
+              </Button>
+              {availableBalance <= 0 ? (
+                <p className="text-xs text-muted-foreground">{t('wallet.zeroBalanceHint')}</p>
+              ) : (
+                <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+                  <span>{t('wallet.processingTimeHint')}</span>
+                </p>
+              )}
+            </div>
           </form>
         </section>
 
         <section
-          className="grid content-start gap-4 rounded-xl border border-border bg-card p-6"
+          className="kn-table-card grid content-start"
           aria-labelledby="wallet-withdrawals-heading"
         >
-          <h2 id="wallet-withdrawals-heading" className="text-lg font-semibold">
-            {t('wallet.withdrawalsTitle')}
-          </h2>
+          <div className="kn-table-toolbar">
+            <div className="flex items-baseline gap-2.5">
+              <h2
+                id="wallet-withdrawals-heading"
+                className="text-base font-semibold tracking-tight"
+              >
+                {t('wallet.withdrawalsTitle')}
+              </h2>
+              {withdrawals.length > 0 && (
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {t('table.rowsCount', { count: withdrawals.length })}
+                </span>
+              )}
+            </div>
+          </div>
 
           {withdrawalsQuery.isPending ? (
-            <p role="status">{t('wallet.loadingWithdrawals')}</p>
+            <p role="status" className="p-5 text-sm text-muted-foreground">
+              {t('wallet.loadingWithdrawals')}
+            </p>
           ) : withdrawalsQuery.isError ? (
-            <ErrorState
-              title={t('wallet.withdrawalsLoadError')}
-              description={t('feedback.checkBack')}
-              onRetry={() => void withdrawalsQuery.refetch()}
-              isRetrying={withdrawalsQuery.isFetching}
-            />
+            <div className="p-5">
+              <ErrorState
+                title={t('wallet.withdrawalsLoadError')}
+                description={t('feedback.checkBack')}
+                onRetry={() => void withdrawalsQuery.refetch()}
+                isRetrying={withdrawalsQuery.isFetching}
+              />
+            </div>
           ) : withdrawals.length === 0 ? (
-            <EmptyState
-              title={t('wallet.emptyWithdrawalsTitle')}
-              description={t('wallet.emptyWithdrawalsDescription')}
-            />
+            <div className="p-4">
+              <EmptyState
+                icon={ArrowDownToLine}
+                title={t('wallet.emptyWithdrawalsTitle')}
+                description={t('wallet.emptyWithdrawalsDescription')}
+                className="border-dashed bg-transparent py-8 shadow-none"
+              />
+            </div>
           ) : (
-            <ul className="grid gap-3">
-              {withdrawals.map((item) => (
-                <li
-                  key={item.id}
-                  className="grid gap-2 rounded-lg border border-border p-4 text-sm"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <ProductPrice value={item.amount} className="text-base font-semibold" />
-                    <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium">
-                      {t('wallet.withdrawalStatuses.' + item.status, {
-                        defaultValue: item.status,
-                      })}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground">
-                    {item.bankName}
-                    {item.maskedBankAccountNumber
-                      ? ' • ' + item.maskedBankAccountNumber
-                      : ''} • {item.bankAccountHolder}
-                  </p>
-                  {item.requestedAt && (
-                    <p className="text-xs text-muted-foreground">
-                      <OrderDate value={item.requestedAt} />
-                    </p>
-                  )}
-                  {item.rejectionReason && (
-                    <p className="text-xs text-destructive">
-                      {t('wallet.rejectionReason', { reason: item.rejectionReason })}
-                    </p>
-                  )}
-                  {item.status === 'REQUESTED' && (
-                    <div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={cancellingId === item.id}
-                        onClick={() => void handleCancel(item.id)}
-                      >
-                        {t(
-                          cancellingId === item.id
-                            ? 'wallet.cancelling'
-                            : 'wallet.cancelWithdrawal',
-                        )}
-                      </Button>
+            <ul className="divide-y divide-border">
+              {withdrawals.map((item) => {
+                const isLive = item.status === 'REQUESTED' || item.status === 'PROCESSING'
+                const dotColor =
+                  item.status === 'COMPLETED'
+                    ? 'bg-success'
+                    : item.status === 'REJECTED' || item.status === 'FAILED'
+                      ? 'bg-destructive'
+                      : isLive
+                        ? 'bg-warning'
+                        : 'bg-muted-foreground'
+                return (
+                  <li
+                    key={item.id}
+                    className="grid gap-2 px-5 py-4 text-sm transition-colors duration-150 hover:bg-surface-subtle"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <ProductPrice
+                        value={item.amount}
+                        className="text-base font-semibold tabular-nums"
+                      />
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-subtle px-2.5 py-0.5 text-xs font-medium text-foreground">
+                        <span className={`size-1.5 rounded-full ${dotColor}`} aria-hidden="true" />
+                        {t('wallet.withdrawalStatuses.' + item.status, {
+                          defaultValue: item.status,
+                        })}
+                      </span>
                     </div>
-                  )}
-                </li>
-              ))}
+                    <p className="text-xs text-muted-foreground">
+                      {item.bankName}
+                      {item.maskedBankAccountNumber
+                        ? ' • ' + item.maskedBankAccountNumber
+                        : ''} • {item.bankAccountHolder}
+                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      {item.requestedAt && (
+                        <p className="text-xs text-muted-foreground tabular-nums">
+                          <OrderDate value={item.requestedAt} />
+                        </p>
+                      )}
+                      {item.status === 'REQUESTED' && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={cancellingId === item.id}
+                          onClick={() => void handleCancel(item.id)}
+                        >
+                          {t(
+                            cancellingId === item.id
+                              ? 'wallet.cancelling'
+                              : 'wallet.cancelWithdrawal',
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                    {item.rejectionReason && (
+                      <p className="text-xs font-medium text-destructive">
+                        {t('wallet.rejectionReason', { reason: item.rejectionReason })}
+                      </p>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </section>
       </div>
 
-      <section
-        className="grid gap-4 rounded-xl border border-border bg-card p-6"
-        aria-labelledby="wallet-transactions-heading"
-      >
-        <h2 id="wallet-transactions-heading" className="text-lg font-semibold">
-          {t('wallet.transactionsTitle')}
-        </h2>
+      <section className="kn-table-card" aria-labelledby="wallet-transactions-heading">
+        <div className="kn-table-toolbar">
+          <div className="flex items-baseline gap-2.5">
+            <h2 id="wallet-transactions-heading" className="text-base font-semibold tracking-tight">
+              {t('wallet.transactionsTitle')}
+            </h2>
+            {transactions.length > 0 && (
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {t('table.rowsCount', { count: transactions.length })}
+              </span>
+            )}
+          </div>
+        </div>
 
         {transactionsQuery.isPending ? (
-          <p role="status">{t('wallet.loadingTransactions')}</p>
+          <p role="status" className="p-5 text-sm text-muted-foreground">
+            {t('wallet.loadingTransactions')}
+          </p>
         ) : transactionsQuery.isError ? (
-          <ErrorState
-            title={t('wallet.transactionsLoadError')}
-            description={t('feedback.checkBack')}
-            onRetry={() => void transactionsQuery.refetch()}
-            isRetrying={transactionsQuery.isFetching}
-          />
+          <div className="p-5">
+            <ErrorState
+              title={t('wallet.transactionsLoadError')}
+              description={t('feedback.checkBack')}
+              onRetry={() => void transactionsQuery.refetch()}
+              isRetrying={transactionsQuery.isFetching}
+            />
+          </div>
         ) : transactions.length === 0 ? (
-          <EmptyState
-            title={t('wallet.emptyTransactionsTitle')}
-            description={t('wallet.emptyTransactionsDescription')}
-          />
+          <div className="p-4">
+            <EmptyState
+              icon={History}
+              title={t('wallet.emptyTransactionsTitle')}
+              description={t('wallet.emptyTransactionsDescription')}
+              className="border-dashed bg-transparent py-8 shadow-none"
+            />
+          </div>
         ) : (
-          <ul className="grid gap-3">
-            {transactions.map((tx) => (
-              <li
-                key={tx.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4 text-sm"
-              >
-                <div className="grid gap-1">
-                  <p className="font-medium">
-                    {t('wallet.transactionTypes.' + tx.transactionType, {
-                      defaultValue: tx.transactionType,
-                    })}
-                  </p>
-                  {tx.description && <p className="text-muted-foreground">{tx.description}</p>}
-                  {tx.createdAt && (
-                    <p className="text-xs text-muted-foreground">
-                      <OrderDate value={tx.createdAt} />
-                    </p>
-                  )}
-                </div>
-                <div className="grid justify-items-end gap-1">
-                  <ProductPrice value={tx.amount} className="font-semibold" />
-                  <p className="text-xs text-muted-foreground">
-                    {t('wallet.balanceAfter')}:{' '}
-                    <ProductPrice value={tx.availableBalanceAfter ?? 0} />
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="kn-table-scroll">
+            <table className="kn-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t('table.type')}</th>
+                  <th scope="col">{t('table.date')}</th>
+                  <th scope="col" className="text-right">
+                    {t('table.amount')}
+                  </th>
+                  <th scope="col" className="text-right">
+                    {t('table.balanceAfter')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((tx) => {
+                  const isCredit = CREDIT_TX_TYPES.has(tx.transactionType)
+                  const isDebit = DEBIT_TX_TYPES.has(tx.transactionType)
+                  return (
+                    <tr key={tx.id}>
+                      <td>
+                        <p className="font-medium text-foreground">
+                          {t('wallet.transactionTypes.' + tx.transactionType, {
+                            defaultValue: tx.transactionType,
+                          })}
+                        </p>
+                        {tx.description && (
+                          <p className="mt-0.5 text-xs text-muted-foreground">{tx.description}</p>
+                        )}
+                      </td>
+                      <td className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+                        {tx.createdAt ? <OrderDate value={tx.createdAt} /> : '—'}
+                      </td>
+                      <td
+                        className={cn(
+                          'text-right font-semibold whitespace-nowrap tabular-nums',
+                          isCredit && 'text-success',
+                          isDebit && 'text-destructive',
+                        )}
+                      >
+                        {isCredit ? '+' : isDebit ? '−' : ''}
+                        <ProductPrice value={Math.abs(Number(tx.amount ?? 0))} />
+                      </td>
+                      <td className="text-right whitespace-nowrap text-muted-foreground tabular-nums">
+                        <ProductPrice value={tx.availableBalanceAfter ?? 0} />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </section>

@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -6,10 +7,11 @@ import { Button } from '@/components/ui/button'
 import { useCreateStore } from '@/features/stores/hooks/useCreateStore'
 import { openStoreSchema } from '@/features/stores/schemas/openStoreSchema'
 
-/** @param {{ userId: string, onCreated: () => void, onExistingStore: () => void }} props */
-export function OpenStoreForm({ userId, onCreated, onExistingStore }) {
+/** @param {{ userId: string, onCreated: () => void, onExistingStore: () => void, onPreviewChange?: (values: object) => void }} props */
+export function OpenStoreForm({ userId, onCreated, onExistingStore, onPreviewChange }) {
   const { t } = useTranslation()
   const { mutateAsync } = useCreateStore(userId)
+  const [descLength, setDescLength] = useState(0)
   const {
     register,
     handleSubmit,
@@ -20,6 +22,15 @@ export function OpenStoreForm({ userId, onCreated, onExistingStore }) {
     defaultValues: { name: '', description: '', pickupAddress: '' },
     mode: 'onTouched',
   })
+
+  const nameReg = register('name')
+  const descriptionReg = register('description')
+  const pickupReg = register('pickupAddress')
+
+  function notifyPreview(field, value) {
+    if (!onPreviewChange) return
+    onPreviewChange((current) => ({ ...current, [field]: value }))
+  }
 
   async function onSubmit(values) {
     try {
@@ -39,7 +50,7 @@ export function OpenStoreForm({ userId, onCreated, onExistingStore }) {
 
   return (
     <form
-      className="open-store-form"
+      className="open-store-form max-w-none"
       noValidate
       aria-busy={isSubmitting}
       onSubmit={handleSubmit(onSubmit)}
@@ -49,10 +60,15 @@ export function OpenStoreForm({ userId, onCreated, onExistingStore }) {
         <input
           id="open-store-name"
           required
+          maxLength={100}
           readOnly={isSubmitting}
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? 'open-store-name-error' : undefined}
-          {...register('name')}
+          {...nameReg}
+          onChange={(event) => {
+            void nameReg.onChange(event)
+            notifyPreview('name', event.target.value)
+          }}
         />
         {errors.name && (
           <p id="open-store-name-error" className="open-store-error" role="alert">
@@ -62,18 +78,38 @@ export function OpenStoreForm({ userId, onCreated, onExistingStore }) {
       </div>
 
       <div className="open-store-field">
-        <label htmlFor="open-store-description">{t('stores.open.description')}</label>
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="open-store-description" className="text-[13px] font-medium">
+            {t('stores.open.description')}
+          </label>
+          <span className="text-[11px] text-muted-foreground tabular-nums">{descLength}/500</span>
+        </div>
         <textarea
           id="open-store-description"
           rows={4}
+          maxLength={500}
           readOnly={isSubmitting}
-          {...register('description')}
+          {...descriptionReg}
+          onChange={(event) => {
+            void descriptionReg.onChange(event)
+            setDescLength(event.target.value.length)
+            notifyPreview('description', event.target.value)
+          }}
         />
       </div>
 
       <div className="open-store-field">
         <label htmlFor="open-store-address">{t('stores.open.pickupAddress')}</label>
-        <input id="open-store-address" readOnly={isSubmitting} {...register('pickupAddress')} />
+        <input
+          id="open-store-address"
+          readOnly={isSubmitting}
+          {...pickupReg}
+          onChange={(event) => {
+            void pickupReg.onChange(event)
+            notifyPreview('pickupAddress', event.target.value)
+          }}
+        />
+        <p className="text-xs text-muted-foreground">{t('stores.open.pickupAddressHint')}</p>
       </div>
 
       {errors.root?.server?.message && (

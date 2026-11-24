@@ -13,12 +13,14 @@ export function LanguageSwitcher() {
 
   return (
     <Button
-      variant="outline"
-      className="min-h-11"
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="min-h-10 px-2.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase hover:text-foreground"
       aria-label={`${t('language.label')}: ${t(`language.${nextLanguage}`)}`}
       onClick={changeLanguage}
     >
-      {t(`language.${nextLanguage}`)}
+      {nextLanguage.toUpperCase()}
     </Button>
   )
 }

@@ -1,3 +1,4 @@
+import { AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -13,14 +14,22 @@ export function ErrorState({ title, description, onRetry, isRetrying = false }) 
     <div
       role="alert"
       aria-busy={isRetrying}
-      className="col-span-full rounded-xl border border-border px-4 py-10 text-center sm:px-6"
+      className="col-span-full flex w-full min-w-0 flex-col items-center justify-center rounded-2xl border border-border bg-card px-6 py-10 text-center text-balance shadow-xs"
     >
-      <h3 className="text-xl font-semibold text-foreground">{title}</h3>
-      <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{description}</p>
+      <span
+        aria-hidden="true"
+        className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive"
+      >
+        <AlertCircle className="size-5" />
+      </span>
+      <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">{title}</h3>
+      <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
       <Button
         type="button"
         variant="outline"
-        className="mt-6 min-h-11"
+        className="mt-5 min-h-11"
         disabled={isRetrying}
         onClick={onRetry}
       >

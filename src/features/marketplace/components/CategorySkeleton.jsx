@@ -13,10 +13,10 @@ export function CategorySkeleton() {
         {Array.from({ length: 10 }, (_, index) => (
           <div
             key={index}
-            className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-border px-4 py-3 motion-safe:animate-pulse"
+            className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3"
           >
-            <div className="h-4 w-3/4 rounded-sm bg-muted" />
-            <div className="size-4 shrink-0 rounded-sm bg-muted" />
+            <div className="skeleton-shimmer h-4 w-3/4 rounded-sm" />
+            <div className="skeleton-shimmer size-4 shrink-0 rounded-sm" />
           </div>
         ))}
       </div>

@@ -1,4 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -14,6 +16,7 @@ const fields = [
 
 export function ChangePasswordForm() {
   const { t } = useTranslation()
+  const [visibleFields, setVisibleFields] = useState({})
   const {
     register,
     handleSubmit,
@@ -54,20 +57,40 @@ export function ChangePasswordForm() {
       {fields.map(({ name, autoComplete }) => {
         const id = `change-password-${name}`
         const error = errors[name]
+        const isVisible = Boolean(visibleFields[name])
 
         return (
           <div key={name} className="profile-edit-field">
             <label htmlFor={id}>{t(`account.password.${name}`)}</label>
-            <input
-              id={id}
-              type="password"
-              autoComplete={autoComplete}
-              required
-              readOnly={isSubmitting}
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? `${id}-error` : undefined}
-              {...register(name)}
-            />
+            <div className="password-input-wrap">
+              <input
+                id={id}
+                type={isVisible ? 'text' : 'password'}
+                autoComplete={autoComplete}
+                required
+                readOnly={isSubmitting}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? `${id}-error` : undefined}
+                {...register(name)}
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                aria-label={isVisible ? 'Hide password' : 'Show password'}
+                onClick={() =>
+                  setVisibleFields((prev) => ({
+                    ...prev,
+                    [name]: !prev[name],
+                  }))
+                }
+              >
+                {isVisible ? (
+                  <EyeOff aria-hidden="true" className="size-4" />
+                ) : (
+                  <Eye aria-hidden="true" className="size-4" />
+                )}
+              </button>
+            </div>
             {error && (
               <p id={`${id}-error`} className="profile-edit-error" role="alert">
                 {t(error.message)}
@@ -85,9 +108,11 @@ export function ChangePasswordForm() {
 
       {isSubmitSuccessful && !isSubmitting && <p role="status">{t('account.password.saved')}</p>}
 
-      <Button type="submit" disabled={isSubmitting}>
-        {t(isSubmitting ? 'account.password.saving' : 'account.password.submit')}
-      </Button>
+      <div className="profile-edit-actions">
+        <Button type="submit" disabled={isSubmitting}>
+          {t(isSubmitting ? 'account.password.saving' : 'account.password.submit')}
+        </Button>
+      </div>
     </form>
   )
 }

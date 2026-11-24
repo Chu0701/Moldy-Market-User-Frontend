@@ -80,7 +80,7 @@ export function StoreVoucherForm({ initialVoucher = null, isPending, error, onSu
   return (
     <form
       onSubmit={handleSubmit((values) => onSubmit(toVoucherPayload(values)))}
-      className="space-y-4 rounded-xl border border-border bg-background p-5"
+      className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-xs sm:p-7"
       noValidate
     >
       <h2 className="text-xl font-semibold">

@@ -50,33 +50,55 @@ function OwnerStoreOverview({ profile }) {
     return <Navigate to="/open-store" replace />
   }
 
+  const isBlocked = store.status === 'BLOCKED'
+
   return (
-    <section className="store-public-page" aria-labelledby="my-store-title">
-      <header className="store-public-header">
-        <h1 id="my-store-title">{store.name}</h1>
-        {store.description && <p>{store.description}</p>}
+    <section className="store-public-page space-y-6" aria-labelledby="my-store-title">
+      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
+        <div className="min-w-0 space-y-1.5">
+          <h1 id="my-store-title">{store.name}</h1>
+          {store.description && (
+            <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{store.description}</p>
+          )}
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link to={`/stores/${encodeURIComponent(store.id)}`}>{t('stores.viewPublic')}</Link>
+        </Button>
       </header>
 
-      {state?.storeProfileSaved === true && <p role="status">{t('stores.profile.saved')}</p>}
+      {state?.storeProfileSaved === true && (
+        <p
+          role="status"
+          className="rounded-xl border border-border bg-surface-subtle px-4 py-3 text-sm font-medium text-foreground"
+        >
+          {t('stores.profile.saved')}
+        </p>
+      )}
 
-      <dl className="mt-6 grid gap-3 rounded-xl border border-border bg-card p-5 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="text-muted-foreground">{t('stores.dashboard.statusLabel')}</dt>
-          <dd className="mt-1 font-medium">{store.status ?? 'ACTIVE'}</dd>
+      <dl className="kn-stats-band sm:grid-cols-2">
+        <div className="kn-stat-cell">
+          <dt className="text-xs font-medium text-muted-foreground">
+            {t('stores.dashboard.statusLabel')}
+          </dt>
+          <dd className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <span
+              className={`size-2 rounded-full ${isBlocked ? 'bg-destructive' : 'bg-success'}`}
+              aria-hidden="true"
+            />
+            {store.status ?? 'ACTIVE'}
+          </dd>
         </div>
         {store.pickupAddress && (
-          <div>
-            <dt className="text-muted-foreground">{t('stores.profile.pickupAddress')}</dt>
-            <dd className="mt-1 font-medium">{store.pickupAddress}</dd>
+          <div className="kn-stat-cell">
+            <dt className="text-xs font-medium text-muted-foreground">
+              {t('stores.profile.pickupAddress')}
+            </dt>
+            <dd className="text-sm font-medium break-words text-foreground">
+              {store.pickupAddress}
+            </dd>
           </div>
         )}
       </dl>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Button asChild variant="outline">
-          <Link to={`/stores/${encodeURIComponent(store.id)}`}>{t('stores.viewPublic')}</Link>
-        </Button>
-      </div>
     </section>
   )
 }

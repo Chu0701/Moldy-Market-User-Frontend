@@ -83,9 +83,40 @@ export function CheckoutForm({
     >
       <h2>{t('checkout.deliveryTitle')}</h2>
 
-      <fieldset disabled={isSubmitting} className="grid gap-5">
-        {fields.map(({ name, label, type = 'text', multiline, autoComplete }) => {
-          const Field = multiline ? 'textarea' : 'input'
+      <fieldset disabled={isSubmitting} className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {fields.slice(0, 2).map(({ name, label, type = 'text', autoComplete }) => {
+            const id = 'checkout-' + name
+            const error = errors[name]
+            const registration = register(name)
+
+            return (
+              <div key={name} className="checkout-field">
+                <label htmlFor={id}>{t(label)}</label>
+                <input
+                  id={id}
+                  type={type}
+                  autoComplete={autoComplete}
+                  required
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? id + '-error' : undefined}
+                  {...registration}
+                  onChange={(event) => {
+                    editedFields.current.add(name)
+                    void registration.onChange(event)
+                  }}
+                />
+                {error && (
+                  <p id={id + '-error'} className="checkout-error" role="alert">
+                    {t(error.message)}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {fields.slice(2).map(({ name, label, autoComplete }) => {
           const id = 'checkout-' + name
           const error = errors[name]
           const registration = register(name)
@@ -93,10 +124,9 @@ export function CheckoutForm({
           return (
             <div key={name} className="checkout-field">
               <label htmlFor={id}>{t(label)}</label>
-              <Field
+              <textarea
                 id={id}
-                type={multiline ? undefined : type}
-                rows={multiline ? 3 : undefined}
+                rows={3}
                 autoComplete={autoComplete}
                 required={name !== 'note'}
                 aria-invalid={Boolean(error)}
@@ -116,14 +146,21 @@ export function CheckoutForm({
           )
         })}
 
-        <fieldset className="grid gap-3">
-          <legend className="mb-3 font-medium">{t('checkout.paymentTitle')}</legend>
-          {['COD', 'ONLINE_BANKING'].map((method) => (
-            <label key={method} className="flex min-h-11 items-center gap-3">
-              <input type="radio" value={method} {...register('method')} />
-              <span>{t('checkout.methods.' + method)}</span>
-            </label>
-          ))}
+        <fieldset className="grid gap-2.5 border-t border-border pt-4">
+          <legend className="mb-2 text-[13px] font-medium text-foreground">
+            {t('checkout.paymentTitle')}
+          </legend>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {['COD', 'ONLINE_BANKING'].map((method) => (
+              <label
+                key={method}
+                className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-surface-subtle px-4 py-3 text-sm font-medium transition-colors hover:border-foreground/40 has-[:checked]:border-primary has-[:checked]:bg-background has-[:checked]:ring-1 has-[:checked]:ring-primary"
+              >
+                <input type="radio" value={method} {...register('method')} />
+                <span>{t('checkout.methods.' + method)}</span>
+              </label>
+            ))}
+          </div>
         </fieldset>
       </fieldset>
       <p id="checkout-notice" className="checkout-notice">

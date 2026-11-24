@@ -47,7 +47,7 @@ export function WishlistPage() {
   return (
     <section className="mx-auto max-w-4xl space-y-6" aria-labelledby="wishlist-heading">
       <div>
-        <h1 id="wishlist-heading" className="text-3xl font-semibold sm:text-4xl">
+        <h1 id="wishlist-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">
           {t('wishlist.title')}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">{t('wishlist.description')}</p>

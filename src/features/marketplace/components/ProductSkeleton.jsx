@@ -11,15 +11,12 @@ export function ProductSkeleton() {
       <div aria-hidden="true">
         <ProductGrid>
           {Array.from({ length: 10 }, (_, index) => (
-            <div
-              key={index}
-              className="overflow-hidden rounded-lg border border-border motion-safe:animate-pulse"
-            >
-              <div className="aspect-square bg-muted" />
+            <div key={index} className="overflow-hidden rounded-lg border border-border bg-card">
+              <div className="skeleton-shimmer aspect-square" />
               <div className="space-y-2.5 p-3">
-                <div className="h-4 w-full rounded-sm bg-muted" />
-                <div className="h-4 w-2/3 rounded-sm bg-muted" />
-                <div className="h-5 w-1/3 rounded-sm bg-muted" />
+                <div className="skeleton-shimmer h-4 w-full rounded-sm" />
+                <div className="skeleton-shimmer h-4 w-2/3 rounded-sm" />
+                <div className="skeleton-shimmer h-5 w-1/3 rounded-sm" />
               </div>
             </div>
           ))}

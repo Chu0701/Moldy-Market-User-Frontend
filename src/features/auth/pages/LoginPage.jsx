@@ -1,4 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -30,6 +32,7 @@ export function LoginPage() {
   const signIn = useLogin()
   const navigate = useNavigate()
   const location = useLocation()
+  const [showPassword, setShowPassword] = useState(false)
   const {
     register,
     handleSubmit,
@@ -87,15 +90,29 @@ export function LoginPage() {
 
         <div className="login-field">
           <label htmlFor="login-password">{t('auth.login.password')}</label>
-          <input
-            id="login-password"
-            type="password"
-            autoComplete="current-password"
-            required
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? 'login-password-error' : undefined}
-            {...register('password')}
-          />
+          <div className="password-input-wrap">
+            <input
+              id="login-password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? 'login-password-error' : undefined}
+              {...register('password')}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              onClick={() => setShowPassword((visible) => !visible)}
+            >
+              {showPassword ? (
+                <EyeOff aria-hidden="true" className="size-4" />
+              ) : (
+                <Eye aria-hidden="true" className="size-4" />
+              )}
+            </button>
+          </div>
           {errors.password && (
             <p id="login-password-error" role="alert">
               {t(errors.password.message)}
@@ -114,9 +131,14 @@ export function LoginPage() {
         </Button>
       </form>
 
-      <Link to="/register" className="login-register-link">
-        {t('navigation.register')}
-      </Link>
+      <div className="auth-card-footer">
+        <Link to="/register" className="login-register-link">
+          {t('navigation.register')}
+        </Link>
+        <Link to="/verify-email" className="login-register-link">
+          {t('auth.verify.title')}
+        </Link>
+      </div>
     </section>
   )
 }

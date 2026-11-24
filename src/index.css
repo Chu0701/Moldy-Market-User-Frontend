@@ -174,7 +174,7 @@
 @keyframes editorial-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -182,13 +182,113 @@
   }
 }
 
+@keyframes skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes step-progress-fill {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes popover-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kn-popover-enter {
+  animation: popover-drop 160ms var(--ease-out) both;
+}
+
 .editorial-reveal {
   animation: editorial-enter var(--dur-base) var(--ease-out) both;
 }
 
+.editorial-stagger {
+  animation: editorial-enter 320ms var(--ease-out) both;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.6) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: skeleton-sweep 1.5s linear infinite;
+}
+
+.step-progress-bar {
+  transform-origin: top;
+  animation: step-progress-fill 3.5s linear forwards;
+}
+
+.step-progress-bar[data-paused='true'] {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .editorial-reveal {
+  .editorial-reveal,
+  .editorial-stagger,
+  .kn-popover-enter {
     animation: none;
+  }
+
+  .skeleton-shimmer::after {
+    display: none;
+  }
+
+  .step-progress-bar {
+    animation: none;
+    transform: scaleY(1);
+  }
+}
+
+/* Knowns UI tactile button physics without mutating shadcn primitive source */
+[data-slot='button'] {
+  transition-property: background-color, border-color, color, box-shadow, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-out);
+}
+
+[data-slot='button']:not(:disabled):active {
+  transform: scale(0.975);
+}
+
+[data-slot='button'][data-variant='default'] {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 1px 2px rgb(0 0 0 / 0.14);
+}
+
+[data-slot='button'][data-variant='outline'] {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='button']:not(:disabled):active {
+    transform: none;
   }
 }
 
@@ -347,27 +447,27 @@
   }
 
   .pagination-bar {
-    @apply mt-8 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between;
+    @apply mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-2.5 text-[13px] text-muted-foreground shadow-2xs;
   }
 
   .pagination-bar > p {
-    @apply text-sm leading-6 text-muted-foreground;
+    @apply text-[13px] leading-5 text-muted-foreground tabular-nums;
   }
 
   .pagination-controls {
-    @apply flex flex-wrap items-center gap-3;
+    @apply flex flex-wrap items-center gap-2;
   }
 
   .pagination-controls > button {
-    @apply min-h-11 min-w-11;
+    @apply min-h-9 min-w-9 rounded-lg;
   }
 
   .pagination-controls > span {
-    @apply px-2 text-sm tabular-nums;
+    @apply px-2 text-[13px] font-medium text-foreground tabular-nums;
   }
 
   .product-list-page > h1 {
-    @apply mb-6 text-3xl font-semibold md:text-4xl;
+    @apply mb-5 scroll-mt-24 text-2xl font-semibold tracking-tight sm:text-3xl;
   }
 
   .product-discovery-layout {
@@ -375,7 +475,7 @@
   }
 
   .product-discovery-sidebar {
-    @apply min-w-0 lg:sticky lg:top-28;
+    @apply min-w-0 lg:sticky lg:top-20;
   }
 
   .product-discovery-content {
@@ -395,11 +495,11 @@
   }
 
   .product-discovery-sidebar .product-filter-price {
-    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-1;
+    @apply grid-cols-2 gap-2;
   }
 
   .product-discovery-content .product-search-results > div {
-    @apply lg:grid-cols-3 xl:grid-cols-4;
+    @apply gap-4 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4;
   }
 
   .product-search-results[data-stale='true'] {
@@ -471,11 +571,11 @@
   }
 
   .product-filter-price {
-    @apply mt-2 grid gap-3 sm:grid-cols-2;
+    @apply mt-2 grid grid-cols-2 gap-2;
   }
 
   form:has(#product-search) .product-filter-price input[type='number'] {
-    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    @apply min-h-10 w-full rounded-md border border-input bg-background px-2.5 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }
 
   form:has(#product-search) > button {
@@ -489,44 +589,65 @@
 
 @layer components {
   .login-page {
-    @apply mx-auto w-full max-w-sm;
+    @apply mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xs sm:p-8;
   }
 
   .login-page > h1 {
-    @apply mb-8 text-3xl leading-snug font-semibold sm:text-4xl;
+    @apply mb-6 text-2xl leading-snug font-semibold sm:text-3xl;
   }
 
   .login-form {
-    @apply grid gap-5;
+    @apply grid gap-4;
   }
 
   .login-field {
-    @apply grid gap-2;
+    @apply grid gap-1.5;
   }
 
   .login-field > label {
-    @apply text-sm font-medium;
+    @apply text-[13px] font-medium text-foreground;
   }
 
-  .login-field > input {
-    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  .login-field input {
+    @apply min-h-11 w-full rounded-lg border border-input bg-background px-3.5 text-base text-foreground shadow-2xs transition-[border-color,box-shadow] duration-150 outline-none hover:border-foreground/35 focus-visible:border-foreground/75 sm:text-sm;
   }
 
-  .login-field > input[aria-invalid='true'] {
+  .login-field input:focus-visible {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 22%, transparent);
+  }
+
+  .login-field input[aria-invalid='true'] {
     @apply border-destructive;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--destructive) 14%, transparent);
   }
 
   .login-field > p,
   .login-form-error {
-    @apply text-sm text-destructive;
+    @apply text-xs font-medium text-destructive;
   }
 
   .login-form > button {
-    @apply min-h-11 w-full;
+    @apply min-h-11 w-full rounded-lg;
   }
 
   .login-register-link {
-    @apply mt-4 inline-flex min-h-11 items-center rounded-md text-sm underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    @apply inline-flex min-h-10 items-center rounded-md text-sm font-medium text-muted-foreground underline underline-offset-4 transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .auth-card-footer {
+    @apply mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4;
+  }
+
+  .password-input-wrap {
+    @apply relative;
+  }
+
+  .password-input-wrap > input {
+    @apply pr-11;
+  }
+
+  .password-toggle-btn {
+    @apply absolute top-1/2 right-1.5 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring;
   }
 }
 
@@ -538,7 +659,7 @@
 
   .store-public-page h1,
   .category-page h1 {
-    @apply text-3xl leading-snug font-semibold break-words sm:text-4xl;
+    @apply scroll-mt-24 text-2xl leading-snug font-semibold tracking-tight break-words sm:text-3xl;
   }
 
   .category-page-header {
@@ -575,13 +696,22 @@
     @apply grid w-full max-w-2xl gap-6;
   }
 
+  .profile-overview {
+    @apply mx-auto grid w-full max-w-5xl gap-6;
+  }
+
+  .profile-overview-grid {
+    @apply grid items-start gap-6 lg:grid-cols-[21rem_minmax(0,1fr)] lg:gap-8;
+  }
+
   .profile-page > h1 {
-    @apply text-3xl leading-snug font-semibold sm:text-4xl;
+    @apply text-2xl leading-snug font-semibold sm:text-3xl;
   }
 
   .profile-page > p[role='status'],
+  .profile-overview > p[role='status'],
   .profile-edit-form > p[role='status'] {
-    @apply rounded-md bg-success px-4 py-3 text-sm text-success-foreground;
+    @apply rounded-xl border border-border bg-surface-subtle px-4 py-3 text-sm font-medium text-foreground;
   }
 
   .profile-page > a {
@@ -605,59 +735,69 @@
   }
 
   .profile-edit-form {
-    @apply grid gap-5 rounded-xl border border-border p-4 sm:p-6;
+    @apply grid gap-5 rounded-2xl border border-border bg-card p-6 shadow-xs sm:p-8;
   }
 
   .profile-edit-field {
-    @apply grid gap-2;
+    @apply grid gap-1.5;
   }
 
   .profile-edit-field > label {
-    @apply text-sm font-medium;
+    @apply text-[13px] font-medium text-foreground;
   }
 
-  .profile-edit-field > input {
-    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  .profile-edit-field input {
+    @apply min-h-11 w-full rounded-lg border border-input bg-background px-3.5 text-base text-foreground shadow-2xs transition-[border-color,box-shadow] duration-150 outline-none hover:border-foreground/35 focus-visible:border-foreground/75 sm:text-sm;
   }
 
-  .profile-edit-field > input[aria-invalid='true'] {
+  .profile-edit-field input:focus-visible {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 22%, transparent);
+  }
+
+  .profile-edit-field input[aria-invalid='true'] {
     @apply border-destructive;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--destructive) 14%, transparent);
   }
 
   .profile-edit-hint {
-    @apply text-sm text-muted-foreground;
+    @apply text-xs leading-5 text-muted-foreground;
   }
 
   .profile-edit-error {
-    @apply text-sm text-destructive;
+    @apply text-xs font-medium text-destructive;
   }
 
   .profile-edit-actions {
-    @apply flex flex-wrap gap-3;
+    @apply flex flex-wrap gap-3 border-t border-border pt-5;
   }
 
   .open-store-page {
-    @apply grid w-full max-w-2xl gap-6;
+    @apply mx-auto grid w-full max-w-5xl gap-6;
   }
 
   .open-store-form,
   .product-create-form {
-    @apply grid w-full max-w-2xl gap-5 rounded-xl border border-border p-4 sm:p-6;
+    @apply grid w-full max-w-2xl gap-5 rounded-2xl border border-border bg-card p-6 shadow-xs sm:p-8;
   }
 
   .open-store-field,
   .product-create-field {
-    @apply grid gap-2;
+    @apply grid gap-1.5;
   }
 
   .open-store-field > label,
   .product-create-field > label {
-    @apply text-sm font-medium;
+    @apply text-[13px] font-medium text-foreground;
   }
 
   .open-store-field > :is(input, textarea),
   .product-create-field > :is(input, select, textarea) {
-    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    @apply min-h-11 w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-base text-foreground shadow-2xs transition-[border-color,box-shadow] duration-150 outline-none hover:border-foreground/35 focus-visible:border-foreground/75 sm:text-sm;
+  }
+
+  .open-store-field > :is(input, textarea):focus-visible,
+  .product-create-field > :is(input, select, textarea):focus-visible {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 22%, transparent);
   }
 
   .open-store-field > textarea,
@@ -668,16 +808,17 @@
   .open-store-field > [aria-invalid='true'],
   .product-create-field > [aria-invalid='true'] {
     @apply border-destructive;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--destructive) 14%, transparent);
   }
 
   .open-store-error,
   .product-create-error {
-    @apply text-sm text-destructive;
+    @apply text-xs font-medium text-destructive;
   }
 
   .open-store-form > button,
   .product-create-form > button {
-    @apply min-h-11 justify-self-start;
+    @apply min-h-11 justify-self-start rounded-lg;
   }
 }
 
@@ -688,19 +829,19 @@
   }
 
   .cart-page {
-    @apply max-w-4xl;
+    @apply mx-auto max-w-5xl;
+  }
+
+  .cart-layout {
+    @apply grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-8;
   }
 
   .cart-selection-controls {
-    @apply flex flex-wrap items-center gap-3;
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-xs;
   }
 
   .cart-item-row {
-    @apply grid grid-cols-[auto_1fr] items-start gap-4 p-4 sm:grid-cols-[auto_1fr_auto] sm:p-6;
-  }
-
-  .cart-item-row > div:last-child {
-    @apply col-start-2 sm:col-start-auto;
+    @apply grid grid-cols-[auto_4.5rem_minmax(0,1fr)_auto] items-start gap-3 p-4 transition-colors duration-150 hover:bg-surface-subtle/60 sm:grid-cols-[auto_5rem_minmax(0,1fr)_auto] sm:gap-4 sm:p-5;
   }
 
   .cart-item-select {
@@ -709,31 +850,35 @@
 
   .cart-item-select > input,
   .checkout-panel input[type='radio'] {
-    @apply size-5 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed;
+    @apply size-4.5 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed;
   }
 
   .cart-selection-panel {
-    @apply sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card p-5 shadow-md;
+    @apply grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-xs sm:p-6 lg:sticky lg:top-24;
   }
 
   .checkout-grid {
-    @apply grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem];
+    @apply grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_23rem];
   }
 
   .checkout-panel {
-    @apply grid min-w-0 gap-5 rounded-xl border border-border p-5 sm:p-7;
+    @apply grid min-w-0 gap-5 rounded-2xl border border-border bg-card p-6 shadow-xs sm:p-8;
   }
 
   .checkout-field {
-    @apply grid gap-2;
+    @apply grid gap-1.5;
   }
 
   .checkout-field > label {
-    @apply text-sm font-medium;
+    @apply text-[13px] font-medium text-foreground;
   }
 
   .checkout-field > :is(input, textarea) {
-    @apply min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    @apply min-h-11 w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-base text-foreground shadow-2xs transition-[border-color,box-shadow] duration-150 outline-none hover:border-foreground/35 focus-visible:border-foreground/75 sm:text-sm;
+  }
+
+  .checkout-field > :is(input, textarea):focus-visible {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 22%, transparent);
   }
 
   .checkout-field > textarea {
@@ -742,20 +887,21 @@
 
   .checkout-field > [aria-invalid='true'] {
     @apply border-destructive;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--destructive) 14%, transparent);
   }
 
   .checkout-error {
-    @apply text-sm text-destructive;
+    @apply text-xs font-medium text-destructive;
   }
 
   .checkout-notice {
-    @apply rounded-md bg-secondary p-4 text-sm leading-6 text-muted-foreground;
+    @apply rounded-lg border border-border bg-surface-subtle p-3.5 text-xs leading-5 text-muted-foreground;
   }
 }
 
 @layer components {
   .orders-page {
-    @apply grid w-full max-w-5xl gap-6;
+    @apply mx-auto grid w-full max-w-5xl gap-6;
   }
 
   .order-list {
@@ -763,7 +909,7 @@
   }
 
   .order-card {
-    @apply grid min-w-0 gap-5 rounded-xl border border-border p-5 sm:p-7;
+    @apply grid min-w-0 gap-5 rounded-2xl border border-border bg-card p-5 shadow-xs sm:p-7;
   }
 
   .order-heading,
@@ -776,7 +922,7 @@
   }
 
   .order-status {
-    @apply inline-flex rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground;
+    @apply inline-flex items-center gap-2 rounded-full border border-border bg-surface-subtle px-3 py-1 text-xs font-medium text-foreground;
   }
 
   .order-items {
@@ -810,56 +956,72 @@
 
 @layer components {
   .chat-page {
-    @apply grid w-full gap-6;
+    @apply grid w-full gap-4;
   }
 
   .chat-layout {
-    @apply grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)];
+    @apply grid h-[calc(100dvh-13.5rem)] min-h-[28rem] max-h-[52rem] overflow-hidden rounded-2xl border border-border bg-card shadow-xs lg:grid-cols-[20rem_minmax(0,1fr)];
   }
 
   .chat-sidebar {
-    @apply grid content-start gap-4 rounded-xl border border-border p-4;
+    @apply flex min-h-0 flex-col border-border bg-surface-subtle/50 lg:border-r;
+  }
+
+  .chat-sidebar-header {
+    @apply flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3;
   }
 
   .chat-room-link {
-    @apply grid gap-1 rounded-lg px-3 py-3 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring;
+    @apply flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }
 
   .chat-thread {
-    @apply grid min-w-0 content-start gap-5 rounded-xl border border-border p-5 sm:p-7;
+    @apply flex min-h-0 min-w-0 flex-col bg-card;
+  }
+
+  .chat-thread-header {
+    @apply flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3;
+  }
+
+  .chat-viewport {
+    @apply min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5;
+  }
+
+  .chat-thread-footer {
+    @apply shrink-0 border-t border-border bg-card px-4 py-3;
   }
 
   .chat-messages {
-    @apply grid gap-4;
+    @apply flex flex-col;
   }
 
   .chat-message {
-    @apply grid w-fit max-w-full gap-2 rounded-xl border border-border px-4 py-3 sm:max-w-[85%];
+    @apply w-fit max-w-[78%] px-3.5 py-2 sm:max-w-[70%];
     overflow-wrap: anywhere;
   }
 
   .chat-message-own {
-    @apply justify-self-end bg-secondary text-secondary-foreground;
+    @apply ml-auto bg-primary text-primary-foreground;
   }
 
   .chat-message-peer {
-    @apply justify-self-start bg-background text-foreground;
+    @apply mr-auto bg-muted text-foreground;
   }
 
   .chat-compose {
-    @apply grid gap-3 border-t border-border pt-5;
+    @apply grid gap-2;
   }
 
-  .chat-compose > label {
-    @apply text-sm font-medium;
+  .chat-compose-bar {
+    @apply flex items-end gap-2 rounded-2xl border border-input bg-surface-subtle p-1.5 pl-3.5 transition-[border-color,background-color,box-shadow] duration-150 focus-within:border-foreground/60 focus-within:bg-background;
   }
 
-  .chat-compose > textarea {
-    @apply min-h-20 w-full resize-y rounded-md border border-input bg-secondary px-3 py-2 text-muted-foreground disabled:cursor-not-allowed;
+  .chat-compose-bar:focus-within {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 18%, transparent);
   }
 
-  .chat-compose > button {
-    @apply min-h-11 justify-self-start;
+  .chat-compose-bar > textarea {
+    @apply max-h-30 min-h-9 flex-1 resize-none overflow-y-auto bg-transparent py-2 text-base leading-5 text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed sm:text-sm;
   }
 }
 
@@ -873,21 +1035,87 @@
 }
 
 .store-order-toolbar {
-  @apply grid gap-3 rounded-xl border border-border bg-secondary p-4 sm:grid-cols-[auto_minmax(12rem,18rem)_1fr] sm:items-center;
+  @apply grid gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-xs sm:grid-cols-[auto_minmax(12rem,16rem)_1fr] sm:items-center;
 }
 
 .store-order-toolbar > label {
-  @apply text-sm font-medium;
+  @apply text-[13px] font-medium text-foreground;
 }
 
 .store-order-toolbar > select {
-  @apply min-h-11 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60;
+  @apply min-h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground shadow-2xs transition-[border-color,box-shadow] duration-150 outline-none hover:border-foreground/35 focus-visible:border-foreground/75 disabled:opacity-60;
+}
+
+.store-order-toolbar > select:focus-visible {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 22%, transparent);
 }
 
 .store-order-toolbar > p {
-  @apply text-sm text-muted-foreground;
+  @apply text-xs leading-5 text-muted-foreground;
 }
 
 .store-order-details > summary {
   @apply cursor-pointer rounded-md py-3 text-sm font-medium underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring;
+}
+
+/* Knowns UI Blocks & Data Display primitives (DataTable, Stats Band, Grouped List, Controls) */
+@layer components {
+  .kn-stats-band {
+    @apply grid divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-xs sm:divide-x sm:divide-y-0;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 1px 2px rgb(0 0 0 / 0.04);
+  }
+
+  .kn-stat-cell {
+    @apply grid content-start gap-1.5 px-5 py-4;
+  }
+
+  .kn-table-card {
+    @apply overflow-hidden rounded-2xl border border-border bg-card text-[13px] text-card-foreground;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 1px 2px rgb(0 0 0 / 0.04);
+  }
+
+  .kn-table-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3.5;
+  }
+
+  .kn-table-scroll {
+    @apply relative overflow-x-auto;
+  }
+
+  .kn-table {
+    @apply w-full border-separate border-spacing-0 text-[13px];
+  }
+
+  .kn-table thead th {
+    @apply sticky top-0 z-[2] h-9.5 border-b border-border bg-surface-subtle/90 px-4 text-left text-[12px] font-medium whitespace-nowrap text-muted-foreground;
+  }
+
+  .kn-table tbody tr {
+    @apply transition-colors duration-150 hover:bg-surface-subtle;
+  }
+
+  .kn-table tbody td {
+    @apply border-b border-border/75 px-4 py-3 align-middle;
+  }
+
+  .kn-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .kn-input {
+    @apply min-h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground shadow-2xs transition-[border-color,box-shadow] duration-150 outline-none hover:border-foreground/35 focus-visible:border-foreground/75;
+  }
+
+  .kn-input:focus-visible {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 22%, transparent);
+  }
+
+  .kn-input[aria-invalid='true'] {
+    @apply border-destructive;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--destructive) 14%, transparent);
+  }
 }

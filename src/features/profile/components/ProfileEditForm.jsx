@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { Button } from '@/components/ui/button'
 import { useUpdateProfile } from '@/features/profile/hooks/useUpdateProfile'
@@ -10,32 +12,44 @@ import { editProfileSchema } from '@/features/profile/schemas/editProfileSchema'
 
 /**
  * @param {{
- *  profile: { fullName: string, phone?: string | null },
+ *  profile: { fullName: string, phone?: string | null, avatarUrl?: string | null },
  *  onSaved: () => void
  * }}
  */
 export function ProfileEditForm({ profile, onSaved }) {
   const { t } = useTranslation()
   const { mutateAsync, error } = useUpdateProfile()
+  const [avatarPreview, setAvatarPreview] = useState(profile.avatarUrl ?? '')
   const {
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isDirty, isSubmitting },
   } = useForm({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
       fullName: profile.fullName ?? '',
       phone: profile.phone ?? '',
+      avatarUrl: profile.avatarUrl ?? '',
     },
     mode: 'onTouched',
   })
 
+  const avatarField = register('avatarUrl')
+  const initial = profile.fullName?.trim().charAt(0).toUpperCase() || 'M'
+
   async function onSubmit(values) {
     if (!isDirty) return
 
+    const payload = {
+      fullName: values.fullName,
+      phone: values.phone,
+      ...(values.avatarUrl !== undefined ? { avatarUrl: values.avatarUrl } : {}),
+    }
+
     try {
-      await mutateAsync(values)
+      await mutateAsync(payload)
     } catch (error) {
       if (error?.status === 409 && error.code === 'PHONE_ALREADY_EXISTS') {
         setError(
@@ -72,6 +86,55 @@ export function ProfileEditForm({ profile, onSaved }) {
       aria-busy={isSubmitting}
       onSubmit={handleSubmit(onSubmit)}
     >
+      <div className="profile-edit-field">
+        <label htmlFor="profile-avatar-url">{t('profile.edit.avatarLabel')}</label>
+        <div className="flex flex-wrap items-center gap-4">
+          {avatarPreview ? (
+            <img
+              src={avatarPreview}
+              alt={profile.fullName}
+              className="size-16 rounded-full border border-border object-cover"
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="inline-flex size-16 items-center justify-center rounded-full bg-primary font-heading text-xl font-semibold text-primary-foreground"
+            >
+              {initial}
+            </span>
+          )}
+
+          <MediaUploadButton
+            purpose="USER_AVATAR"
+            allowVideo={false}
+            disabled={isSubmitting}
+            onUploaded={(url) => {
+              setAvatarPreview(url)
+              setValue('avatarUrl', url, { shouldDirty: true, shouldValidate: true })
+            }}
+          />
+        </div>
+
+        <input
+          id="profile-avatar-url"
+          type="url"
+          readOnly={isSubmitting}
+          placeholder="https://…"
+          aria-invalid={Boolean(errors.avatarUrl)}
+          aria-describedby={errors.avatarUrl ? 'profile-avatar-error' : undefined}
+          {...avatarField}
+          onChange={(event) => {
+            avatarField.onChange(event)
+            setAvatarPreview(event.target.value.trim())
+          }}
+        />
+        {errors.avatarUrl && (
+          <p id="profile-avatar-error" className="profile-edit-error" role="alert">
+            {t(errors.avatarUrl.message)}
+          </p>
+        )}
+      </div>
+
       <div className="profile-edit-field">
         <label htmlFor="profile-full-name">{t('profile.fullName')}</label>
         <input

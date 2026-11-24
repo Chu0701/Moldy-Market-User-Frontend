@@ -121,10 +121,25 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
         {fieldError('description')}
       </div>
 
-      <div className="product-create-field">
-        <label htmlFor="product-create-price">{t('products.create.priceLabel')}</label>
-        <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
-        {fieldError('price')}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="product-create-field">
+          <label htmlFor="product-create-price">{t('products.create.priceLabel')}</label>
+          <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
+          {fieldError('price')}
+        </div>
+
+        <div className="product-create-field">
+          <label htmlFor="product-create-condition">{t('products.filters.condition')}</label>
+          <select {...fieldProps('condition')} required disabled={isSubmitting}>
+            <option value="">{t('products.create.conditionRequired')}</option>
+            {productConditions.map((condition) => (
+              <option key={condition} value={condition}>
+                {t(conditionKeys[condition])}
+              </option>
+            ))}
+          </select>
+          {fieldError('condition')}
+        </div>
       </div>
 
       <AutoPricingPanel
@@ -134,19 +149,6 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
           setValue('price', String(suggested), { shouldValidate: true, shouldDirty: true })
         }
       />
-
-      <div className="product-create-field">
-        <label htmlFor="product-create-condition">{t('products.filters.condition')}</label>
-        <select {...fieldProps('condition')} required disabled={isSubmitting}>
-          <option value="">{t('products.create.conditionRequired')}</option>
-          {productConditions.map((condition) => (
-            <option key={condition} value={condition}>
-              {t(conditionKeys[condition])}
-            </option>
-          ))}
-        </select>
-        {fieldError('condition')}
-      </div>
 
       <div className="product-create-field">
         <label htmlFor="product-create-images">{t('products.create.imagesLabel')}</label>

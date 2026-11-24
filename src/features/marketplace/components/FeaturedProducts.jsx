@@ -4,15 +4,22 @@ import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { ProductGrid } from '@/features/marketplace/components/ProductGrid'
+import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
+import { cn } from '@/lib/utils'
 
 /** @param {{ children: import('react').ReactNode }} props */
 export function FeaturedProducts({ children }) {
   const { t } = useTranslation()
+  const { ref, isVisible } = useRevealOnScroll()
 
   return (
     <section
+      ref={ref}
       aria-labelledby="newest-products-heading"
-      className="border-t border-border py-10 sm:py-12"
+      className={cn(
+        'border-t border-border py-10 transition-[opacity,transform] duration-400 ease-out motion-reduce:transform-none motion-reduce:transition-none sm:py-12',
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
+      )}
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -23,10 +30,13 @@ export function FeaturedProducts({ children }) {
             {t('products.newestDescription')}
           </p>
         </div>
-        <Button asChild variant="outline" className="min-h-11">
+        <Button asChild variant="outline" className="group min-h-11">
           <Link to="/products">
             <span>{t('products.viewAll')}</span>
-            <ArrowRight aria-hidden="true" className="size-4" />
+            <ArrowRight
+              aria-hidden="true"
+              className="size-4 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transform-none"
+            />
           </Link>
         </Button>
       </div>

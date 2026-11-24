@@ -89,12 +89,9 @@ export function OrderDisputePanel({ order }) {
   }
 
   return (
-    <section
-      className="space-y-4 rounded-xl border border-border bg-background p-5"
-      aria-labelledby="order-dispute-heading"
-    >
+    <section className="order-card" aria-labelledby="order-dispute-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="order-dispute-heading" className="text-xl font-semibold">
+        <h2 id="order-dispute-heading" className="font-sans text-base font-semibold tracking-tight">
           {t('disputes.orderSectionTitle')}
         </h2>
         {dispute && <DisputeStatusBadge status={dispute.status} />}

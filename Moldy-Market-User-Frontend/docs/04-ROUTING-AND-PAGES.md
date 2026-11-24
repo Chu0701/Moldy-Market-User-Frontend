@@ -119,7 +119,7 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 | `/store/vouchers` | `StoreVouchersPage` | `POST/GET /api/shop/vouchers`, `GET/PUT/DELETE /api/shop/vouchers/{code}` (`@IsOwner`); `GET /api/vouchers/{code}` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
 | `/store/offers` | `StoreOffersPage` | Không có code offer (Q8) | `NOT_FOUND` | `NOT_STARTED` |
 | `/store/revenue` | `StoreRevenuePage` | `GET /api/v1/analytics/seller/overview`, `GET /revenue?from&to`, `GET /top-products?limit` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
-| `/store/reviews` | `StoreReviewsPage` | Không có code review | `NOT_FOUND` | `NOT_STARTED` |
+| `/store/reviews` | `StoreReviewsPage` | `GET /api/v1/reviews/stores/{storeId}` | `IMPLEMENTED` | `IMPLEMENTED_LOCAL` |
 | `/store/settings` | `StoreSettingsPage` | Chưa có endpoint riêng ngoài `my-store`; phạm vi cần xác định với team | `REQUIRES_BUSINESS_CLARIFICATION` | `NOT_STARTED` |
 
 Quy tắc chung cho trang chưa có Backend (`PLANNED`, `NOT_FOUND`): chỉ làm skeleton có `TODO`, **không viết service**, theo quy tắc 1.2 trong doc 14.

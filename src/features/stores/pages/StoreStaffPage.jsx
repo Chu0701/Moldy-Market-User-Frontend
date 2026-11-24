@@ -28,13 +28,15 @@ export function StoreStaffPage() {
   }
 
   return (
-    <section className="grid w-full max-w-3xl gap-6" aria-labelledby="store-staff-title">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 id="store-staff-title">{t('stores.staff.title')}</h1>
-        <Button asChild variant="outline">
+    <section className="grid w-full max-w-4xl gap-6" aria-labelledby="store-staff-title">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 id="store-staff-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          {t('stores.staff.title')}
+        </h1>
+        <Button asChild variant="outline" size="sm">
           <Link to="/store">{t('stores.profile.back')}</Link>
         </Button>
-      </div>
+      </header>
 
       {staffQuery.isSuccess && <AddStoreStaffForm key={userId} userId={userId} />}
 
@@ -55,28 +57,55 @@ export function StoreStaffPage() {
           description={t('stores.staff.emptyDescription')}
         />
       ) : (
-        <ul className="grid gap-3" aria-labelledby="store-staff-title">
-          {staff.map((member) => (
-            <li key={member.id} className="min-w-0 rounded-xl border border-border p-4">
-              <h2 className="break-words font-semibold">{member.fullName || member.email}</h2>
-              {member.fullName && (
-                <p className="break-words text-sm text-muted-foreground">{member.email}</p>
-              )}
-              <p className="mt-3 text-sm font-medium">{t('stores.staff.permissions')}</p>
-              <p className="break-words text-sm text-muted-foreground">
-                {member.permissions.length > 0
-                  ? member.permissions.join(', ')
-                  : t('stores.staff.noPermissions')}
-              </p>
-              <StoreStaffPermissionsEditor key={userId} userId={userId} member={member} />
-              <StoreStaffRemoveButton
-                userId={userId}
-                staffId={member.id}
-                name={member.fullName || member.email}
-              />
-            </li>
-          ))}
-        </ul>
+        <div className="kn-table-card">
+          <div className="kn-table-toolbar">
+            <div className="flex items-baseline gap-2.5">
+              <h2 className="text-sm font-semibold tracking-tight">{t('stores.staff.title')}</h2>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {t('table.rowsCount', { count: staff.length })}
+              </span>
+            </div>
+          </div>
+
+          <ul className="divide-y divide-border" aria-labelledby="store-staff-title">
+            {staff.map((member) => {
+              const displayName = member.fullName || member.email
+              const initial = displayName?.trim()?.charAt(0)?.toUpperCase() || '?'
+              return (
+                <li key={member.id} className="grid min-w-0 gap-3 px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface-subtle text-xs font-semibold text-foreground"
+                      aria-hidden="true"
+                    >
+                      {initial}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate text-sm font-semibold text-foreground">
+                        {displayName}
+                      </h2>
+                      {member.fullName && (
+                        <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid gap-1">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {t('stores.staff.permissions')}
+                    </p>
+                    <p className="font-mono text-xs break-words text-foreground">
+                      {member.permissions.length > 0
+                        ? member.permissions.join(', ')
+                        : t('stores.staff.noPermissions')}
+                    </p>
+                  </div>
+                  <StoreStaffPermissionsEditor key={userId} userId={userId} member={member} />
+                  <StoreStaffRemoveButton userId={userId} staffId={member.id} name={displayName} />
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </section>
   )

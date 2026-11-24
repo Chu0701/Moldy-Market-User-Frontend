@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
@@ -32,9 +33,11 @@ export function PaginationBar({
         <Button
           type="button"
           variant="outline"
+          size="sm"
           disabled={disabled || page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
+          <ChevronLeft className="size-4" aria-hidden="true" />
           {t('pagination.previous')}
         </Button>
 
@@ -43,10 +46,12 @@ export function PaginationBar({
         <Button
           type="button"
           variant="outline"
+          size="sm"
           disabled={disabled || !hasNext}
           onClick={() => onPageChange(page + 1)}
         >
           {t('pagination.next')}
+          <ChevronRight className="size-4" aria-hidden="true" />
         </Button>
       </div>
     </nav>

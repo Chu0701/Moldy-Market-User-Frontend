@@ -94,10 +94,15 @@ export function RegisterPage() {
       <h1 id="register-title">{t('navigation.register')}</h1>
 
       {registeredEmail ? (
-        <>
-          <p role="status">{t('auth.register.pending', { email: registeredEmail })}</p>
+        <div className="grid gap-4">
+          <p
+            role="status"
+            className="rounded-lg border border-border bg-surface-subtle px-3.5 py-2.5 text-sm leading-6 text-foreground"
+          >
+            {t('auth.register.pending', { email: registeredEmail })}
+          </p>
           <VerifyEmailForm initialEmail={registeredEmail} codeSent={verificationCodeSent} />
-        </>
+        </div>
       ) : (
         <form
           className="login-form"
@@ -143,13 +148,15 @@ export function RegisterPage() {
         </form>
       )}
 
-      <Link to="/verify-email" className="login-register-link">
-        {t('auth.verify.title')}
-      </Link>
+      <div className="auth-card-footer">
+        <Link to="/verify-email" className="login-register-link">
+          {t('auth.verify.title')}
+        </Link>
 
-      <Link to="/login" className="login-register-link">
-        {t('navigation.login')}
-      </Link>
+        <Link to="/login" className="login-register-link">
+          {t('navigation.login')}
+        </Link>
+      </div>
     </section>
   )
 }

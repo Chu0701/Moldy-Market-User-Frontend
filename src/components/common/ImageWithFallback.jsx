@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { ImageOff } from 'lucide-react'
+import { Image as ImageIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
-/** @param {{ src?: string, alt: string, className?: string }} props */
-export function ImageWithFallback({ src, alt, className }) {
+/** @param {{ src?: string, alt: string, className?: string, compact?: boolean }} props */
+export function ImageWithFallback({ src, alt, className, compact = false }) {
   const { t } = useTranslation()
   const [failedSrc, setFailedSrc] = useState(null)
 
@@ -26,10 +26,14 @@ export function ImageWithFallback({ src, alt, className }) {
         <div
           role="img"
           aria-label={alt || t('products.noImage')}
-          className="flex size-full flex-col items-center justify-center gap-3 p-4 text-center text-muted-foreground"
+          className="flex size-full items-center justify-center bg-muted/70 text-muted-foreground"
         >
-          <ImageOff aria-hidden="true" className="size-8" />
-          <span className="text-sm">{t('products.noImage')}</span>
+          <ImageIcon
+            aria-hidden="true"
+            strokeWidth={1.5}
+            className={compact ? 'size-5 opacity-45' : 'size-9 opacity-35'}
+          />
+          <span className="sr-only">{t('products.noImage')}</span>
         </div>
       )}
     </div>

@@ -16,4 +16,12 @@ export const editProfileSchema = z.object({
       'profile.edit.phoneInvalid',
     )
     .transform((value) => (value === '' ? undefined : value)),
+
+  avatarUrl: z
+    .string()
+    .trim()
+    .max(1000, 'profile.edit.avatarUrlTooLong')
+    .refine((value) => value === '' || /^https?:\/\//i.test(value), 'profile.edit.avatarUrlInvalid')
+    .optional()
+    .transform((value) => (!value ? undefined : value)),
 })

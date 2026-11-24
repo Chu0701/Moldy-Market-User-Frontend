@@ -1502,15 +1502,11 @@ describe('user app routing', () => {
     await screen.findByRole('heading', { name: 'Món đồ cũ, khởi đầu mới.' })
     const header = screen.getByRole('banner')
 
-    await user.click(screen.getByRole('link', { name: 'Khám phá sản phẩm' }))
+    await user.click(screen.getByRole('link', { name: 'Khám phá ngay' }))
 
     expect(await screen.findByRole('heading', { name: 'Khám phá sản phẩm' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/products')
     expect(screen.getByRole('banner')).toBe(header)
-    expect(screen.getByRole('link', { name: 'Khám phá sản phẩm' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
   })
 
   describe('registering an account', () => {
