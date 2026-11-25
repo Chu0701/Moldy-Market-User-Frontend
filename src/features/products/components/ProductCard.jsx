@@ -41,6 +41,7 @@ function formatRelativeListingTime(isoValue, locale) {
  *   isWishlisted?: boolean,
  *   wishlistPending?: boolean,
  *   onToggleWishlist?: () => void,
+ *   onImageError?: () => void,
  * }} props
  */
 export function ProductCard({
@@ -54,6 +55,7 @@ export function ProductCard({
   isWishlisted = false,
   wishlistPending = false,
   onToggleWishlist,
+  onImageError,
 }) {
   const { t, i18n } = useTranslation()
   const relativeTime = formatRelativeListingTime(createdAt, i18n.resolvedLanguage)
@@ -70,6 +72,7 @@ export function ProductCard({
             src={imageUrl}
             alt={title}
             className="size-full transition-transform duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
+            onError={onImageError}
           />
 
           {topBadge && (

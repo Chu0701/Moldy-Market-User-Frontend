@@ -6,6 +6,7 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { ProductGrid } from '@/features/marketplace/components/ProductGrid'
 import { ProductCard } from '@/features/products/components/ProductCard'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { searchProducts } from '@/services/products/productService'
 
 const conditionKeys = {
@@ -74,7 +75,8 @@ export function SimilarProductsSection({ categoryId, currentProductId }) {
             id={product.id}
             title={product.title}
             price={product.price}
-            imageUrl={product.images?.[0]}
+            imageUrl={getProductMediaUrls(product)[0]}
+            onImageError={() => query.refetch()}
             createdAt={product.createdAt}
             conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
           />

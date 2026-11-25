@@ -6,6 +6,7 @@ import { FeaturedProducts } from '@/features/marketplace/components/FeaturedProd
 import { ProductSkeleton } from '@/features/marketplace/components/ProductSkeleton'
 import { useNewestProducts } from '@/features/marketplace/hooks/useNewestProducts'
 import { ProductCard } from '@/features/products/components/ProductCard'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 
 const conditionKeys = {
   NEW: 'products.conditions.new',
@@ -45,7 +46,7 @@ export function NewestProductsSection() {
         id={product.id}
         title={product.title}
         price={product.price}
-        imageUrl={product.images?.[0]}
+        imageUrl={getProductMediaUrls(product)[0]}
         createdAt={product.createdAt}
         conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
       />

@@ -93,15 +93,20 @@ Ghi chú các cột:
 
 ### 3.4 Người thẩm định (cần role `APPRAISER`, `MainLayout`) — Xem `HANDOFF-APPRAISER-FRONTEND.md`
 
-> **Lưu ý 2026-11-22:** Backend đã thay thế hoàn toàn `/api/pricing/appraiser/*` cũ bằng bộ 6 controller `/api/v1/appraisal-{requests,applications,invitations,assignments,reports,reviews}/**` (cần HTTP/security audit trước khi nối). Các route đề xuất dưới đây sẽ chốt sau khi audit:
+> **Lưu ý 2026-11-23:** Backend đã thay thế hoàn toàn `/api/pricing/appraiser/*` cũ bằng bộ 6 controller `/api/v1/appraisal-{requests,applications,invitations,assignments,reports,reviews}/**` (cần HTTP/security audit trước khi nối). Các trang Appraiser bên dưới là UI preview; không gọi API hoặc hiển thị dữ liệu nghiệp vụ mẫu.
+>
+> Trong môi trường development, `/__preview/appraiser/*` mở các trang để click-through mà không cần phiên Backend. Route preview không được đưa vào production build; chỉ route preview hiển thị nhãn xem trước. Các route `/appraiser/*` vẫn yêu cầu đăng nhập và role `APPRAISER`.
 
 | Path | Page | Phụ thuộc Backend | Backend | FE |
 |---|---|---|---|---|
-| `/appraiser/queue` | `AppraiserQueuePage` (Yêu cầu đang mở / Ứng tuyển) | `GET /api/v1/appraisal-requests/market/open`, `POST /api/v1/appraisal-requests/{requestId}/applications` | `AUDIT_PENDING` | `NOT_STARTED` |
-| `/appraiser/applications` | `AppraiserApplicationsPage` | `GET /api/v1/appraisal-applications/my-applications`, `PATCH .../withdraw` | `AUDIT_PENDING` | `NOT_STARTED` |
-| `/appraiser/invitations` | `AppraiserInvitationsPage` | `GET /api/v1/appraisal-invitations/my-invitations`, `PATCH .../{accept,reject}` | `AUDIT_PENDING` | `NOT_STARTED` |
-| `/appraiser/assignments` | `AppraiserAssignmentsPage` | `GET /api/v1/appraisal-assignments/my-assignments` | `AUDIT_PENDING` | `NOT_STARTED` |
-| `/appraiser/assignments/:assignmentId` | `AppraiserAssignmentDetailPage` | `GET /api/v1/appraisal-assignments/{id}`, `PATCH .../start`, `POST /api/v1/appraisal-reports/assignments/{id}`, `GET .../history` | `AUDIT_PENDING` | `NOT_STARTED` |
+| `/appraiser/profile` | `AppraiserProfilePage` | `/api/v1/appraisers/me`, `/me/status`, registration/deactivate/reactivate | `AUDIT_PENDING` | `SKELETON` |
+| `/appraiser/queue` | `AppraiserQueuePage` (Yêu cầu đang mở / Ứng tuyển) | `GET /api/v1/appraisal-requests/market/open`, `POST /api/v1/appraisal-requests/{requestId}/applications` | `AUDIT_PENDING` | `SKELETON` |
+| `/appraiser/requests/:requestId` | `AppraiserRequestDetailPage` | `GET /api/v1/appraisal-requests/{requestId}` | `AUDIT_PENDING` | `SKELETON` |
+| `/appraiser/applications` | `AppraiserApplicationsPage` | `GET /api/v1/appraisal-applications/my-applications`, `PATCH .../withdraw` | `AUDIT_PENDING` | `SKELETON` |
+| `/appraiser/invitations` | `AppraiserInvitationsPage` | `GET /api/v1/appraisal-invitations/my-invitations`, `PATCH .../{accept,reject}` | `AUDIT_PENDING` | `SKELETON` |
+| `/appraiser/assignments` | `AppraiserAssignmentsPage` | `GET /api/v1/appraisal-assignments/my-assignments` | `AUDIT_PENDING` | `SKELETON` |
+| `/appraiser/assignments/:assignmentId` | `AppraiserAssignmentDetailPage` | `GET /api/v1/appraisal-assignments/{id}`, `PATCH .../start`, `POST /api/v1/appraisal-reports/assignments/{id}`, `GET .../history` | `AUDIT_PENDING` | `SKELETON` |
+| `/appraiser/commissions` | `AppraiserCommissionsPage` | `GET /api/v1/appraiser/commissions/my` (RAW JSON) | `AUDIT_PENDING` | `SKELETON` |
 
 Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role từ `GET /api/v1/users/me` để ẩn hiện menu (xem mục 4).
 
@@ -132,7 +137,7 @@ Quy tắc chung cho trang chưa có Backend (`PLANNED`, `NOT_FOUND`): chỉ làm
 |---|---|---|---|---|
 | `GuestOnly` | `[ĐÃ TRIỂN KHAI]` | Chưa đăng nhập | Chuyển về `/` | Hiện bọc `/login` (không bọc `/register`, `/verify-email`) |
 | `RequireAuth` | `[ĐÃ TRIỂN KHAI]` | Có phiên đăng nhập hợp lệ (`useSession`) | Chuyển tới `/login`, giữ đường dẫn cũ trong `state.from` | Bọc nhóm 3.3 và 3.5 |
-| `RequireRole('APPRAISER')` | `[ĐỀ XUẤT — CHƯA TẠO]` | `roles` của `GET /api/v1/users/me` có `APPRAISER` | Hiển thị `ForbiddenState` | Sẽ bổ sung khi triển khai Appraiser workspace |
+| `RequireRole('APPRAISER')` | `[ĐÃ TRIỂN KHAI — UX]` | `roles` của `GET /api/v1/users/me` có `APPRAISER` | Hiển thị `ForbiddenState` | Không thay thế kiểm tra quyền trên Backend |
 | `RequireStoreAccess` | `[ĐỀ XUẤT — CHƯA TẠO]` | Chủ gian hàng hoặc nhân viên thuộc shop | Hiện kiểm tra bên trong trang bằng `useMyStore` / `useMyStaffProfile` / `useProductManagementAccess` | Không suy quyền shop từ permissions gộp của `/users/me` |
 
 Giới hạn quan trọng:

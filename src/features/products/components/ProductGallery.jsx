@@ -6,7 +6,7 @@ import { ImageWithFallback } from '@/components/common/ImageWithFallback'
 import { isVideoUrl } from '@/services/files/fileUploadService'
 
 /** @param {{ images?: string[], title: string }} props */
-export function ProductGallery({ images = [], title }) {
+export function ProductGallery({ images = [], title, onMediaError }) {
   const { t } = useTranslation()
   const [selectedIndex, setSelectedIndex] = useState(0)
 
@@ -36,7 +36,7 @@ export function ProductGallery({ images = [], title }) {
             className="aspect-square h-full w-full bg-foreground/5 object-contain"
           />
         ) : (
-          <ImageWithFallback src={activeMedia} alt={title} />
+          <ImageWithFallback src={activeMedia} alt={title} onError={onMediaError} />
         )}
 
         {hasMultiple && (

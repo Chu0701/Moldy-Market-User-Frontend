@@ -20,23 +20,25 @@ export function ProfileEditForm({ profile, onSaved }) {
   const { t } = useTranslation()
   const { mutateAsync, error } = useUpdateProfile()
   const [avatarPreview, setAvatarPreview] = useState(profile.avatarUrl ?? '')
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [avatarUploadError, setAvatarUploadError] = useState('')
+  const [saveSuccess, setSaveSuccess] = useState(false)
   const {
     register,
     handleSubmit,
     setError,
     setValue,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { errors, isDirty, isSubmitting, isValid },
   } = useForm({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
       fullName: profile.fullName ?? '',
       phone: profile.phone ?? '',
-      avatarUrl: profile.avatarUrl ?? '',
+      avatarFileId: undefined,
     },
     mode: 'onTouched',
   })
 
-  const avatarField = register('avatarUrl')
   const initial = profile.fullName?.trim().charAt(0).toUpperCase() || 'M'
 
   async function onSubmit(values) {
@@ -45,7 +47,7 @@ export function ProfileEditForm({ profile, onSaved }) {
     const payload = {
       fullName: values.fullName,
       phone: values.phone,
-      ...(values.avatarUrl !== undefined ? { avatarUrl: values.avatarUrl } : {}),
+      ...(values.avatarFileId !== undefined ? { avatarFileId: values.avatarFileId } : {}),
     }
 
     try {
@@ -66,6 +68,7 @@ export function ProfileEditForm({ profile, onSaved }) {
     }
 
     onSaved()
+    setSaveSuccess(true)
   }
 
   if (error?.status === 403) {
@@ -87,7 +90,7 @@ export function ProfileEditForm({ profile, onSaved }) {
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="profile-edit-field">
-        <label htmlFor="profile-avatar-url">{t('profile.edit.avatarLabel')}</label>
+        <span className="profile-edit-field-label">{t('profile.edit.avatarLabel')}</span>
         <div className="flex flex-wrap items-center gap-4">
           {avatarPreview ? (
             <img
@@ -107,30 +110,27 @@ export function ProfileEditForm({ profile, onSaved }) {
           <MediaUploadButton
             purpose="USER_AVATAR"
             allowVideo={false}
-            disabled={isSubmitting}
-            onUploaded={(url) => {
-              setAvatarPreview(url)
-              setValue('avatarUrl', url, { shouldDirty: true, shouldValidate: true })
+            resolveDownloadUrl={false}
+            showHint={false}
+            disabled={isSubmitting || isUploadingAvatar}
+            onUploadingChange={setIsUploadingAvatar}
+            onUploadError={setAvatarUploadError}
+            onUploadResult={(result, file) => {
+              setAvatarUploadError('')
+              setSaveSuccess(false)
+              setValue('avatarFileId', result.fileId, { shouldDirty: true, shouldValidate: true })
+              setAvatarPreview(URL.createObjectURL(file))
             }}
           />
         </div>
-
-        <input
-          id="profile-avatar-url"
-          type="url"
-          readOnly={isSubmitting}
-          placeholder="https://…"
-          aria-invalid={Boolean(errors.avatarUrl)}
-          aria-describedby={errors.avatarUrl ? 'profile-avatar-error' : undefined}
-          {...avatarField}
-          onChange={(event) => {
-            avatarField.onChange(event)
-            setAvatarPreview(event.target.value.trim())
-          }}
-        />
-        {errors.avatarUrl && (
-          <p id="profile-avatar-error" className="profile-edit-error" role="alert">
-            {t(errors.avatarUrl.message)}
+        {isUploadingAvatar && (
+          <p className="profile-edit-hint" role="status">
+            {t('profile.edit.avatarUploading')}
+          </p>
+        )}
+        {avatarUploadError && (
+          <p className="profile-edit-error" role="alert">
+            {t(avatarUploadError)}
           </p>
         )}
       </div>
@@ -183,7 +183,17 @@ export function ProfileEditForm({ profile, onSaved }) {
       )}
 
       <div className="profile-edit-actions">
-        <Button type="submit" disabled={!isDirty || isSubmitting}>
+        {saveSuccess && (
+          <p className="profile-edit-hint" role="status">
+            {t('profile.edit.saved')}
+          </p>
+        )}
+        <Button
+          type="submit"
+          disabled={
+            !isDirty || !isValid || isSubmitting || isUploadingAvatar || Boolean(avatarUploadError)
+          }
+        >
           {t(isSubmitting ? 'profile.edit.saving' : 'profile.edit.save')}
         </Button>
         <Button asChild variant="outline">

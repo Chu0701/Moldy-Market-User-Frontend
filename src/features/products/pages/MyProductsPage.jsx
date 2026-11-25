@@ -6,6 +6,7 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { ProductGrid } from '@/features/marketplace/components/ProductGrid'
 import { ProductSkeleton } from '@/features/marketplace/components/ProductSkeleton'
 import { ProductCard } from '@/features/products/components/ProductCard'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { useMyProducts } from '@/features/products/hooks/useMyProducts'
 import { Navigate } from 'react-router'
 
@@ -67,7 +68,8 @@ export function MyProductsPage({ store = false } = {}) {
             id={product.id}
             title={product.title}
             price={product.price}
-            imageUrl={product.images?.[0]}
+            imageUrl={getProductMediaUrls(product)[0]}
+            onImageError={() => query.refetch()}
             createdAt={product.createdAt}
             conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
             statusLabel={t(

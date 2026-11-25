@@ -7,6 +7,7 @@ import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
 import { useRemoveCartItem } from '@/features/cart/hooks/useCart'
 import { cn } from '@/lib/utils'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 
 const conditionKeys = {
   NEW: 'products.conditions.new',
@@ -39,7 +40,7 @@ export function CartItemRow({ item, productQuery, selected, canSelect, onToggle,
     latestPrice !== itemPrice
   const priceDropped = priceChanged && latestPrice < itemPrice
   const productPath = '/products/' + encodeURIComponent(item.listingId)
-  const thumbnailUrl = product?.images?.[0]
+  const thumbnailUrl = getProductMediaUrls(product)[0]
 
   return (
     <li className={cn('cart-item-row', unavailable && 'bg-surface-subtle/50 opacity-65')}>

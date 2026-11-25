@@ -13,7 +13,6 @@ export function getEditProductDefaults(product) {
     description: product.description ?? '',
     price: String(product.price),
     condition: product.condition,
-    images: (product.images ?? []).join('\n'),
     version: product.version,
   }
 }

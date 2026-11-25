@@ -140,6 +140,17 @@ export function MainLayout() {
   const userInitial = profile?.fullName?.trim().charAt(0).toUpperCase() || 'M'
   const trustTierKey =
     typeof profile?.trustPoints === 'number' ? getTrustTierKey(profile.trustPoints) : null
+  const appraiserMenuLinks = profile
+    ? [
+        {
+          to: '/appraiser',
+          label: profile.roles?.includes('APPRAISER')
+            ? 'appraiser.nav.entry'
+            : 'appraiser.nav.become',
+          icon: ShieldCheck,
+        },
+      ]
+    : []
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
@@ -380,6 +391,33 @@ export function MainLayout() {
                         </NavLink>
                       ))}
                     </div>
+
+                    {appraiserMenuLinks.length > 0 && (
+                      <div className="grid gap-0.5 border-t border-border py-1">
+                        <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                          {t('appraiser.workspaceLabel')}
+                        </p>
+                        {appraiserMenuLinks.map(({ to, label, icon: Icon }) => (
+                          <NavLink
+                            key={to}
+                            to={to}
+                            onClick={closeProfileMenu}
+                            className={({ isActive }) =>
+                              cn(
+                                'inline-flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
+                                isActive && 'bg-accent font-medium text-accent-foreground',
+                              )
+                            }
+                          >
+                            <Icon
+                              aria-hidden="true"
+                              className="size-4 shrink-0 text-muted-foreground"
+                            />
+                            <span>{t(label)}</span>
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
 
                     <div className="border-t border-border pt-1">
                       <button

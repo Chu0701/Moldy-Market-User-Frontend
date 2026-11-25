@@ -69,7 +69,7 @@ export async function getProductById({ productId, signal }) {
  *  description?:string,
  *  price:number,
  *  condition:'NEW'|'LIKE_NEW'|'USED'|'DAMAGED',
- *  images?:string[],
+ *  imageFileIds?:string[],
  * }} product
  */
 export async function createStoreProduct({
@@ -79,7 +79,7 @@ export async function createStoreProduct({
   description,
   price,
   condition,
-  images,
+  imageFileIds = [],
 }) {
   if (!storeId) throw new Error('Creating a product requires a store ID')
 
@@ -87,48 +87,29 @@ export async function createStoreProduct({
     storeId,
     categoryId,
     title,
-    description,
+    description: description ?? '',
     price,
     condition,
     pricingStrategy: 'SELLER_SET',
-    images,
+    imageFileIds: Array.isArray(imageFileIds) ? imageFileIds.slice(0, 10) : [],
   })
 
   return unwrap(response)
 }
 
 /**
- * @param {{
- *   productId: string,
- *   version: number,
- *   title: string,
- *   description: string,
- *   price: number,
- *   condition: 'NEW' | 'LIKE_NEW' | 'USED' | 'DAMAGED',
- *   images: string[],
- * }} product
+ * @param {{ productId: string, version: number, title?: string, description?: string,
+ *   price?: number, condition?: string, attributes?: Record<string, unknown>,
+ *   imageFileIds?: string[] }} product
  */
-export async function updateProduct({
-  productId,
-  version,
-  title,
-  description,
-  price,
-  condition,
-  images,
-}) {
+export async function updateProduct({ productId, version, ...changes }) {
   const response = await apiClient.put(`/api/v1/products/${encodeURIComponent(productId)}`, {
     version,
-    title,
-    description,
-    price,
-    condition,
-    images,
+    ...changes,
   })
 
   return unwrap(response)
 }
-
 /** @param {{ productId: string, status: 'ACTIVE' | 'HIDDEN' }} options */
 export async function changeProductStatus({ productId, status }) {
   const response = await apiClient.patch(

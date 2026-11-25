@@ -4,13 +4,6 @@ export const productConditions = ['NEW', 'LIKE_NEW', 'USED', 'DAMAGED']
 
 const pricePattern = /^[0-9]+(?:[.,][0-9]{1,2})?$/
 
-const imageUrlSchema = z
-  .url({
-    protocol: /^https$/,
-    error: 'products.create.imageInvalid',
-  })
-  .max(500, 'products.create.imageTooLong')
-
 export const createProductSchema = z.object({
   categoryId: z.uuid('products.create.categoryRequired'),
   title: z
@@ -33,13 +26,4 @@ export const createProductSchema = z.object({
       z.number().gt(0, 'products.create.priceMin').max(1_000_000_000, 'products.create.priceMax'),
     ),
   condition: z.enum(productConditions, 'products.create.conditionRequired'),
-  images: z
-    .string()
-    .transform((value) =>
-      value
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean),
-    )
-    .pipe(z.array(imageUrlSchema).max(10, 'products.create.imagesTooMany')),
 })

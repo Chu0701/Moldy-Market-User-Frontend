@@ -538,7 +538,7 @@ describe('user app routing', () => {
       description: undefined,
       price: listing.price,
       condition: 'USED',
-      images: [],
+      imageFileIds: [],
     })
     if (isStaff) expect(getMyStore).not.toHaveBeenCalled()
   })
@@ -813,7 +813,6 @@ describe('user app routing', () => {
           price: listing.price,
           condition: listing.condition,
           description: '',
-          images: [],
         })
       },
     )

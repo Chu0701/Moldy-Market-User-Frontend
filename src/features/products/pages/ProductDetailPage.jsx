@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { MobileBuyBar } from '@/features/products/components/MobileBuyBar'
 import { ProductGallery } from '@/features/products/components/ProductGallery'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { ProductInfo } from '@/features/products/components/ProductInfo'
 import { SimilarProductsSection } from '@/features/products/components/SimilarProductsSection'
 import { useSession } from '@/features/auth/hooks/useSession'
@@ -130,7 +131,12 @@ export function ProductDetailPage() {
         </div>
 
         <article className="product-detail-page">
-          <ProductGallery key={product.id} images={product.images ?? []} title={product.title} />
+          <ProductGallery
+            key={product.id}
+            images={getProductMediaUrls(product)}
+            title={product.title}
+            onMediaError={() => query.refetch()}
+          />
 
           <ProductInfo
             title={product.title}

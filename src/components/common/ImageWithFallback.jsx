@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 /** @param {{ src?: string, alt: string, className?: string, compact?: boolean }} props */
-export function ImageWithFallback({ src, alt, className, compact = false }) {
+export function ImageWithFallback({ src, alt, className, compact = false, onError }) {
   const { t } = useTranslation()
   const [failedSrc, setFailedSrc] = useState(null)
 
@@ -20,7 +20,10 @@ export function ImageWithFallback({ src, alt, className, compact = false }) {
           loading="lazy"
           decoding="async"
           className="size-full object-cover"
-          onError={() => setFailedSrc(src)}
+          onError={(event) => {
+            setFailedSrc(src)
+            onError?.(event)
+          }}
         />
       ) : (
         <div
