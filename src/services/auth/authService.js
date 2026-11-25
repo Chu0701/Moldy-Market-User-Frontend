@@ -72,3 +72,19 @@ export async function resendVerification({ email }) {
 
   unwrap(response)
 }
+
+/** @param {{ email: string }} account */
+export async function forgotPassword({ email }) {
+  const response = await apiClient.post('/api/v1/auth/forgot-password', { email })
+  unwrap(response)
+}
+
+/** @param {{ email: string, code: string, newPassword: string }} payload */
+export async function resetPassword({ email, code, newPassword }) {
+  const response = await apiClient.post('/api/v1/auth/reset-password', {
+    email,
+    code,
+    newPassword,
+  })
+  unwrap(response)
+}

@@ -60,7 +60,7 @@ export function ProductSearchPanel({ storeId, categoryId }) {
   const [localWishlistOverrides, setLocalWishlistOverrides] = useState({})
   const formRef = useRef(null)
 
-  const { params, query, changePage } = useProductSearch({ storeId, categoryId })
+  const { params, query, changePage } = useProductSearch({ storeId, categoryId, facets: true })
   const products = query.data?.items ?? []
 
   // Passively read cached categories to render friendly category chip names without extra requests.
@@ -314,6 +314,7 @@ export function ProductSearchPanel({ storeId, categoryId }) {
       action={action}
       showCategoryFilter={!categoryId}
       hasFilter={hasFilter}
+      facets={query.data?.facets}
       onApplyPricePreset={handleApplyPricePreset}
       onAfterSubmit={() => setShowMobileFilters(false)}
     />

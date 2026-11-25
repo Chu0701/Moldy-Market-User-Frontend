@@ -106,9 +106,9 @@ export function StoreDashboardLayout() {
       {showSidebar && (
         <aside
           aria-label={t('stores.dashboard.navLabel')}
-          className="grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs lg:sticky lg:top-24"
+          className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-xs lg:sticky lg:top-24"
         >
-          <div className="flex items-center gap-2.5 border-b border-border px-2 pt-1 pb-3">
+          <div className="flex min-w-0 items-center gap-2.5 border-b border-border px-2 pt-1 pb-3">
             <span
               className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-subtle text-foreground"
               aria-hidden="true"
@@ -116,10 +116,10 @@ export function StoreDashboardLayout() {
               <Store className="size-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              <p className="truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                 {t('stores.dashboard.sectionTitle')}
               </p>
-              <div className="mt-0.5 flex items-center gap-1.5">
+              <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
                 <span
                   className={cn(
                     'size-1.5 shrink-0 rounded-full',
@@ -127,14 +127,19 @@ export function StoreDashboardLayout() {
                   )}
                   aria-hidden="true"
                 />
-                <p className="truncate text-sm font-semibold text-foreground">{heading}</p>
+                <p
+                  title={heading}
+                  className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground"
+                >
+                  {heading}
+                </p>
               </div>
             </div>
           </div>
 
           <nav
             aria-label={t('stores.dashboard.navLabel')}
-            className="flex gap-1 overflow-x-auto pb-0.5 lg:grid lg:gap-0.5 lg:overflow-visible lg:pb-0"
+            className="flex min-w-0 gap-1 overflow-x-auto pb-0.5 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0"
           >
             {navItems.map(({ to, label, icon: Icon, end }) => (
               <NavLink
@@ -143,7 +148,7 @@ export function StoreDashboardLayout() {
                 end={end}
                 className={({ isActive }) =>
                   cn(
-                    'inline-flex min-h-9 shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'inline-flex min-h-9 min-w-0 shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring lg:w-full',
                     isActive
                       ? 'bg-muted font-medium text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
@@ -151,7 +156,7 @@ export function StoreDashboardLayout() {
                 }
               >
                 <Icon className="size-4 shrink-0 opacity-80" aria-hidden="true" />
-                <span>{t(label)}</span>
+                <span className="truncate">{t(label)}</span>
               </NavLink>
             ))}
           </nav>

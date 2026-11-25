@@ -112,6 +112,14 @@ export function connectChat({ authorize, onState, onMessage, onError, onRead }) 
         body: JSON.stringify({ type: 'TEXT', content }),
       })
     },
+    sendImage(conversationId, attachmentUrl) {
+      if (disposed || !client.connected) throw new Error('Chat is disconnected')
+      client.publish({
+        destination: `/app/conversations/${encodeURIComponent(conversationId)}/send`,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'IMAGE', content: '', attachmentUrl }),
+      })
+    },
     close() {
       disposed = true
       stop()

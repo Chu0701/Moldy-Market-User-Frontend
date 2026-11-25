@@ -40,10 +40,13 @@ export function ChatMessage({
       ? t('chat.namedSelf', { name: senderName })
       : t('chat.you')
     : (senderName ?? t('chat.peer'))
+  const isImageWithUrl = message.type === 'IMAGE' && Boolean(message.attachmentUrl)
   const content =
     message.type === 'TEXT'
       ? message.content || t('chat.emptyText')
-      : t(fallbackKeys[message.type] ?? 'chat.unsupportedMessage')
+      : isImageWithUrl
+        ? message.content?.trim() || ''
+        : t(fallbackKeys[message.type] ?? 'chat.unsupportedMessage')
 
   const bubbleShape = isMine
     ? cn(
@@ -85,7 +88,33 @@ export function ChatMessage({
           isMine ? 'chat-message-own' : 'chat-message-peer',
         )}
       >
-        <p className="text-[14px] leading-relaxed whitespace-pre-wrap">{content}</p>
+        {isImageWithUrl && (
+          <a
+            href={message.attachmentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('chat.openImage')}
+            className="block overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <img
+              src={message.attachmentUrl}
+              alt={t('chat.imageMessage')}
+              loading="lazy"
+              decoding="async"
+              className="max-h-72 w-full max-w-[240px] rounded-xl object-cover"
+            />
+          </a>
+        )}
+        {content && (
+          <p
+            className={cn(
+              'text-[14px] leading-relaxed whitespace-pre-wrap',
+              isImageWithUrl && 'mt-1.5',
+            )}
+          >
+            {content}
+          </p>
+        )}
         {isLastInGroup && (
           <span
             className={cn(

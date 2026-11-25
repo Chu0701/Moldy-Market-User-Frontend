@@ -27,6 +27,7 @@ export async function searchProducts({
   page = 1,
   size = 8,
   sort = 'newest',
+  facets,
   signal,
 } = {}) {
   const response = await apiClient.get('/api/v1/products/search', {
@@ -40,12 +41,28 @@ export async function searchProducts({
       page,
       size,
       sort,
+      ...(facets ? { facets: true } : {}),
     },
     paramsSerializer: { indexes: null },
     signal,
   })
 
   return normalizeProductSearchPage(unwrap(response))
+}
+
+/**
+ * Fetches live product title autocomplete suggestions (Backend requires >= 3 characters).
+ * @param {{ q: string, signal?: AbortSignal }} options
+ * @returns {Promise<string[]>}
+ */
+export async function suggestProducts({ q, signal }) {
+  const response = await apiClient.get('/api/v1/products/suggest', {
+    params: { q },
+    signal,
+  })
+
+  const data = unwrap(response)
+  return Array.isArray(data) ? data.filter((item) => typeof item === 'string' && item.trim()) : []
 }
 
 /**
