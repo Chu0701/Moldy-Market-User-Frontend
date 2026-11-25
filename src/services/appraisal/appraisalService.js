@@ -20,6 +20,118 @@ export async function getAppraisalRequest({ requestId, signal }) {
   return unwrap(response)
 }
 
+/** @param {{ page?: number, size?: number, signal?: AbortSignal }} [options] */
+export async function getMyAppraisalRequests({ page = 1, size = 20, signal } = {}) {
+  const response = await apiClient.get('/api/v1/appraisal-requests/my-requests', {
+    params: { page, size },
+    signal,
+  })
+  return normalizeSpringPage(unwrap(response))
+}
+
+/** @param {object} payload */
+export async function createAppraisalRequest(payload) {
+  return unwrap(await apiClient.post('/api/v1/appraisal-requests', payload))
+}
+
+/** @param {{ requestId: string }} options */
+export async function cancelAppraisalRequest({ requestId }) {
+  return unwrap(
+    await apiClient.patch(`/api/v1/appraisal-requests/${encodeURIComponent(requestId)}/cancel`),
+  )
+}
+
+/** @param {{ requestId: string, page?: number, size?: number, signal?: AbortSignal }} options */
+export async function getRequestApplications({ requestId, page = 1, size = 20, signal }) {
+  const response = await apiClient.get(
+    `/api/v1/appraisal-requests/${encodeURIComponent(requestId)}/applications`,
+    { params: { page, size }, signal },
+  )
+  return normalizeSpringPage(unwrap(response))
+}
+
+/** @param {{ requestId: string, payload: object }} options */
+export async function createAppraisalInvitation({ requestId, payload }) {
+  return unwrap(
+    await apiClient.post(
+      `/api/v1/appraisal-requests/${encodeURIComponent(requestId)}/invitations`,
+      payload,
+    ),
+  )
+}
+
+/** @param {{ requestId: string, page?: number, size?: number, signal?: AbortSignal }} options */
+export async function getRequestInvitations({ requestId, page = 1, size = 20, signal }) {
+  const response = await apiClient.get(
+    `/api/v1/appraisal-requests/${encodeURIComponent(requestId)}/invitations`,
+    { params: { page, size }, signal },
+  )
+  return normalizeSpringPage(unwrap(response))
+}
+
+/** @param {{ requestId: string, applicationId: string }} options */
+export async function selectAppraiserForRequest({ requestId, applicationId }) {
+  return unwrap(
+    await apiClient.post(
+      '/api/v1/appraisal-assignments/select-appraiser',
+      { applicationId },
+      { params: { requestId } },
+    ),
+  )
+}
+
+/** @param {{ page?: number, size?: number, signal?: AbortSignal }} [options] */
+export async function getSellerAppraisalAssignments({ page = 1, size = 20, signal } = {}) {
+  const response = await apiClient.get('/api/v1/appraisal-assignments/seller/my-assignments', {
+    params: { page, size },
+    signal,
+  })
+  return normalizeSpringPage(unwrap(response))
+}
+
+/** @param {{ reportId: string, signal?: AbortSignal }} options */
+export async function getAppraisalReport({ reportId, signal }) {
+  return unwrap(
+    await apiClient.get(`/api/v1/appraisal-reports/${encodeURIComponent(reportId)}`, { signal }),
+  )
+}
+
+/** @param {{ reportId: string }} options */
+export async function acceptAppraisalReport({ reportId }) {
+  return unwrap(
+    await apiClient.patch(`/api/v1/appraisal-reports/${encodeURIComponent(reportId)}/accept`),
+  )
+}
+
+/** @param {{ reportId: string, rejectionReason: string }} options */
+export async function rejectAppraisalReport({ reportId, rejectionReason }) {
+  return unwrap(
+    await apiClient.patch(`/api/v1/appraisal-reports/${encodeURIComponent(reportId)}/reject`, {
+      rejectionReason,
+    }),
+  )
+}
+
+/** @param {{ assignmentId: string, payload: object }} options */
+export async function createAppraisalReview({ assignmentId, payload }) {
+  return unwrap(
+    await apiClient.post(
+      `/api/v1/appraisal-reviews/assignments/${encodeURIComponent(assignmentId)}`,
+      payload,
+    ),
+  )
+}
+
+/** @param {{ assignmentId: string, signal?: AbortSignal }} options */
+export async function getAssignmentReview({ assignmentId, signal }) {
+  return unwrap(
+    await apiClient.get(
+      `/api/v1/appraisal-reviews/assignments/${encodeURIComponent(assignmentId)}`,
+      { signal },
+    ),
+  )
+}
+
 /** @param {{ requestId: string, payload: object }} options */
 export async function applyToAppraisalRequest({ requestId, payload }) {
   const response = await apiClient.post(
@@ -87,6 +199,15 @@ export async function rejectAppraisalInvitation({ invitationId }) {
     `/api/v1/appraisal-invitations/${encodeURIComponent(invitationId)}/reject`,
   )
   return unwrap(response)
+}
+
+/** @param {{ invitationId: string }} options */
+export async function cancelAppraisalInvitation({ invitationId }) {
+  return unwrap(
+    await apiClient.patch(
+      `/api/v1/appraisal-invitations/${encodeURIComponent(invitationId)}/cancel`,
+    ),
+  )
 }
 
 /** @param {{ page?: number, size?: number, signal?: AbortSignal }} [options] */

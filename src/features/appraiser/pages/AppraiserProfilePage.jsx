@@ -19,6 +19,7 @@ import {
 import { appraiserProfileSchema } from '@/features/appraiser/schemas/appraiserSchemas'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { useCategories } from '@/features/marketplace/hooks/useCategories'
+import { uploadMediaFile } from '@/services/files/fileUploadService'
 
 function flattenCategories(categories = []) {
   return categories.flatMap((category) => [category, ...flattenCategories(category.children ?? [])])
@@ -46,6 +47,9 @@ export function AppraiserProfilePage() {
   const reactivateMutation = useReactivateMyAppraiserProfile(userId)
   const [actionMessage, setActionMessage] = useState('')
   const [actionError, setActionError] = useState('')
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [uploadedAvatarFileId, setUploadedAvatarFileId] = useState('')
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const { register, handleSubmit, reset, formState } = useForm({
     resolver: zodResolver(appraiserProfileSchema),
     mode: 'onTouched',
@@ -75,19 +79,39 @@ export function AppraiserProfilePage() {
     setActionMessage('')
     setActionError('')
     try {
+      let payload = values
+      if (avatarFile) {
+        setIsUploadingAvatar(true)
+        let fileId = uploadedAvatarFileId
+        if (!fileId) {
+          const uploaded = await uploadMediaFile({
+            file: avatarFile,
+            purpose: 'USER_AVATAR',
+            allowVideo: false,
+            resolveDownloadUrl: false,
+          })
+          fileId = uploaded.fileId
+          setUploadedAvatarFileId(fileId)
+        }
+        payload = { ...values, avatarUrl: '', avatarFileId: fileId }
+      }
       if (noProfile) {
-        await registerMutation.mutateAsync(values)
+        await registerMutation.mutateAsync(payload)
         setActionMessage('appraiser.messages.registrationSent')
       } else {
-        await updateMutation.mutateAsync(values)
+        await updateMutation.mutateAsync(payload)
         setActionMessage('appraiser.messages.profileSaved')
       }
       reset(values)
+      setAvatarFile(null)
+      setUploadedAvatarFileId('')
     } catch (error) {
       if (error?.code === 'APPRAISER_ALREADY_REGISTERED') {
         await profileQuery.refetch()
       }
       setActionError(getMutationErrorKey(error))
+    } finally {
+      setIsUploadingAvatar(false)
     }
   }
 
@@ -106,7 +130,8 @@ export function AppraiserProfilePage() {
     registerMutation.isPending ||
     updateMutation.isPending ||
     deactivateMutation.isPending ||
-    reactivateMutation.isPending
+    reactivateMutation.isPending ||
+    isUploadingAvatar
   const status = statusQuery.data?.status ?? profileQuery.data?.status
   const canEdit = status === 'ACTIVE'
   const canRegister = noProfile
@@ -159,9 +184,18 @@ export function AppraiserProfilePage() {
                   </p>
                 )}
                 {status === 'SUSPENDED' && (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {statusQuery.data?.suspensionReason || t('appraiser.profile.suspendedNotice')}
-                  </p>
+                  <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+                    <p>
+                      {statusQuery.data?.suspensionReason || t('appraiser.profile.suspendedNotice')}
+                    </p>
+                    {statusQuery.data?.suspensionUntil && (
+                      <p>
+                        {t('appraiser.profile.suspendedUntil', {
+                          date: statusQuery.data.suspensionUntil,
+                        })}
+                      </p>
+                    )}
+                  </div>
                 )}
                 {status === 'REJECTED' && (
                   <p className="mt-3 text-sm text-muted-foreground">
@@ -323,6 +357,23 @@ export function AppraiserProfilePage() {
                   <p role="alert" className="text-sm text-destructive">
                     {t(formState.errors.avatarUrl.message)}
                   </p>
+                )}
+                <label htmlFor="appraiser-avatar-file" className="text-sm font-medium">
+                  {t('appraiser.profile.avatarUpload')}
+                </label>
+                <input
+                  id="appraiser-avatar-file"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={isMutating}
+                  onChange={(event) => {
+                    setAvatarFile(event.target.files?.[0] ?? null)
+                    setUploadedAvatarFileId('')
+                  }}
+                  className="min-h-11 rounded-lg border border-input bg-background p-2 text-sm"
+                />
+                {avatarFile && (
+                  <span className="text-xs text-muted-foreground">{avatarFile.name}</span>
                 )}
               </div>
 

@@ -68,6 +68,29 @@ export function useAppraisalRequest(userId, requestId) {
   })
 }
 
+/** Verifies marketplace visibility before calling request detail, whose backend ownership check is absent. */
+export function useOpenAppraisalRequest(userId, requestId) {
+  return useQuery({
+    queryKey: appraiserKeys.request(userId, requestId),
+    queryFn:
+      userId && requestId
+        ? async ({ signal }) => {
+            let page = 1
+            let totalPages = 1
+            while (page <= totalPages) {
+              const openRequests = await getOpenAppraisalRequests({ page, size: 100, signal })
+              const requestIsOpen = openRequests.items.some((item) => item.id === requestId)
+              if (requestIsOpen) return getAppraisalRequest({ requestId, signal })
+              totalPages = openRequests.totalPages
+              page += 1
+            }
+            return null
+          }
+        : skipToken,
+    retry: false,
+  })
+}
+
 export function useMyAppraisalApplications(userId, page = 1) {
   return useQuery({
     queryKey: appraiserKeys.applications(userId, page),

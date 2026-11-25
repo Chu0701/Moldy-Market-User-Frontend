@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertTriangle, FileText, Image, MessageCircle, X } from 'lucide-react'
+import { AlertTriangle, FileText, Image, MessageCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -23,8 +23,10 @@ import {
   appraisalReportSchema,
   parseEvidenceLines,
 } from '@/features/appraiser/schemas/appraiserSchemas'
+import { canSubmitAppraisalReport } from '@/features/appraiser/utils/reportEligibility'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { formatLocalDate, formatVnd } from '@/features/appraiser/utils/formatters'
+import { uploadMediaFile } from '@/services/files/fileUploadService'
 
 function safeEvidenceHref(value) {
   try {
@@ -48,6 +50,9 @@ export function AppraiserAssignmentDetailPage() {
   const [actionMessage, setActionMessage] = useState('')
   const [actionError, setActionError] = useState('')
   const [evidenceError, setEvidenceError] = useState('')
+  const [evidenceFiles, setEvidenceFiles] = useState([])
+  const [isUploadingEvidence, setIsUploadingEvidence] = useState(false)
+  const [confirmedFiles, setConfirmedFiles] = useState({})
   const { register, handleSubmit, reset, formState } = useForm({
     resolver: zodResolver(appraisalReportSchema),
     mode: 'onTouched',
@@ -101,25 +106,59 @@ export function AppraiserAssignmentDetailPage() {
     setActionMessage('')
     const imageUrls = parseEvidenceLines(values.imageUrls)
     const documentUrls = parseEvidenceLines(values.documentUrls)
-    if (imageUrls.length > 10 || documentUrls.length > 10) {
+    if (evidenceFiles.length > 10 || imageUrls.length > 10 || documentUrls.length > 10) {
       setEvidenceError('appraiser.validation.evidenceMax')
       return
     }
+    if (evidenceFiles.length && (imageUrls.length || documentUrls.length)) {
+      setEvidenceError('appraiser.assignmentDetail.mixedEvidenceError')
+      return
+    }
 
+    setIsUploadingEvidence(true)
     try {
-      await submitMutation.mutateAsync({
+      const uploaded = []
+      const confirmedForSubmit = { ...confirmedFiles }
+      for (const file of evidenceFiles) {
+        const fingerprint = `${file.name}:${file.size}:${file.lastModified}`
+        let fileId = confirmedForSubmit[fingerprint]
+        if (!fileId) {
+          const result = await uploadMediaFile({
+            file,
+            purpose: 'APPRAISAL_EVIDENCE',
+            allowVideo: false,
+            resolveDownloadUrl: false,
+          })
+          fileId = result.fileId
+          confirmedForSubmit[fingerprint] = fileId
+          setConfirmedFiles({ ...confirmedForSubmit })
+        }
+        uploaded.push(fileId)
+      }
+      const payload = {
         description: values.description,
         conditionAssessment: values.conditionAssessment,
         assessedValue: values.assessedValue,
-        imageUrls,
-        documentUrls,
-      })
+      }
+      if (uploaded.length) payload.mediaFileIds = uploaded
+      else {
+        payload.imageUrls = imageUrls
+        payload.documentUrls = documentUrls
+      }
+      await submitMutation.mutateAsync(payload)
       setActionMessage('appraiser.messages.reportSubmitted')
+      setEvidenceFiles([])
+      setConfirmedFiles({})
       reset(values)
-    } catch {
-      setActionError('appraiser.errors.submitFailed')
+    } catch (error) {
+      setEvidenceError(
+        error?.code?.startsWith('FILE_') ? 'appraiser.assignmentDetail.evidenceUploadFailed' : '',
+      )
+      setActionError(error?.code?.startsWith('FILE_') ? '' : 'appraiser.errors.submitFailed')
       void historyQuery.refetch()
       void assignmentQuery.refetch()
+    } finally {
+      setIsUploadingEvidence(false)
     }
   }
 
@@ -161,12 +200,9 @@ export function AppraiserAssignmentDetailPage() {
 
   const assignment = assignmentQuery.data
   const reports = historyQuery.data ?? []
-  const hasSubmittedReport = reports.some((report) => report.status === 'SUBMITTED')
-  const rejectionCount = reports.filter((report) => report.status === 'REJECTED').length
   const canCancel = ['ASSIGNED', 'IN_PROGRESS'].includes(assignment.status)
   const canStart = assignment.status === 'ASSIGNED'
-  const canSubmitReport =
-    assignment.status === 'IN_PROGRESS' && !hasSubmittedReport && rejectionCount < 3
+  const canSubmitReport = canSubmitAppraisalReport(assignment.status, reports)
 
   return (
     <AppraiserPageShell
@@ -370,6 +406,25 @@ export function AppraiserAssignmentDetailPage() {
                       )}
                     </div>
                   )}
+                  {report.media?.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-3 border-t border-border pt-4">
+                      {report.media.map(
+                        (media) =>
+                          media.viewUrl && (
+                            <a
+                              key={media.fileId}
+                              href={safeEvidenceHref(media.viewUrl) ?? undefined}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="break-all text-sm underline"
+                            >
+                              {media.originalFilename ??
+                                t('appraiser.assignmentDetail.mediaEvidence')}
+                            </a>
+                          ),
+                      )}
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
@@ -379,7 +434,7 @@ export function AppraiserAssignmentDetailPage() {
         {canSubmitReport && historyQuery.isSuccess && (
           <form
             noValidate
-            aria-busy={submitMutation.isPending}
+            aria-busy={submitMutation.isPending || isUploadingEvidence}
             onSubmit={handleSubmit(submitReport)}
             className="grid gap-5 rounded-xl border border-border bg-card p-5 sm:p-6"
           >
@@ -473,30 +528,52 @@ export function AppraiserAssignmentDetailPage() {
                 />
               </label>
             </div>
+            <label className="grid gap-2 text-sm font-medium" htmlFor="report-evidence-files">
+              {t('appraiser.assignmentDetail.uploadEvidence')}
+              <input
+                id="report-evidence-files"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                disabled={submitMutation.isPending || isUploadingEvidence}
+                onChange={(event) => {
+                  setEvidenceFiles(Array.from(event.target.files ?? []))
+                  setEvidenceError('')
+                }}
+                className="min-h-11 rounded-lg border border-input bg-background p-2 text-sm"
+              />
+              {evidenceFiles.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {t('appraiser.assignmentDetail.selectedEvidence', {
+                    count: evidenceFiles.length,
+                    names: evidenceFiles.map((file) => file.name).join(', '),
+                  })}
+                </span>
+              )}
+            </label>
             <p className="text-xs leading-5 text-muted-foreground">
               {t('appraiser.assignmentDetail.evidenceNotice')}
             </p>
             <Button
               type="submit"
-              disabled={submitMutation.isPending}
+              disabled={submitMutation.isPending || isUploadingEvidence}
               className="min-h-11 justify-self-start"
             >
-              {submitMutation.isPending
-                ? t('appraiser.assignmentDetail.submitting')
-                : t('appraiser.assignmentDetail.submitReport')}
+              {isUploadingEvidence
+                ? t('appraiser.assignmentDetail.uploadingEvidence')
+                : submitMutation.isPending
+                  ? t('appraiser.assignmentDetail.submitting')
+                  : t('appraiser.assignmentDetail.submitReport')}
             </Button>
           </form>
         )}
 
-        {rejectionCount >= 3 && assignment.status === 'IN_PROGRESS' && (
-          <p
-            role="alert"
-            className="flex items-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning"
-          >
-            <X aria-hidden="true" className="size-4" />
-            {t('appraiser.assignmentDetail.rejectionLimit')}
-          </p>
-        )}
+        {assignment.status === 'IN_PROGRESS' &&
+          reports.filter((report) => report.status === 'REJECTED').length >= 3 && (
+            <p role="status" className="rounded-lg bg-warning/10 p-4 text-sm text-warning">
+              {t('appraiser.assignmentDetail.rejectionLimit')}
+            </p>
+          )}
 
         {blocker.state === 'blocked' && (
           <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/40 p-4">

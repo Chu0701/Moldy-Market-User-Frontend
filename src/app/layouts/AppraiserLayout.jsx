@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet } from 'react-router'
 
 import { Logo } from '@/components/common/Logo'
+import { useSession } from '@/features/auth/hooks/useSession'
 import { cn } from '@/lib/utils'
 
 const navigation = [
@@ -20,12 +21,17 @@ const navigation = [
     icon: BriefcaseBusiness,
   },
   { to: '/appraiser/assignments', label: 'appraiser.nav.assignments', icon: ClipboardList },
+  { to: '/appraiser/commissions', label: 'appraiser.nav.commissions', icon: ChartNoAxesCombined },
   { to: '/appraiser/profile', label: 'appraiser.nav.profile', icon: UserRound },
-  { to: '/appraiser/performance', label: 'appraiser.nav.performance', icon: ChartNoAxesCombined },
 ]
 
 export function AppraiserLayout() {
   const { t } = useTranslation()
+  const { profileQuery } = useSession()
+  const isAppraiser = profileQuery.data?.roles?.includes('APPRAISER')
+  const visibleNavigation = isAppraiser
+    ? navigation
+    : navigation.filter(({ to }) => to === '/appraiser/profile')
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
@@ -42,7 +48,7 @@ export function AppraiserLayout() {
           </p>
           <nav aria-label={t('appraiser.nav.label')}>
             <div className="flex gap-1.5 overflow-x-auto pb-1 lg:grid lg:overflow-visible">
-              {navigation.map(({ to, label, icon: Icon, end }) => (
+              {visibleNavigation.map(({ to, label, icon: Icon, end }) => (
                 <NavLink
                   key={to}
                   to={to}

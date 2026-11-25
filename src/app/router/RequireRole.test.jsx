@@ -9,11 +9,11 @@ import { useSession } from '@/features/auth/hooks/useSession'
 
 vi.mock('@/features/auth/hooks/useSession', () => ({ useSession: vi.fn() }))
 
-function renderProtectedPage() {
+function renderProtectedPage(role) {
   const router = createMemoryRouter(
     [
       {
-        Component: RequireRole,
+        Component: () => <RequireRole role={role} />,
         children: [{ path: '/appraiser/queue', element: <h1>Appraiser content</h1> }],
       },
     ],
@@ -44,5 +44,20 @@ describe('RequireRole', () => {
     renderProtectedPage()
 
     expect(screen.getByRole('heading', { name: 'Appraiser content' })).toBeInTheDocument()
+  })
+
+  test('allows an ADMIN without granting access to regular users', () => {
+    vi.mocked(useSession).mockReturnValue({
+      profileQuery: { isPending: false, data: { roles: ['USER', 'ADMIN'] } },
+    })
+    renderProtectedPage('ADMIN')
+
+    expect(screen.getByRole('heading', { name: 'Appraiser content' })).toBeInTheDocument()
+  })
+
+  test('blocks regular users from ADMIN routes', () => {
+    renderProtectedPage('ADMIN')
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Không có quyền xem nội dung')
   })
 })

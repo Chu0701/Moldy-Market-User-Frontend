@@ -8,6 +8,7 @@ import { RouteErrorPage } from '@/features/system/pages/RouteErrorPage'
 import { RouteLoading } from '@/components/feedback/RouteLoading'
 import { GuestOnly } from '@/app/router/GuestOnly'
 import { RequireAuth } from '@/app/router/RequireAuth'
+import { RequireRole } from '@/app/router/RequireRole'
 
 /** @type {import('react-router').RouteObject[]} */
 export const routes = [
@@ -148,16 +149,76 @@ export const routes = [
             Component: RequireAuth,
             children: [
               {
-                path: 'appraiser',
-                Component: AppraiserLayout,
+                path: 'appraisers',
+                lazy: async () => ({
+                  Component: (await import('@/features/appraiser/pages/AppraiserDirectoryPage'))
+                    .AppraiserDirectoryPage,
+                }),
+              },
+              {
+                path: 'appraisers/:appraiserId',
+                lazy: async () => ({
+                  Component: (await import('@/features/appraiser/pages/PublicAppraiserPage'))
+                    .PublicAppraiserPage,
+                }),
+              },
+              {
+                path: 'appraisals',
+                lazy: async () => ({
+                  Component: (await import('@/features/appraiser/pages/SellerAppraisalsPage'))
+                    .SellerAppraisalsPage,
+                }),
+              },
+              {
+                path: 'appraisals/requests/:requestId',
+                lazy: async () => ({
+                  Component: (await import('@/features/appraiser/pages/SellerAppraisalRequestPage'))
+                    .SellerAppraisalRequestPage,
+                }),
+              },
+              {
+                path: 'appraisals/assignments/:assignmentId',
+                lazy: async () => ({
+                  Component: (
+                    await import('@/features/appraiser/pages/SellerAppraisalAssignmentPage')
+                  ).SellerAppraisalAssignmentPage,
+                }),
+              },
+              {
+                path: 'admin/appraisers',
+                lazy: async () => ({
+                  Component: (await import('@/app/router/RequireAdminRole')).RequireAdminRole,
+                }),
                 children: [
                   {
                     index: true,
                     lazy: async () => ({
-                      Component: (await import('@/features/appraiser/pages/AppraiserOverviewPage'))
-                        .AppraiserOverviewPage,
+                      Component: (await import('@/features/appraiser/pages/AdminAppraisersPage'))
+                        .AdminAppraisersPage,
                     }),
                   },
+                ],
+              },
+              {
+                path: 'admin/commissions',
+                lazy: async () => ({
+                  Component: (await import('@/app/router/RequireAdminRole')).RequireAdminRole,
+                }),
+                children: [
+                  {
+                    index: true,
+                    lazy: async () => ({
+                      Component: (
+                        await import('@/features/appraiser/pages/AdminCommissionUnavailablePage')
+                      ).AdminCommissionUnavailablePage,
+                    }),
+                  },
+                ],
+              },
+              {
+                path: 'appraiser',
+                Component: AppraiserLayout,
+                children: [
                   {
                     path: 'profile',
                     lazy: async () => ({
@@ -166,62 +227,91 @@ export const routes = [
                     }),
                   },
                   {
-                    path: 'requests',
-                    lazy: async () => ({
-                      Component: (await import('@/features/appraiser/pages/AppraiserQueuePage'))
-                        .AppraiserQueuePage,
-                    }),
+                    Component: RequireRole,
+                    children: [
+                      {
+                        children: [
+                          {
+                            index: true,
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserOverviewPage')
+                              ).AppraiserOverviewPage,
+                            }),
+                          },
+                          {
+                            path: 'requests',
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserQueuePage')
+                              ).AppraiserQueuePage,
+                            }),
+                          },
+                          {
+                            path: 'requests/:requestId',
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserRequestDetailPage')
+                              ).AppraiserRequestDetailPage,
+                            }),
+                          },
+                          {
+                            path: 'opportunities',
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserOpportunitiesPage')
+                              ).AppraiserOpportunitiesPage,
+                            }),
+                          },
+                          {
+                            path: 'assignments',
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserAssignmentsPage')
+                              ).AppraiserAssignmentsPage,
+                            }),
+                          },
+                          {
+                            path: 'assignments/:assignmentId',
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserAssignmentDetailPage')
+                              ).AppraiserAssignmentDetailPage,
+                            }),
+                          },
+                          {
+                            path: 'commissions',
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserCommissionsPage')
+                              ).AppraiserCommissionsPage,
+                            }),
+                          },
+                          {
+                            path: 'commissions/:commissionId',
+                            lazy: async () => ({
+                              Component: (
+                                await import('@/features/appraiser/pages/AppraiserCommissionsPage')
+                              ).AppraiserCommissionsPage,
+                            }),
+                          },
+                          {
+                            path: 'performance',
+                            loader: () => redirect('/appraiser/commissions'),
+                          },
+                          { path: 'queue', loader: () => redirect('/appraiser/requests') },
+                          {
+                            path: 'applications',
+                            loader: () => redirect('/appraiser/opportunities?tab=applications'),
+                          },
+                          {
+                            path: 'invitations',
+                            loader: () => redirect('/appraiser/opportunities?tab=invitations'),
+                          },
+                        ],
+                      },
+                    ],
                   },
-                  {
-                    path: 'requests/:requestId',
-                    lazy: async () => ({
-                      Component: (
-                        await import('@/features/appraiser/pages/AppraiserRequestDetailPage')
-                      ).AppraiserRequestDetailPage,
-                    }),
-                  },
-                  {
-                    path: 'opportunities',
-                    lazy: async () => ({
-                      Component: (
-                        await import('@/features/appraiser/pages/AppraiserOpportunitiesPage')
-                      ).AppraiserOpportunitiesPage,
-                    }),
-                  },
-                  {
-                    path: 'assignments',
-                    lazy: async () => ({
-                      Component: (
-                        await import('@/features/appraiser/pages/AppraiserAssignmentsPage')
-                      ).AppraiserAssignmentsPage,
-                    }),
-                  },
-                  {
-                    path: 'assignments/:assignmentId',
-                    lazy: async () => ({
-                      Component: (
-                        await import('@/features/appraiser/pages/AppraiserAssignmentDetailPage')
-                      ).AppraiserAssignmentDetailPage,
-                    }),
-                  },
-                  {
-                    path: 'performance',
-                    lazy: async () => ({
-                      Component: (
-                        await import('@/features/appraiser/pages/AppraiserPerformancePage')
-                      ).AppraiserPerformancePage,
-                    }),
-                  },
-                  { path: 'queue', loader: () => redirect('/appraiser/requests') },
-                  {
-                    path: 'applications',
-                    loader: () => redirect('/appraiser/opportunities?tab=applications'),
-                  },
-                  {
-                    path: 'invitations',
-                    loader: () => redirect('/appraiser/opportunities?tab=invitations'),
-                  },
-                  { path: 'commissions', loader: () => redirect('/appraiser/performance') },
                 ],
               },
               {

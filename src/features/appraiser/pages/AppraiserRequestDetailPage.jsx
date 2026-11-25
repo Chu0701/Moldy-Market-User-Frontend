@@ -12,7 +12,7 @@ import { AppraiserStatusBadge } from '@/features/appraiser/components/AppraiserS
 import { AppraiserPageShell } from '@/features/appraiser/components/AppraiserPageShell'
 import {
   useMyAppraiserProfile,
-  useAppraisalRequest,
+  useOpenAppraisalRequest,
   useApplyToAppraisalRequest,
 } from '@/features/appraiser/hooks/useAppraiserData'
 import { applicationSchema } from '@/features/appraiser/schemas/appraiserSchemas'
@@ -26,7 +26,7 @@ export function AppraiserRequestDetailPage() {
   const now = useCurrentTime()
   const { profileQuery: sessionQuery } = useSession()
   const userId = sessionQuery.data?.id
-  const requestQuery = useAppraisalRequest(userId, requestId)
+  const requestQuery = useOpenAppraisalRequest(userId, requestId)
   const appraiserQuery = useMyAppraiserProfile(userId)
   const applyMutation = useApplyToAppraisalRequest(userId, requestId)
   const [success, setSuccess] = useState(false)
@@ -97,6 +97,20 @@ export function AppraiserRequestDetailPage() {
             isRetrying={requestQuery.isFetching}
           />
         )}
+      </AppraiserPageShell>
+    )
+  }
+
+  if (!requestQuery.data) {
+    return (
+      <AppraiserPageShell
+        title={t('appraiser.requestDetail.title')}
+        description={t('appraiser.requestDetail.description')}
+      >
+        <EmptyState
+          title={t('appraiser.requestDetail.closedTitle')}
+          description={t('appraiser.requestDetail.closedDescription')}
+        />
       </AppraiserPageShell>
     )
   }

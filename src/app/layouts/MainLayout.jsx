@@ -128,6 +128,8 @@ export function MainLayout() {
 
   const sellingMenuLinks = [
     { to: '/my-products', label: 'products.mine.title', icon: Tag },
+    { to: '/appraisers', label: 'appraiserDirectory.title', icon: ShieldCheck },
+    { to: '/appraisals', label: 'sellerAppraisals.title', icon: ShieldCheck },
     ...storeMenuLinks,
   ]
 
@@ -143,12 +145,18 @@ export function MainLayout() {
   const appraiserMenuLinks = profile
     ? [
         {
-          to: '/appraiser',
+          to: profile.roles?.includes('APPRAISER') ? '/appraiser' : '/appraiser/profile',
           label: profile.roles?.includes('APPRAISER')
             ? 'appraiser.nav.entry'
             : 'appraiser.nav.become',
           icon: ShieldCheck,
         },
+      ]
+    : []
+  const adminAppraiserMenuLinks = profile?.roles?.includes('ADMIN')
+    ? [
+        { to: '/admin/appraisers', label: 'adminAppraisers.title', icon: ShieldCheck },
+        { to: '/admin/commissions', label: 'adminAppraisers.commissionsTitle', icon: ShieldCheck },
       ]
     : []
 
@@ -408,6 +416,25 @@ export function MainLayout() {
                                 isActive && 'bg-accent font-medium text-accent-foreground',
                               )
                             }
+                          >
+                            <Icon
+                              aria-hidden="true"
+                              className="size-4 shrink-0 text-muted-foreground"
+                            />
+                            <span>{t(label)}</span>
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+
+                    {adminAppraiserMenuLinks.length > 0 && (
+                      <div className="grid gap-0.5 border-t border-border py-1">
+                        {adminAppraiserMenuLinks.map(({ to, label, icon: Icon }) => (
+                          <NavLink
+                            key={to}
+                            to={to}
+                            onClick={closeProfileMenu}
+                            className="inline-flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <Icon
                               aria-hidden="true"

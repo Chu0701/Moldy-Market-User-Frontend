@@ -50,6 +50,7 @@ import {
   updateStoreStaffPermissions,
 } from '@/services/stores/storeService'
 import { changePassword, getMe, updateMyProfile } from '@/services/users/userService'
+import { getMyAppraiserCommissions } from '@/services/commission/commissionService'
 
 vi.mock('@/services/api/authRefreshInterceptor', () => ({ waitForPendingRefresh: vi.fn() }))
 vi.mock('@/services/cart/cartService', () => ({
@@ -94,6 +95,10 @@ vi.mock('@/services/products/productService', () => ({
   getProductById: vi.fn(),
   searchProducts: vi.fn(),
   updateProduct: vi.fn(),
+}))
+vi.mock('@/services/commission/commissionService', () => ({
+  getMyAppraiserCommission: vi.fn(),
+  getMyAppraiserCommissions: vi.fn(),
 }))
 
 let router
@@ -143,6 +148,7 @@ beforeEach(() => {
   vi.mocked(getCategoryById).mockReset()
   vi.mocked(getCategoryTree).mockReset().mockResolvedValue([])
   vi.mocked(searchProducts).mockReset().mockResolvedValue({ items: [] })
+  vi.mocked(getMyAppraiserCommissions).mockReset().mockResolvedValue([])
 })
 
 function renderRoute(path, routeConfig = routes) {
@@ -206,6 +212,28 @@ describe('user app routing', () => {
       },
     ],
   }
+
+  describe('appraiser workspace access', () => {
+    test('blocks a regular user from appraiser work pages', async () => {
+      setAccessToken('test-access-token')
+
+      renderRoute('/appraiser/assignments')
+
+      expect(await screen.findByText('Không có quyền xem nội dung')).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Công việc được giao' })).not.toBeInTheDocument()
+    })
+
+    test('shows the empty state for the commission list under the appraiser route', async () => {
+      setAccessToken('test-access-token')
+      vi.mocked(getMe).mockResolvedValue({ id: 'appraiser-user', roles: ['USER', 'APPRAISER'] })
+
+      renderRoute('/appraiser/commissions')
+
+      expect(await screen.findByRole('heading', { name: 'Hoa hồng' })).toBeInTheDocument()
+      expect(await screen.findByText('Chưa có hoa hồng')).toBeInTheDocument()
+      expect(getMyAppraiserCommissions).toHaveBeenCalledOnce()
+    })
+  })
 
   describe('preparing checkout from cart', () => {
     test('carries only selected products to the delivery form and sends no order request', async () => {
@@ -2304,7 +2332,9 @@ describe('user app routing', () => {
       await user.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
 
       expect(await screen.findByText('Đã lưu thay đổi hồ sơ.')).toHaveAttribute('role', 'status')
-      expect(screen.getByText(updatedProfile.fullName, { selector: 'dd' })).toBeInTheDocument()
+      expect(
+        await screen.findByText(updatedProfile.fullName, { selector: 'dd' }),
+      ).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/profile')
       expect(updateMyProfile).toHaveBeenCalledOnce()
       expect(vi.mocked(updateMyProfile).mock.calls[0][0]).toEqual({
