@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ArrowLeft, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -8,14 +9,18 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { MobileBuyBar } from '@/features/products/components/MobileBuyBar'
 import { ProductGallery } from '@/features/products/components/ProductGallery'
 import { ProductInfo } from '@/features/products/components/ProductInfo'
+import { RecentlyViewedSection } from '@/features/products/components/RecentlyViewedSection'
 import { SimilarProductsSection } from '@/features/products/components/SimilarProductsSection'
+import { recordRecentlyViewed } from '@/features/products/recentlyViewedStorage'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { ProductVisibilityButton } from '@/features/products/components/ProductVisibilityButton'
 import { ProductDeleteButton } from '@/features/products/components/ProductDeleteButton'
 import { useProductDetail } from '@/features/products/hooks/useProductDetail'
 import { useProductManagementAccess } from '@/features/products/hooks/useProductManagementAccess'
 import { AddToCartButton } from '@/features/cart/components/AddToCartButton'
+import { BuyNowButton } from '@/features/cart/components/BuyNowButton'
 import { StoreChatButton } from '@/features/chat/components/StoreChatButton'
+import { CompareToggleButton } from '@/features/products/components/CompareToggleButton'
 import { WishlistButton } from '@/features/wishlist/components/WishlistButton'
 import { ProductPriceHistoryPanel } from '@/features/analytics/components/ProductPriceHistoryPanel'
 
@@ -24,16 +29,43 @@ export function ProductDetailPage() {
   const query = useProductDetail()
   const { profileQuery } = useSession()
   const { canManage } = useProductManagementAccess(query.data, profileQuery.data)
+  const loadedProduct = query.data
+
+  useEffect(() => {
+    if (
+      !loadedProduct?.id ||
+      loadedProduct.status === 'DELETED' ||
+      loadedProduct.status === 'REMOVED'
+    ) {
+      return
+    }
+    recordRecentlyViewed({
+      id: loadedProduct.id,
+      title: loadedProduct.title,
+      price: loadedProduct.price,
+      imageUrl: loadedProduct.images?.[0],
+      condition: loadedProduct.condition,
+      createdAt: loadedProduct.createdAt,
+    })
+  }, [
+    loadedProduct?.id,
+    loadedProduct?.title,
+    loadedProduct?.price,
+    loadedProduct?.images,
+    loadedProduct?.condition,
+    loadedProduct?.createdAt,
+    loadedProduct?.status,
+  ])
 
   if (query.isPending) {
     return (
       <div role="status" className="product-detail-loading">
         <span>{t('products.loading')}</span>
-        <div className="product-detail-image-skeleton" aria-hidden="true" />
+        <div className="product-detail-image-skeleton skeleton-shimmer" aria-hidden="true" />
         <div className="product-detail-info-skeleton" aria-hidden="true">
-          <div />
-          <div />
-          <div />
+          <div className="skeleton-shimmer" />
+          <div className="skeleton-shimmer" />
+          <div className="skeleton-shimmer" />
         </div>
       </div>
     )
@@ -83,12 +115,34 @@ export function ProductDetailPage() {
       id="product-purchase-box"
       className="space-y-4 rounded-lg border border-border bg-surface-subtle p-4 sm:p-5"
     >
-      <div className="flex flex-wrap items-start gap-3">
-        <AddToCartButton key={product.id} product={product} />
+      <div className="flex flex-wrap items-start gap-2.5">
+        <BuyNowButton key={`buy-${product.id}`} product={product} />
+        <AddToCartButton key={product.id} product={product} variant="outline" />
         <WishlistButton key={`wishlist-${product.id}`} productId={product.id} />
         {product.storeId && (
-          <StoreChatButton key={`chat-${product.id}`} storeId={product.storeId} />
+          <StoreChatButton
+            key={`chat-${product.id}`}
+            storeId={product.storeId}
+            product={{
+              id: product.id,
+              title: product.title,
+              price: product.price,
+              imageUrl: product.images?.[0],
+            }}
+          />
         )}
+        <CompareToggleButton
+          product={{
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            imageUrl: product.images?.[0],
+            condition: product.condition,
+            status: product.status,
+            storeId: product.storeId,
+            attributes: product.attributes,
+          }}
+        />
       </div>
       <div className="flex items-start gap-2.5 border-t border-border pt-3.5 text-xs leading-5 text-muted-foreground">
         <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-success" />
@@ -153,6 +207,7 @@ export function ProductDetailPage() {
       </div>
 
       <SimilarProductsSection categoryId={product.categoryId} currentProductId={product.id} />
+      <RecentlyViewedSection excludeProductId={product.id} />
 
       {showMobileBar && <MobileBuyBar price={product.price} />}
     </div>

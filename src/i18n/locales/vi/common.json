@@ -7,9 +7,11 @@
     "buyNow": "Mua ngay",
     "save": "Lưu",
     "cancel": "Hủy",
+    "close": "Đóng",
     "backHome": "Về trang chủ",
     "reload": "Tải lại trang",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "clear": "Xóa"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -126,7 +128,9 @@
     "emptyTitle": "Chưa có danh mục",
     "emptyMessage": "Danh mục sẽ xuất hiện tại đây khi được cập nhật.",
     "notFoundTitle": "Không tìm thấy danh mục",
-    "productsTitle": "Sản phẩm trong danh mục"
+    "productsTitle": "Sản phẩm trong danh mục",
+    "subCategoryCount": "{{count}} danh mục con",
+    "productCount": "{{count}} sản phẩm"
   },
   "hero": {
     "eyebrow": "Chợ đồ cũ giao dịch ký quỹ",
@@ -146,13 +150,26 @@
     "step2Title": "Thanh toán ký quỹ an toàn",
     "step2Desc": "Tiền được hệ thống giữ bảo vệ cho đến khi bạn nhận hàng.",
     "step3Title": "Kiểm tra & hỗ trợ khiếu nại",
-    "step3Desc": "Xác nhận hài lòng hoặc mở khiếu nại hoàn tiền minh bạch về ví."
+    "step3Desc": "Xác nhận hài lòng hoặc mở khiếu nại hoàn tiền minh bạch về ví.",
+    "liveCount": "{{count}} món đang bán",
+    "sellerPrompt": "Có đồ cũ không dùng?",
+    "sellerPromptAction": "Đăng bán miễn phí trong 2 phút →",
+    "spotlightTitle": "Mới lên kệ",
+    "spotlightHint": "Nhấn để xem nhanh",
+    "justListedLabel": "Vừa được đăng"
   },
   "products": {
     "mine": {
       "title": "Sản phẩm của tôi",
       "empty": "Trang này chưa có tin cá nhân.",
-      "loadError": "Chưa tải được sản phẩm của bạn."
+      "loadError": "Chưa tải được sản phẩm của bạn.",
+      "createAction": "Đăng tin mới",
+      "searchPlaceholder": "Tìm theo tên sản phẩm…",
+      "emptyFilterTitle": "Không có sản phẩm phù hợp",
+      "emptyFilterDescription": "Thử chuyển tab trạng thái hoặc đổi từ khóa tìm kiếm.",
+      "tabs": {
+        "all": "Tất cả"
+      }
     },
     "create": {
       "pageTitle": "Đăng sản phẩm",
@@ -223,20 +240,40 @@
       "selectImage": "Xem ảnh {{number}}",
       "position": "Ảnh {{current}} / {{total}}",
       "previous": "Ảnh trước",
-      "next": "Ảnh tiếp theo"
+      "next": "Ảnh tiếp theo",
+      "zoom": "Phóng to toàn màn hình"
+    },
+    "media": {
+      "previewList": "Danh sách ảnh và video đã chọn",
+      "coverBadge": "Ảnh bìa",
+      "setCover": "Đặt làm ảnh bìa",
+      "moveLeft": "Di chuyển sang trái",
+      "moveRight": "Di chuyển sang phải",
+      "remove": "Xóa tệp này"
+    },
+    "recentlyViewed": {
+      "title": "Sản phẩm bạn vừa xem",
+      "clear": "Xóa lịch sử",
+      "scrollPrev": "Cuộn sang trái",
+      "scrollNext": "Cuộn sang phải",
+      "clearedNotice": "Đã xóa danh sách sản phẩm bạn vừa xem.",
+      "undo": "Hoàn tác"
     },
     "delete": {
       "action": "Xóa tin",
       "confirm": "Bạn có chắc muốn xóa tin này? Tin sẽ bị gỡ khỏi danh sách sản phẩm.",
       "pending": "Đang xóa…",
-      "submitError": "Không thể xóa tin. Vui lòng thử lại."
+      "submitError": "Không thể xóa tin. Vui lòng thử lại.",
+      "successToast": "Đã xóa tin đăng."
     },
     "visibility": {
       "hide": "Ẩn tin",
       "show": "Hiện tin",
       "saving": "Đang cập nhật…",
       "submitError": "Không thể đổi trạng thái tin. Vui lòng thử lại.",
-      "locked": "Trạng thái của tin đã thay đổi. Vui lòng tải lại trang."
+      "locked": "Trạng thái của tin đã thay đổi. Vui lòng tải lại trang.",
+      "hiddenToast": "Đã ẩn tin đăng.",
+      "shownToast": "Đã hiện lại tin đăng."
     },
     "statuses": {
       "active": "Đang bán",
@@ -304,7 +341,26 @@
         "5mTo10m": "5 – 10 triệu",
         "over10m": "Trên 10 triệu"
       }
-    }
+    },
+    "compare": {
+      "add": "So sánh",
+      "added": "Đang so sánh",
+      "addedToast": "Đã thêm vào danh sách so sánh.",
+      "removedToast": "Đã bỏ khỏi danh sách so sánh.",
+      "limitReached": "Chỉ so sánh tối đa {{max}} sản phẩm cùng lúc.",
+      "trayLabel": "Thanh so sánh nhanh sản phẩm",
+      "count": "So sánh ({{count}}/{{max}})",
+      "removeItem": "Bỏ {{title}} khỏi so sánh",
+      "clearAll": "Xóa hết",
+      "compareNow": "So sánh ngay",
+      "modalTitle": "So sánh sản phẩm",
+      "criteria": "Tiêu chí",
+      "price": "Giá bán",
+      "bestPrice": "Giá tốt nhất",
+      "condition": "Tình trạng",
+      "viewProduct": "Xem chi tiết"
+    },
+    "escrowShort": "Ký quỹ"
   },
   "cart": {
     "title": "Giỏ hàng",
@@ -340,7 +396,8 @@
     "statusSold": "Sản phẩm này đã được bán.",
     "statusHidden": "Người bán đã ẩn tin đăng này.",
     "priceDropped": "Giá đã giảm",
-    "priceIncreased": "Giá đã tăng"
+    "priceIncreased": "Giá đã tăng",
+    "buyingNow": "Đang chuyển thanh toán…"
   },
   "checkout": {
     "title": "Thông tin đặt hàng",
@@ -385,6 +442,7 @@
       "label": "Mã giảm giá (tùy chọn)",
       "placeholder": "Nhập mã voucher",
       "apply": "Áp dụng",
+      "availableLabel": "Mã giảm giá có sẵn (bấm để áp dụng):",
       "checking": "Đang kiểm tra…",
       "remove": "Xóa",
       "emptyCode": "Vui lòng nhập mã giảm giá.",
@@ -452,6 +510,7 @@
     "title": "Gian hàng",
     "myStoreTitle": "Gian hàng của tôi",
     "workspaceTitle": "Gian hàng làm việc",
+    "voucherCopied": "Đã sao chép mã {{code}}",
     "dashboard": {
       "sectionTitle": "Quản lý gian hàng",
       "navLabel": "Điều hướng gian hàng",
@@ -479,6 +538,8 @@
     "unavailableTitle": "Gian hàng tạm không khả dụng",
     "backToProducts": "Xem danh sách sản phẩm",
     "viewPublic": "Xem trang công khai",
+    "vouchersHeading": "Mã giảm giá của gian hàng:",
+    "copyVoucher": "Sao chép mã giảm giá",
     "productsTitle": "Sản phẩm của gian hàng",
     "emptyProducts": "Gian hàng chưa có sản phẩm.",
     "open": {
@@ -556,7 +617,9 @@
       "submitError": "Không thể lưu hồ sơ gian hàng. Vui lòng thử lại.",
       "saving": "Đang lưu…",
       "saved": "Đã lưu hồ sơ gian hàng."
-    }
+    },
+    "shareStore": "Chia sẻ gian hàng",
+    "shareCopied": "Đã sao chép link gian hàng"
   },
   "account": {
     "title": "Cài đặt tài khoản",
@@ -642,7 +705,11 @@
       "save": "Lưu thay đổi",
       "saving": "Đang lưu…",
       "back": "Về hồ sơ",
-      "saved": "Đã lưu thay đổi hồ sơ."
+      "saved": "Đã lưu thay đổi hồ sơ.",
+      "address": "Địa chỉ nhận hàng mặc định",
+      "addressPlaceholder": "Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố…",
+      "addressHint": "Sẽ tự động điền sẵn khi bạn đặt hàng thanh toán.",
+      "addressTooLong": "Địa chỉ không được vượt quá 500 ký tự."
     }
   },
   "pagination": {
@@ -820,7 +887,12 @@
     "sendNotAllowed": "Cuộc trò chuyện hiện chỉ cho phép xem lịch sử.",
     "namedSelf": "{{name}} (Bạn)",
     "storeMemberBlocked": "Chủ shop và nhân viên không dùng chat mua bán với chính gian hàng của mình. Bạn vẫn có thể xem lịch sử.",
-    "openNamedConversation": "Mở cuộc trò chuyện với {{name}}"
+    "openNamedConversation": "Mở cuộc trò chuyện với {{name}}",
+    "productCard": {
+      "heading": "Đang hỏi về sản phẩm",
+      "sendAction": "Gửi câu hỏi",
+      "quickMessage": "Chào shop, mình quan tâm sản phẩm \"{{title}}\" ({{price}}): {{url}}"
+    }
   },
   "checkoutCancel": {
     "action": "Hủy checkout",
@@ -842,7 +914,7 @@
     "details": "Xem món và thông tin nhận hàng",
     "listLabel": "Danh sách đơn của gian hàng",
     "paymentHint": "Xác nhận đơn COD là đồng ý xử lý đơn, chưa ghi nhận đã thu tiền.",
-    "confirm": "Xác nhận đơn COD",
+    "confirm": "Xác nhận",
     "confirming": "Đang xác nhận…",
     "confirmPrompt": "Xác nhận xử lý đơn {{code}}? Thao tác này chưa ghi nhận đã thu tiền COD.",
     "stateChanged": "Trạng thái đơn đã thay đổi. Hãy cập nhật danh sách để xem trạng thái mới nhất.",
@@ -857,6 +929,56 @@
     "invalidFilters": "Bộ lọc chưa hợp lệ",
     "invalidFiltersDescription": "Trang hoặc trạng thái trên đường dẫn chưa đúng. Đặt lại bộ lọc để tiếp tục.",
     "resetFilters": "Đặt lại bộ lọc",
+    "clearFilters": "Xóa lọc",
+    "dateRangeLabel": "Khoảng ngày",
+    "applyDates": "Áp dụng",
+    "invalidDateRange": "Ngày bắt đầu không được lớn hơn ngày kết thúc.",
+    "viewDetail": "Xem",
+    "printSlip": "In phiếu giao",
+    "itemsHeading": "Sản phẩm trong đơn",
+    "unknownProduct": "Sản phẩm không xác định",
+    "moreItems": "+{{count}} món",
+    "searchLabel": "Tìm đơn hàng",
+    "searchPlaceholder": "Tìm mã đơn, tên người mua, tên sản phẩm…",
+    "sortLabel": "Sắp xếp",
+    "sortOptions": {
+      "newest": "Mới nhất",
+      "oldest": "Hạn gần nhất"
+    },
+    "selectAll": "Chọn tất cả đơn có thể xác nhận",
+    "selectOrder": "Chọn đơn {{code}}",
+    "selectedCount": "Đã chọn {{count}} đơn COD chờ xác nhận",
+    "bulkConfirm": "Xác nhận hàng loạt",
+    "bulkConfirmPrompt": "Xác nhận xử lý {{count}} đơn COD đã chọn? Thao tác này chưa ghi nhận đã thu tiền.",
+    "bulkConfirmedToast": "Đã xác nhận {{count}} đơn hàng.",
+    "clearSelection": "Bỏ chọn",
+    "tabs": {
+      "all": "Tất cả",
+      "needsAction": "Cần xử lý"
+    },
+    "shortStatuses": {
+      "pendingConfirmed": "Chờ xác nhận"
+    },
+    "columns": {
+      "order": "Mã đơn",
+      "product": "Sản phẩm",
+      "buyer": "Người mua",
+      "total": "Tổng tiền",
+      "status": "Trạng thái",
+      "action": "Hành động"
+    },
+    "dayGroups": {
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua",
+      "thisWeek": "Tuần này",
+      "older": "Trước đó"
+    },
+    "paymentMicro": {
+      "paid": "Đã thu tiền",
+      "codPending": "COD · Chưa thu",
+      "awaitingPayment": "Chờ thanh toán",
+      "unpaid": "Chưa thu tiền"
+    },
     "progress": {
       "title": "Tiến trình xử lý",
       "history": "Xem lịch sử xử lý",
@@ -971,7 +1093,9 @@
     "unavailableProduct": "Sản phẩm hiện không khả dụng",
     "productNotActive": "Sản phẩm hiện không còn đang bán.",
     "toggleError": "Không thể cập nhật trạng thái yêu thích. Vui lòng thử lại.",
-    "removeError": "Không thể xóa sản phẩm khỏi danh sách yêu thích."
+    "removeError": "Không thể xóa sản phẩm khỏi danh sách yêu thích.",
+    "savedToast": "Đã lưu vào danh sách yêu thích.",
+    "removedToast": "Đã bỏ khỏi danh sách yêu thích."
   },
   "disputes": {
     "title": "Khiếu nại",
@@ -1126,7 +1250,15 @@
       "codeExists": "Mã voucher này đã tồn tại.",
       "notFound": "Không tìm thấy mã voucher.",
       "generic": "Không thể lưu mã giảm giá. Vui lòng thử lại."
-    }
+    },
+    "tabs": {
+      "all": "Tất cả"
+    },
+    "createdToast": "Đã tạo mã giảm giá mới.",
+    "savedToast": "Đã cập nhật mã giảm giá.",
+    "deactivatedToast": "Đã tắt mã giảm giá.",
+    "emptyFilterTitle": "Không có mã giảm giá nào ở mục này",
+    "emptyFilterDescription": "Chuyển sang tab khác hoặc tạo mã giảm giá mới cho gian hàng."
   },
   "analytics": {
     "seller": {
@@ -1142,6 +1274,13 @@
       "fromDate": "Từ ngày",
       "toDate": "Đến ngày",
       "clearDates": "Xóa bộ lọc ngày",
+      "presetsLabel": "Khoảng thời gian nhanh",
+      "presets": {
+        "last7Days": "7 ngày qua",
+        "last30Days": "30 ngày qua",
+        "thisMonth": "Tháng này",
+        "allTime": "Tất cả"
+      },
       "orderCount": "{{count}} đơn",
       "noRevenueTitle": "Chưa có dữ liệu doanh thu",
       "noRevenueDescription": "Doanh thu từ các đơn hàng hoàn tất sẽ hiển thị tại đây.",
@@ -1344,7 +1483,26 @@
     "loading": "Đang tải đánh giá…",
     "loadError": "Chưa tải được đánh giá gian hàng.",
     "emptyStoreTitle": "Chưa có đánh giá nào",
-    "emptyStoreDescription": "Đánh giá từ người mua sau khi hoàn tất đơn hàng sẽ hiển thị tại đây."
+    "emptyStoreDescription": "Đánh giá từ người mua sau khi hoàn tất đơn hàng sẽ hiển thị tại đây.",
+    "filters": {
+      "label": "Lọc đánh giá",
+      "all": "Tất cả",
+      "starChip": "{{count}}★",
+      "withComment": "Có bình luận",
+      "emptyTitle": "Chưa có đánh giá phù hợp",
+      "emptyDescription": "Thử chọn bộ lọc khác để xem thêm nhận xét của người mua."
+    },
+    "reply": {
+      "storeBadge": "Phản hồi từ gian hàng",
+      "action": "Phản hồi đánh giá",
+      "editAction": "Sửa phản hồi",
+      "fieldLabel": "Nội dung phản hồi của gian hàng",
+      "placeholder": "Cảm ơn người mua hoặc giải đáp thêm thông tin…",
+      "submit": "Gửi phản hồi",
+      "submitting": "Đang gửi…",
+      "savedToast": "Đã gửi phản hồi cho đánh giá.",
+      "submitError": "Chưa thể gửi phản hồi lúc này. Vui lòng thử lại."
+    }
   },
   "table": {
     "product": "Sản phẩm",
@@ -1362,5 +1520,36 @@
     "payment": "Mã thanh toán",
     "method": "Phương thức",
     "rowsCount": "{{count}} mục"
+  },
+  "common": {
+    "yes": "Có",
+    "no": "Không"
+  },
+  "homeTrust": {
+    "eyebrow": "An tâm giao dịch đồ cũ",
+    "title": "Tiền của bạn luôn được bảo vệ bởi ký quỹ Moldy",
+    "description": "Mọi giao dịch chuyển khoản đều đi qua tài khoản ký quỹ trung gian, chỉ giải ngân cho người bán sau khi bạn kiểm tra đúng hàng.",
+    "items": {
+      "hold": {
+        "title": "Giữ tiền an toàn",
+        "desc": "Thanh toán của người mua được hệ thống tạm giữ minh bạch, người bán yên tâm gửi hàng đúng hẹn."
+      },
+      "inspect": {
+        "title": "Nhận và kiểm tra hàng",
+        "desc": "Kiểm tra đúng tình trạng mô tả trước khi xác nhận hoàn tất để giải ngân về ví người bán."
+      },
+      "dispute": {
+        "title": "Hỗ trợ khiếu nại & hoàn tiền",
+        "desc": "Nếu sản phẩm sai mô tả hoặc gặp sự cố, bạn có thể mở khiếu nại ngay trên đơn hàng để được bảo vệ."
+      }
+    }
+  },
+  "sellerBanner": {
+    "eyebrow": "Dành cho người bán",
+    "title": "Có đồ cũ không dùng? Đăng bán chỉ trong 2 phút",
+    "description": "Tiếp cận đúng người cần mua, quản lý đơn hàng và ví tiền tập trung ngay trong gian hàng của bạn.",
+    "sellNowCta": "Đăng tin ngay",
+    "manageStoreCta": "Vào gian hàng của tôi",
+    "browseCta": "Khám phá sản phẩm"
   }
 }

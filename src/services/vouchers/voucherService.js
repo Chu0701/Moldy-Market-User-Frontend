@@ -18,6 +18,21 @@ import { unwrap } from '@/services/api/unwrap'
  */
 
 /**
+ * Lists publicly available active vouchers (platform + optional storeIds).
+ * @param {{ storeIds?: string[], signal?: AbortSignal }} [options]
+ * @returns {Promise<Voucher[]>}
+ */
+export async function getAvailableVouchers({ storeIds = [], signal } = {}) {
+  const uniqueIds = [...new Set(storeIds.filter(Boolean))]
+  const response = await apiClient.get('/api/vouchers/available', {
+    params: uniqueIds.length > 0 ? { storeIds: uniqueIds } : undefined,
+    paramsSerializer: { indexes: null },
+    signal,
+  })
+  return unwrap(response) ?? []
+}
+
+/**
  * Checks validity of a voucher code (authenticated per SecurityConfig).
  * @param {{ code: string, signal?: AbortSignal }} params
  */

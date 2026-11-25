@@ -21,7 +21,20 @@ export const editProfileSchema = z.object({
     .string()
     .trim()
     .max(1000, 'profile.edit.avatarUrlTooLong')
-    .refine((value) => value === '' || /^https?:\/\//i.test(value), 'profile.edit.avatarUrlInvalid')
+    .refine(
+      (value) =>
+        value === '' ||
+        /^https?:\/\//i.test(value) ||
+        /^\/api\/v1\/files\/public\/[0-9a-fA-F-]+(?:\/[^/\s]+)?$/.test(value),
+      'profile.edit.avatarUrlInvalid',
+    )
     .optional()
     .transform((value) => (!value ? undefined : value)),
+
+  address: z
+    .string()
+    .trim()
+    .max(500, 'profile.edit.addressTooLong')
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value)),
 })

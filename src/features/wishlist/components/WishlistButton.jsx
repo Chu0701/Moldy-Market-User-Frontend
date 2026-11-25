@@ -2,6 +2,7 @@ import { Heart } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router'
 
+import { useToast } from '@/components/feedback/toastContext'
 import { Button } from '@/components/ui/button'
 import { useWishlistToggle } from '@/features/wishlist/hooks/useWishlist'
 
@@ -11,8 +12,15 @@ import { useWishlistToggle } from '@/features/wishlist/hooks/useWishlist'
  */
 export function WishlistButton({ productId }) {
   const { t } = useTranslation()
+  const { pushToast } = useToast()
   const location = useLocation()
   const { isAuthenticated, isSaved, count, isPending, error, toggle } = useWishlistToggle(productId)
+
+  function handleToggle() {
+    const nextSaved = !isSaved
+    toggle()
+    pushToast(t(nextSaved ? 'wishlist.savedToast' : 'wishlist.removedToast'), 'info')
+  }
 
   if (!isAuthenticated) {
     return (
@@ -32,7 +40,7 @@ export function WishlistButton({ productId }) {
         variant={isSaved ? 'default' : 'outline'}
         aria-pressed={isSaved}
         disabled={isPending}
-        onClick={toggle}
+        onClick={handleToggle}
       >
         <Heart className="size-4" fill={isSaved ? 'currentColor' : 'none'} aria-hidden="true" />
         <span>{t(isSaved ? 'wishlist.savedAction' : 'wishlist.saveAction')}</span>

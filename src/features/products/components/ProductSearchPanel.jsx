@@ -7,6 +7,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { PaginationBar } from '@/components/common/PaginationBar'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
+import { useToast } from '@/components/feedback/toastContext'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { ProductGrid } from '@/features/marketplace/components/ProductGrid'
@@ -49,6 +50,7 @@ function formatCompactVnd(value, locale) {
 /** @param {{ storeId?: string, categoryId?: string }} props */
 export function ProductSearchPanel({ storeId, categoryId }) {
   const { t, i18n } = useTranslation()
+  const { pushToast } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -99,6 +101,7 @@ export function ProductSearchPanel({ storeId, categoryId }) {
     retry: false,
     onSuccess: ({ productId, saved }) => {
       setLocalWishlistOverrides((prev) => ({ ...prev, [productId]: saved }))
+      pushToast(t(saved ? 'wishlist.savedToast' : 'wishlist.removedToast'), 'info')
       if (!userId) return
       queryClient.setQueryData(wishlistKeys.check(userId, productId), saved)
       void queryClient.invalidateQueries({ queryKey: wishlistKeys.all(userId) })
@@ -294,12 +297,23 @@ export function ProductSearchPanel({ storeId, categoryId }) {
               price={product.price}
               imageUrl={product.images?.[0]}
               createdAt={product.createdAt}
+              condition={product.condition}
               conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
               isWishlisted={isSaved}
               wishlistPending={
                 wishlistMutation.isPending && wishlistMutation.variables?.productId === product.id
               }
               onToggleWishlist={() => handleToggleWishlist(product.id)}
+              compareProduct={{
+                id: product.id,
+                title: product.title,
+                price: product.price,
+                imageUrl: product.images?.[0],
+                condition: product.condition,
+                status: product.status,
+                storeId: product.storeId,
+                attributes: product.attributes,
+              }}
             />
           )
         })}

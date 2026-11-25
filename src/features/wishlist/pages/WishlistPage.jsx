@@ -5,7 +5,9 @@ import { PaginationBar } from '@/components/common/PaginationBar'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
+import { useToast } from '@/components/feedback/toastContext'
 import { Button } from '@/components/ui/button'
+import { useAddCartItem } from '@/features/cart/hooks/useCart'
 import { WishlistCard } from '@/features/wishlist/components/WishlistCard'
 import { useWishlistPage } from '@/features/wishlist/hooks/useWishlist'
 
@@ -16,15 +18,30 @@ function parsePage(raw) {
 
 export function WishlistPage() {
   const { t } = useTranslation()
+  const { pushToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const page = parsePage(searchParams.get('page'))
   const { profileQuery, listQuery, items, productQueries, removeMutation } = useWishlistPage({
     page,
     size: 20,
   })
+  const addCartMutation = useAddCartItem()
 
   if (profileQuery.isPending || listQuery.isPending) {
-    return <p role="status">{t('wishlist.loading')}</p>
+    return (
+      <section className="mx-auto max-w-5xl space-y-6" role="status" aria-busy="true">
+        <span className="sr-only">{t('wishlist.loading')}</span>
+        <div className="space-y-2">
+          <div className="skeleton-shimmer h-8 w-48 rounded-lg" />
+          <div className="skeleton-shimmer h-4 w-72 rounded-md" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="skeleton-shimmer h-40 rounded-xl" />
+          ))}
+        </div>
+      </section>
+    )
   }
 
   if (listQuery.error?.status === 403) {
@@ -44,13 +61,40 @@ export function WishlistPage() {
 
   const data = listQuery.data
 
+  function handleRemove(productId) {
+    removeMutation.mutate(
+      { productId },
+      {
+        onSuccess: () => pushToast(t('wishlist.removedToast'), 'info'),
+        onError: () => pushToast(t('wishlist.removeError'), 'error'),
+      },
+    )
+  }
+
+  function handleAddToCart(productId) {
+    addCartMutation.mutate(
+      { productId },
+      {
+        onSuccess: () => pushToast(t('cart.added'), 'success'),
+        onError: (err) =>
+          pushToast(
+            t(err?.code === 'CART_OWN_PRODUCT' ? 'cart.ownProduct' : 'cart.addError'),
+            'error',
+          ),
+      },
+    )
+  }
+
   return (
-    <section className="mx-auto max-w-4xl space-y-6" aria-labelledby="wishlist-heading">
+    <section className="mx-auto max-w-5xl space-y-6" aria-labelledby="wishlist-heading">
       <div>
-        <h1 id="wishlist-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h1
+          id="wishlist-heading"
+          className="scroll-mt-24 text-2xl font-semibold tracking-tight sm:text-3xl"
+        >
           {t('wishlist.title')}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t('wishlist.description')}</p>
+        <p className="mt-1.5 text-sm text-muted-foreground">{t('wishlist.description')}</p>
       </div>
 
       {removeMutation.isError && (
@@ -71,7 +115,7 @@ export function WishlistPage() {
         </div>
       ) : (
         <>
-          <ul className="space-y-4" aria-label={t('wishlist.listLabel')}>
+          <ul className="grid gap-4 sm:grid-cols-2" aria-label={t('wishlist.listLabel')}>
             {items.map((item, index) => {
               const productQuery = productQueries[index]
               return (
@@ -84,7 +128,12 @@ export function WishlistPage() {
                     removeMutation.isPending &&
                     removeMutation.variables?.productId === item.productId
                   }
-                  onRemove={(productId) => removeMutation.mutate({ productId })}
+                  isAddingToCart={
+                    addCartMutation.isPending &&
+                    addCartMutation.variables?.productId === item.productId
+                  }
+                  onAddToCart={handleAddToCart}
+                  onRemove={handleRemove}
                 />
               )
             })}

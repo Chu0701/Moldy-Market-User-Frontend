@@ -7,9 +7,11 @@
     "buyNow": "Buy now",
     "save": "Save",
     "cancel": "Cancel",
+    "close": "Close",
     "backHome": "Back to home",
     "reload": "Reload page",
-    "retry": "Try again"
+    "retry": "Try again",
+    "clear": "Clear"
   },
   "language": {
     "label": "Language",
@@ -126,7 +128,9 @@
     "emptyTitle": "No categories yet",
     "emptyMessage": "Categories will appear here when they are available.",
     "notFoundTitle": "Category not found",
-    "productsTitle": "Products in this category"
+    "productsTitle": "Products in this category",
+    "subCategoryCount": "{{count}} subcategories",
+    "productCount": "{{count}} items"
   },
   "hero": {
     "eyebrow": "Escrow-protected secondhand marketplace",
@@ -146,13 +150,26 @@
     "step2Title": "Escrow payment protection",
     "step2Desc": "Funds stay held safely until your order arrives as described.",
     "step3Title": "Confirm or dispute fairly",
-    "step3Desc": "Release payment when satisfied, or open a dispute with transparent wallet refunds."
+    "step3Desc": "Release payment when satisfied, or open a dispute with transparent wallet refunds.",
+    "liveCount": "{{count}} active listings",
+    "sellerPrompt": "Have pre-owned items to sell?",
+    "sellerPromptAction": "List for free in 2 minutes →",
+    "spotlightTitle": "Fresh arrivals",
+    "spotlightHint": "Click to view",
+    "justListedLabel": "Just listed"
   },
   "products": {
     "mine": {
       "title": "My products",
       "empty": "There are no personal listings on this page.",
-      "loadError": "Could not load your products."
+      "loadError": "Could not load your products.",
+      "createAction": "New listing",
+      "searchPlaceholder": "Search by product title…",
+      "emptyFilterTitle": "No matching listings",
+      "emptyFilterDescription": "Try switching status tabs or changing your search keyword.",
+      "tabs": {
+        "all": "All"
+      }
     },
     "create": {
       "pageTitle": "List a product",
@@ -223,20 +240,40 @@
       "selectImage": "View image {{number}}",
       "position": "Image {{current}} of {{total}}",
       "previous": "Previous image",
-      "next": "Next image"
+      "next": "Next image",
+      "zoom": "View full screen"
+    },
+    "media": {
+      "previewList": "Selected photos and videos",
+      "coverBadge": "Cover",
+      "setCover": "Set as cover",
+      "moveLeft": "Move left",
+      "moveRight": "Move right",
+      "remove": "Remove file"
+    },
+    "recentlyViewed": {
+      "title": "Recently viewed",
+      "clear": "Clear history",
+      "scrollPrev": "Scroll left",
+      "scrollNext": "Scroll right",
+      "clearedNotice": "Cleared your recently viewed history.",
+      "undo": "Undo"
     },
     "delete": {
       "action": "Delete listing",
       "confirm": "Delete this listing? It will be removed from the product list.",
       "pending": "Deleting…",
-      "submitError": "Could not delete the listing. Please try again."
+      "submitError": "Could not delete the listing. Please try again.",
+      "successToast": "Listing deleted."
     },
     "visibility": {
       "hide": "Hide listing",
       "show": "Show listing",
       "saving": "Updating…",
       "submitError": "Could not change the listing status. Please try again.",
-      "locked": "The listing status has changed. Reload the page."
+      "locked": "The listing status has changed. Reload the page.",
+      "hiddenToast": "Listing hidden.",
+      "shownToast": "Listing is now visible."
     },
     "statuses": {
       "active": "Available",
@@ -304,7 +341,26 @@
         "5mTo10m": "5M – 10M",
         "over10m": "Over 10M"
       }
-    }
+    },
+    "compare": {
+      "add": "Compare",
+      "added": "Comparing",
+      "addedToast": "Added to comparison list.",
+      "removedToast": "Removed from comparison list.",
+      "limitReached": "You can compare up to {{max}} products at a time.",
+      "trayLabel": "Quick product comparison tray",
+      "count": "Compare ({{count}}/{{max}})",
+      "removeItem": "Remove {{title}} from comparison",
+      "clearAll": "Clear all",
+      "compareNow": "Compare now",
+      "modalTitle": "Product comparison",
+      "criteria": "Criteria",
+      "price": "Price",
+      "bestPrice": "Best price",
+      "condition": "Condition",
+      "viewProduct": "View product"
+    },
+    "escrowShort": "Escrow"
   },
   "cart": {
     "title": "Cart",
@@ -340,7 +396,8 @@
     "statusSold": "This item has been sold.",
     "statusHidden": "The seller has hidden this listing.",
     "priceDropped": "Price dropped",
-    "priceIncreased": "Price increased"
+    "priceIncreased": "Price increased",
+    "buyingNow": "Going to checkout…"
   },
   "checkout": {
     "title": "Checkout details",
@@ -385,6 +442,7 @@
       "label": "Voucher code (optional)",
       "placeholder": "Enter voucher code",
       "apply": "Apply",
+      "availableLabel": "Available vouchers (click to apply):",
       "checking": "Checking…",
       "remove": "Remove",
       "emptyCode": "Please enter a voucher code.",
@@ -462,6 +520,7 @@
     "title": "Store",
     "myStoreTitle": "My store",
     "workspaceTitle": "Store workspace",
+    "voucherCopied": "Copied code {{code}}",
     "dashboard": {
       "sectionTitle": "Store dashboard",
       "navLabel": "Store navigation",
@@ -489,6 +548,8 @@
     "unavailableTitle": "Store temporarily unavailable",
     "backToProducts": "Browse products",
     "viewPublic": "View public storefront",
+    "vouchersHeading": "Store vouchers:",
+    "copyVoucher": "Copy voucher code",
     "productsTitle": "Store products",
     "emptyProducts": "This store has no products yet.",
     "open": {
@@ -566,7 +627,9 @@
       "submitError": "Could not save the store profile. Please try again.",
       "saving": "Saving…",
       "saved": "Store profile saved."
-    }
+    },
+    "shareStore": "Share store",
+    "shareCopied": "Store link copied"
   },
   "account": {
     "title": "Account settings",
@@ -652,7 +715,11 @@
       "save": "Save changes",
       "saving": "Saving…",
       "back": "Back to profile",
-      "saved": "Profile changes saved."
+      "saved": "Profile changes saved.",
+      "address": "Default shipping address",
+      "addressPlaceholder": "Street address, ward, district, city…",
+      "addressHint": "Automatically prefilled when you check out.",
+      "addressTooLong": "Address must not exceed 500 characters."
     }
   },
   "pagination": {
@@ -830,7 +897,12 @@
     "sendNotAllowed": "This conversation is currently read-only.",
     "namedSelf": "{{name}} (You)",
     "storeMemberBlocked": "Owners and staff cannot use customer chat with their own store. You can still view the history.",
-    "openNamedConversation": "Open conversation with {{name}}"
+    "openNamedConversation": "Open conversation with {{name}}",
+    "productCard": {
+      "heading": "Asking about this item",
+      "sendAction": "Send inquiry",
+      "quickMessage": "Hi, I am interested in \"{{title}}\" ({{price}}): {{url}}"
+    }
   },
   "storeOrders": {
     "title": "Store orders",
@@ -842,7 +914,7 @@
     "details": "View products and delivery details",
     "listLabel": "Orders for this store",
     "paymentHint": "Confirming a COD order accepts it for fulfillment; it does not record payment collection.",
-    "confirm": "Confirm COD order",
+    "confirm": "Confirm",
     "confirming": "Confirming…",
     "confirmPrompt": "Accept order {{code}} for fulfillment? This does not record COD payment collection.",
     "stateChanged": "The order status has changed. Refresh the list to see the latest state.",
@@ -857,6 +929,56 @@
     "invalidFilters": "Invalid filters",
     "invalidFiltersDescription": "The page or status in the URL is invalid. Reset the filters to continue.",
     "resetFilters": "Reset filters",
+    "clearFilters": "Clear filters",
+    "dateRangeLabel": "Date range",
+    "applyDates": "Apply",
+    "invalidDateRange": "Start date cannot be after end date.",
+    "viewDetail": "View",
+    "printSlip": "Print slip",
+    "itemsHeading": "Order items",
+    "unknownProduct": "Unknown product",
+    "moreItems": "+{{count}} more",
+    "searchLabel": "Search orders",
+    "searchPlaceholder": "Search order code, buyer, or product…",
+    "sortLabel": "Sort by",
+    "sortOptions": {
+      "newest": "Newest first",
+      "oldest": "Oldest first"
+    },
+    "selectAll": "Select all confirmable orders",
+    "selectOrder": "Select order {{code}}",
+    "selectedCount": "{{count}} pending COD order(s) selected",
+    "bulkConfirm": "Confirm selected",
+    "bulkConfirmPrompt": "Confirm {{count}} selected COD order(s)? This does not record COD collection.",
+    "bulkConfirmedToast": "Confirmed {{count}} order(s).",
+    "clearSelection": "Clear selection",
+    "tabs": {
+      "all": "All",
+      "needsAction": "Needs action"
+    },
+    "shortStatuses": {
+      "pendingConfirmed": "Pending"
+    },
+    "columns": {
+      "order": "Order",
+      "product": "Product",
+      "buyer": "Buyer",
+      "total": "Total",
+      "status": "Status",
+      "action": "Action"
+    },
+    "dayGroups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This week",
+      "older": "Earlier"
+    },
+    "paymentMicro": {
+      "paid": "Collected",
+      "codPending": "COD · Pending",
+      "awaitingPayment": "Awaiting payment",
+      "unpaid": "Unpaid"
+    },
     "progress": {
       "title": "Order progress",
       "history": "View processing history",
@@ -971,7 +1093,9 @@
     "unavailableProduct": "Product is no longer available",
     "productNotActive": "This listing is no longer active.",
     "toggleError": "Could not update wishlist. Please try again.",
-    "removeError": "Could not remove this product from your wishlist."
+    "removeError": "Could not remove this product from your wishlist.",
+    "savedToast": "Saved to your wishlist.",
+    "removedToast": "Removed from your wishlist."
   },
   "disputes": {
     "title": "Disputes",
@@ -1126,7 +1250,15 @@
       "codeExists": "This voucher code already exists.",
       "notFound": "Voucher was not found.",
       "generic": "Could not save the voucher. Please try again."
-    }
+    },
+    "tabs": {
+      "all": "All"
+    },
+    "createdToast": "Voucher created.",
+    "savedToast": "Voucher updated.",
+    "deactivatedToast": "Voucher deactivated.",
+    "emptyFilterTitle": "No vouchers in this tab",
+    "emptyFilterDescription": "Switch tabs or create a new voucher for your store."
   },
   "analytics": {
     "seller": {
@@ -1142,6 +1274,13 @@
       "fromDate": "From date",
       "toDate": "To date",
       "clearDates": "Clear dates",
+      "presetsLabel": "Quick date ranges",
+      "presets": {
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "thisMonth": "This month",
+        "allTime": "All time"
+      },
       "orderCount": "{{count}} orders",
       "noRevenueTitle": "No revenue data yet",
       "noRevenueDescription": "Revenue from completed orders will appear here.",
@@ -1344,7 +1483,26 @@
     "loading": "Loading reviews…",
     "loadError": "Could not load store reviews.",
     "emptyStoreTitle": "No reviews yet",
-    "emptyStoreDescription": "Buyer ratings from completed orders will appear here."
+    "emptyStoreDescription": "Buyer ratings from completed orders will appear here.",
+    "filters": {
+      "label": "Filter reviews",
+      "all": "All",
+      "starChip": "{{count}}★",
+      "withComment": "With comment",
+      "emptyTitle": "No matching reviews",
+      "emptyDescription": "Try a different filter to see more buyer feedback."
+    },
+    "reply": {
+      "storeBadge": "Store reply",
+      "action": "Reply to review",
+      "editAction": "Edit reply",
+      "fieldLabel": "Your store reply",
+      "placeholder": "Thank the buyer or clarify details…",
+      "submit": "Send reply",
+      "submitting": "Sending…",
+      "savedToast": "Reply saved.",
+      "submitError": "Could not save your reply right now. Please try again."
+    }
   },
   "table": {
     "product": "Product",
@@ -1362,5 +1520,36 @@
     "payment": "Payment ID",
     "method": "Method",
     "rowsCount": "{{count}} items"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "homeTrust": {
+    "eyebrow": "Protected pre-owned trading",
+    "title": "Every payment is protected by Moldy Escrow",
+    "description": "Online payments stay safely in escrow and are only released to the seller after you receive and confirm your item.",
+    "items": {
+      "hold": {
+        "title": "Safe payment holding",
+        "desc": "Buyer funds are held transparently in escrow so sellers can ship with confidence."
+      },
+      "inspect": {
+        "title": "Receive & inspect",
+        "desc": "Verify that the item matches its listed condition before confirming completion."
+      },
+      "dispute": {
+        "title": "Dispute & refund protection",
+        "desc": "If anything arrives damaged or not as described, open a dispute directly from your order."
+      }
+    }
+  },
+  "sellerBanner": {
+    "eyebrow": "For sellers",
+    "title": "Got pre-owned items? List them in 2 minutes",
+    "description": "Reach buyers looking for quality secondhand goods and manage orders, vouchers, and payouts in one place.",
+    "sellNowCta": "Create a listing",
+    "manageStoreCta": "Go to my store",
+    "browseCta": "Browse products"
   }
 }

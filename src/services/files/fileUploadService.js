@@ -83,9 +83,11 @@ export async function uploadMediaFile({ file, purpose, allowVideo = true }) {
 
   await confirmFileUpload({ fileId: presigned.fileId })
   const download = await getFileDownloadUrl({ fileId: presigned.fileId })
+  const baseUrl = (apiClient.defaults.baseURL || '').replace(/\/$/, '')
+  const resolvedUrl = download.publicUrl ? `${baseUrl}${download.publicUrl}` : download.downloadUrl
 
   return {
     fileId: presigned.fileId,
-    url: download.downloadUrl,
+    url: resolvedUrl,
   }
 }

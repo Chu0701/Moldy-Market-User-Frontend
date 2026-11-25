@@ -3,12 +3,41 @@ import { ApiError, FRONTEND_ERROR_CODES } from '@/services/api/ApiError'
 import { normalizePagedResponse } from '@/services/api/pagination'
 import { unwrap } from '@/services/api/unwrap'
 
-/** @param {{ storeId: string, page?: number, status?: string, signal?: AbortSignal }} input */
-export async function getStoreOrders({ storeId, page = 1, status, signal }) {
+/**
+ * @param {{
+ *   storeId: string,
+ *   page?: number,
+ *   status?: string,
+ *   q?: string,
+ *   from?: string,
+ *   to?: string,
+ *   oldestFirst?: boolean,
+ *   signal?: AbortSignal,
+ * }} input
+ */
+export async function getStoreOrders({
+  storeId,
+  page = 1,
+  status,
+  q,
+  from,
+  to,
+  oldestFirst = false,
+  signal,
+}) {
+  const trimmedQ = typeof q === 'string' ? q.trim() : ''
   const response = await apiClient.get(
     '/api/v1/stores/' + encodeURIComponent(storeId) + '/orders',
     {
-      params: { page, size: 20, ...(status ? { status } : {}) },
+      params: {
+        page,
+        size: 20,
+        ...(status ? { status } : {}),
+        ...(trimmedQ ? { q: trimmedQ } : {}),
+        ...(from ? { from } : {}),
+        ...(to ? { to } : {}),
+        ...(oldestFirst ? { oldestFirst: true } : {}),
+      },
       signal,
     },
   )
@@ -37,6 +66,23 @@ export async function getStoreOrders({ storeId, page = 1, status, signal }) {
     })
   }
   return normalizePagedResponse(data)
+}
+
+/**
+ * Fetches server-side counts grouped by order status for a store.
+ * @param {{ storeId: string, signal?: AbortSignal }} input
+ * @returns {Promise<{ total: number, counts: Record<string, number> }>}
+ */
+export async function getStoreOrderSummary({ storeId, signal }) {
+  const response = await apiClient.get(
+    '/api/v1/stores/' + encodeURIComponent(storeId) + '/orders/summary',
+    { signal },
+  )
+  const data = unwrap(response)
+  return {
+    total: Number(data?.total ?? 0),
+    counts: data?.counts && typeof data.counts === 'object' ? data.counts : {},
+  }
 }
 
 /** @param {{ orderId: string }} input Only the store owner can confirm COD. */

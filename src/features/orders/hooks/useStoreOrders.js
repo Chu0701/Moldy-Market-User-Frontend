@@ -9,7 +9,7 @@ import {
   readStoreOrderParams,
   storeOrdersKeys,
 } from '@/features/orders/storeOrdersState'
-import { getStoreOrders } from '@/services/orders/storeOrderService'
+import { getStoreOrders, getStoreOrderSummary } from '@/services/orders/storeOrderService'
 
 export function useStoreOrders() {
   const { hasAccessToken, profileQuery } = useSession()
@@ -30,28 +30,49 @@ export function useStoreOrders() {
   const queryKey = storeOrdersKeys.page(userId, access.storeId, params)
   const allowed =
     userId && !profileQuery.isError && access.canRead && (!owner || !ownerQuery.isError)
+
   const query = useQuery({
     queryKey,
     queryFn:
       allowed && params.valid
-        ? ({ signal }) =>
-            getStoreOrders({
+        ? ({ signal }) => {
+            const input = {
               storeId: access.storeId,
               page: params.page,
               status: params.status,
               signal,
-            })
+            }
+            if (params.q) input.q = params.q
+            if (params.from) input.from = params.from
+            if (params.to) input.to = params.to
+            if (params.oldestFirst) input.oldestFirst = true
+            return getStoreOrders(input)
+          }
         : skipToken,
     retry: false,
     staleTime: 0,
   })
 
-  function changeFilters(page, status) {
+  const summaryQuery = useQuery({
+    queryKey: storeOrdersKeys.summary(userId, access.storeId),
+    queryFn:
+      allowed && typeof getStoreOrderSummary === 'function'
+        ? ({ signal }) => getStoreOrderSummary({ storeId: access.storeId, signal })
+        : skipToken,
+    retry: false,
+    staleTime: 15_000,
+  })
+
+  function updateSearchParams(patch) {
     setSearchParams((current) => {
       const next = new URLSearchParams(current)
-      next.set('page', String(page))
-      if (status) next.set('status', status)
-      else next.delete('status')
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === undefined || value === null || value === '') {
+          next.delete(key)
+        } else {
+          next.set(key, String(value))
+        }
+      }
       return next
     })
   }
@@ -65,7 +86,13 @@ export function useStoreOrders() {
     params,
     queryKey,
     query,
-    changePage: (page) => changeFilters(page, params.status),
-    changeStatus: (status) => changeFilters(1, status),
+    summaryQuery,
+    changePage: (page) => updateSearchParams({ page }),
+    changeStatus: (status) => updateSearchParams({ page: 1, status, sort: '' }),
+    changeSearch: (q) => updateSearchParams({ page: 1, q: q.trim() }),
+    changeDateRange: ({ from, to }) => updateSearchParams({ page: 1, from, to }),
+    changeSort: (sort) => updateSearchParams({ page: 1, sort }),
+    clearFilters: () =>
+      updateSearchParams({ page: 1, status: '', q: '', from: '', to: '', sort: '' }),
   }
 }

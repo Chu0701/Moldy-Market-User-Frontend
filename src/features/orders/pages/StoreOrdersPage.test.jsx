@@ -14,12 +14,17 @@ vi.mock('@/services/chat/chatConnection', () => ({
 }))
 import i18n from '@/i18n'
 import { clearAccessToken, setAccessToken } from '@/lib/tokenStorage'
-import { getStoreOrders, confirmStoreOrder } from '@/services/orders/storeOrderService'
+import {
+  getStoreOrders,
+  getStoreOrderSummary,
+  confirmStoreOrder,
+} from '@/services/orders/storeOrderService'
 import { getMe } from '@/services/users/userService'
 import { getMyStore, getPublicStore, getMyStaffProfile } from '@/services/stores/storeService'
 
 vi.mock('@/services/orders/storeOrderService', () => ({
   getStoreOrders: vi.fn(),
+  getStoreOrderSummary: vi.fn(),
   confirmStoreOrder: vi.fn(),
 }))
 vi.mock('@/services/users/userService', () => ({ getMe: vi.fn() }))
@@ -96,6 +101,12 @@ beforeEach(async () => {
     .mockReset()
     .mockResolvedValue({ userId: staff.id, storeId: store.id, permissions: staff.permissions })
   vi.mocked(getStoreOrders).mockReset().mockResolvedValue(page())
+  vi.mocked(getStoreOrderSummary)
+    .mockReset()
+    .mockResolvedValue({
+      total: 2,
+      counts: { PENDING_CONFIRMED: 1, CONFIRMED: 1 },
+    })
   vi.mocked(confirmStoreOrder)
     .mockReset()
     .mockResolvedValue({ ...order, status: 'CONFIRMED' })
@@ -125,8 +136,7 @@ function open(path = '/store/orders', profile = owner) {
   )
   return userEvent.setup()
 }
-const findConfirm = () =>
-  screen.findByRole('button', { name: 'Xác nhận đơn COD' }, { timeout: 4000 })
+const findConfirm = () => screen.findByRole('button', { name: 'Xác nhận' }, { timeout: 4000 })
 const list = () => screen.getByRole('list', { name: 'Danh sách đơn của gian hàng' })
 async function findStatus(text) {
   const orders = await screen.findByRole('list', { name: 'Danh sách đơn của gian hàng' })
@@ -141,8 +151,10 @@ test('owner reaches the list from store overview and sees orders from staff with
   await screen.findByRole('heading', { name: 'ORD-STAFF' }, { timeout: 4000 })
   expect(screen.getByRole('heading', { name: 'ORD-COLLEAGUE' })).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'ORD-STAFF' })).not.toBeInTheDocument()
-  await user.click(screen.getAllByText('Xem món và thông tin nhận hàng')[0])
-  expect(screen.getAllByText('Private receiver')[0]).toBeVisible()
+  await user.click(screen.getByRole('heading', { name: 'ORD-STAFF' }))
+  const dialog = await screen.findByRole('dialog')
+  expect(within(dialog).getByText('Private receiver')).toBeVisible()
+  expect(within(dialog).getByText('Private address')).toBeVisible()
   expect(getStoreOrders).toHaveBeenCalledWith({
     storeId: store.id,
     page: 1,
@@ -157,7 +169,7 @@ test('delegated staff reaches the list and has no owner confirmation action or m
     await screen.findByRole('link', { name: 'Đơn hàng gian hàng' }, { timeout: 4000 }),
   )
   await screen.findByRole('heading', { name: 'ORD-STAFF' })
-  expect(screen.queryByRole('button', { name: 'Xác nhận đơn COD' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument()
   expect(getMyStore).not.toHaveBeenCalled()
   expect(confirmStoreOrder).not.toHaveBeenCalled()
 })
@@ -219,7 +231,7 @@ test('confirmation can be declined, then a double click submits exactly once and
     finish({ ...order, status: 'CONFIRMED' })
   })
   await waitFor(() => expect(within(list()).getAllByText('Đã xác nhận')).toHaveLength(2))
-  expect(screen.queryByRole('button', { name: 'Xác nhận đơn COD' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument()
   expect(client.getQueryData(['cart', owner.id]).items).toEqual(['untouched'])
   expect(screen.queryByText('Đã thanh toán', { exact: true })).not.toBeInTheDocument()
 })
@@ -232,10 +244,10 @@ test('filter and pagination use URL state and changing status resets to page one
   await waitFor(() =>
     expect(getStoreOrders).toHaveBeenLastCalledWith(expect.objectContaining({ page: 3 })),
   )
-  await user.selectOptions(screen.getByLabelText('Trạng thái đơn'), 'PENDING_CONFIRMED')
+  await user.click(screen.getByRole('tab', { name: /Cần xử lý/ }))
   await waitFor(() =>
     expect(getStoreOrders).toHaveBeenLastCalledWith(
-      expect.objectContaining({ page: 1, status: 'PENDING_CONFIRMED' }),
+      expect.objectContaining({ page: 1, status: 'PENDING_CONFIRMED', oldestFirst: true }),
     ),
   )
   expect(router.state.location.search).toContain('page=1')
@@ -326,7 +338,7 @@ test('checks owner permission again after the confirmation dialog', async () => 
     client.setQueryData(['users', 'me'], { ...staff, id: owner.id })
     return true
   })
-  await user.click(screen.getByRole('button', { name: 'Xác nhận đơn COD' }))
+  await user.click(screen.getByRole('button', { name: 'Xác nhận' }))
   await screen.findByRole('alert')
   expect(confirmStoreOrder).not.toHaveBeenCalled()
 })
@@ -339,7 +351,7 @@ test('POST success plus GET failure does not invent a new status or leave an act
   const user = open()
   await user.click(await findConfirm())
   await screen.findByRole('heading', { name: 'Chưa tải được đơn gian hàng' })
-  expect(screen.queryByRole('button', { name: 'Xác nhận đơn COD' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument()
   vi.mocked(getStoreOrders).mockResolvedValue(page([{ ...order, status: 'CONFIRMED' }]))
   await user.click(screen.getByRole('button', { name: 'Thử lại' }))
   await findStatus('Đã xác nhận')
@@ -368,7 +380,7 @@ test('missing payment metadata hides COD confirmation and explains that a refres
   )
   open()
   await screen.findByRole('heading', { name: order.orderCode })
-  expect(screen.queryByRole('button', { name: 'Xác nhận đơn COD' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument()
   expect(screen.getByText(/Chưa đủ thông tin thanh toán để xác nhận đơn/)).toBeInTheDocument()
   expect(confirmStoreOrder).not.toHaveBeenCalled()
 })
@@ -405,11 +417,7 @@ test('simultaneous clicks on different orders do not leave the second confirmati
       return { ...rows[1], status: 'CONFIRMED' }
     })
   const user = open()
-  const buttons = await screen.findAllByRole(
-    'button',
-    { name: 'Xác nhận đơn COD' },
-    { timeout: 4000 },
-  )
+  const buttons = await screen.findAllByRole('button', { name: 'Xác nhận' }, { timeout: 4000 })
   await act(async () => {
     buttons[0].click()
     buttons[1].click()
@@ -421,10 +429,8 @@ test('simultaneous clicks on different orders do not leave the second confirmati
   await act(async () => {
     finish({ ...order, status: 'CONFIRMED' })
   })
-  await waitFor(() =>
-    expect(screen.getByRole('button', { name: 'Xác nhận đơn COD' })).toBeEnabled(),
-  )
-  await user.click(screen.getByRole('button', { name: 'Xác nhận đơn COD' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Xác nhận' })).toBeEnabled())
+  await user.click(screen.getByRole('button', { name: 'Xác nhận' }))
   await waitFor(() => expect(confirmStoreOrder).toHaveBeenCalledTimes(2))
   expect(confirmStoreOrder).toHaveBeenLastCalledWith({ orderId: rows[1].id })
 })

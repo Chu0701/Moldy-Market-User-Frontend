@@ -2,9 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
-import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
+import { ProductMediaField } from '@/features/products/components/ProductMediaField'
 import {
   createProductSchema,
   productConditions,
@@ -25,7 +26,6 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
     handleSubmit,
     setError,
     setValue,
-    getValues,
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -125,6 +125,11 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
         <div className="product-create-field">
           <label htmlFor="product-create-price">{t('products.create.priceLabel')}</label>
           <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
+          {Number(watch('price')) > 0 && (
+            <p className="text-xs font-medium text-muted-foreground tabular-nums">
+              ≈ <ProductPrice value={Number(watch('price'))} />
+            </p>
+          )}
           {fieldError('price')}
         </div>
 
@@ -150,38 +155,20 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
         }
       />
 
-      <div className="product-create-field">
-        <label htmlFor="product-create-images">{t('products.create.imagesLabel')}</label>
-        <textarea
-          {...fieldProps('images')}
-          aria-invalid={Boolean(errors.images)}
-          aria-describedby={
-            errors.images
-              ? 'product-create-images-hint product-create-images-error'
-              : 'product-create-images-hint'
-          }
-          rows={3}
-          readOnly={isSubmitting}
-        />
-        <MediaUploadButton
-          purpose="PRODUCT_IMAGE"
-          disabled={isSubmitting}
-          onUploaded={(url) => {
-            const current = getValues('images')?.trim()
-            setValue('images', current ? `${current}\n${url}` : url, {
-              shouldValidate: true,
-              shouldDirty: true,
-            })
-          }}
-        />
-        <p id="product-create-images-hint" className="profile-edit-hint">
-          {t('products.create.imagesHint')}
-        </p>
-        {fieldError(
+      <ProductMediaField
+        idPrefix="product-create"
+        value={watch('images')}
+        onValueChange={(next) =>
+          setValue('images', next, { shouldValidate: true, shouldDirty: true })
+        }
+        disabled={isSubmitting}
+        textareaProps={fieldProps('images')}
+        hasError={Boolean(errors.images)}
+        errorNode={fieldError(
           'images',
           errors.images?.root ?? errors.images?.find?.(Boolean) ?? errors.images,
         )}
-      </div>
+      />
 
       {fieldError('server', errors.root?.server)}
 

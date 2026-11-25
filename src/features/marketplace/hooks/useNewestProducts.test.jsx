@@ -26,11 +26,11 @@ afterEach(() => {
 })
 
 describe('useNewestProducts', () => {
-  test('requests the first eight newest products and passes cancellation', async () => {
+  test('requests the first ten newest products and passes cancellation', async () => {
     const resultPage = {
       items: [{ id: 'a8098c1a-f86e-11da-bd1a-00112444be1e', title: 'Test product' }],
       page: 1,
-      size: 8,
+      size: 10,
       totalElements: 1,
       totalPages: 1,
       totalCapped: false,
@@ -43,7 +43,7 @@ describe('useNewestProducts', () => {
     expect(result.current.data).toBe(resultPage)
     expect(searchProducts).toHaveBeenCalledWith({
       page: 1,
-      size: 8,
+      size: 10,
       sort: 'newest',
       signal: expect.any(AbortSignal),
     })

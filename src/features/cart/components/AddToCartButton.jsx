@@ -1,12 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { useToast } from '@/components/feedback/toastContext'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { useAddCartItem } from '@/features/cart/hooks/useCart'
 
-export function AddToCartButton({ product }) {
+export function AddToCartButton({ product, variant = 'default' }) {
   const { t } = useTranslation()
+  const { pushToast } = useToast()
   const { hasAccessToken, profileQuery } = useSession()
   const profile = profileQuery.data
   const mutation = useAddCartItem()
@@ -19,7 +21,7 @@ export function AddToCartButton({ product }) {
 
   if (!hasAccessToken) {
     return (
-      <Button asChild>
+      <Button asChild variant={variant}>
         <Link to="/login" state={{ from: `/products/${encodeURIComponent(product.id)}` }}>
           {t('cart.add')}
         </Link>
@@ -33,8 +35,21 @@ export function AddToCartButton({ product }) {
     <div className="grid justify-items-start gap-2">
       <Button
         type="button"
+        variant={variant}
         disabled={mutation.isPending}
-        onClick={() => mutation.mutate({ productId: product.id })}
+        onClick={() =>
+          mutation.mutate(
+            { productId: product.id },
+            {
+              onSuccess: () => pushToast(t('cart.added'), 'success'),
+              onError: (err) =>
+                pushToast(
+                  t(err?.code === 'CART_OWN_PRODUCT' ? 'cart.ownProduct' : 'cart.addError'),
+                  'error',
+                ),
+            },
+          )
+        }
       >
         {t(mutation.isPending ? 'cart.adding' : 'cart.add')}
       </Button>

@@ -11,13 +11,14 @@ export async function getMe({ signal } = {}) {
 }
 
 /**
- * @param {{ fullName: string, phone?: string, avatarUrl?: string }} profile
+ * @param {{ fullName: string, phone?: string, avatarUrl?: string, address?: string }} profile
  */
-export async function updateMyProfile({ fullName, phone, avatarUrl }) {
+export async function updateMyProfile({ fullName, phone, avatarUrl, address }) {
   const response = await apiClient.put('/api/v1/users/me', {
     fullName,
     phone,
     ...(avatarUrl !== undefined ? { avatarUrl } : {}),
+    ...(address !== undefined ? { address } : {}),
   })
 
   return unwrap(response)

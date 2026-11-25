@@ -2,10 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, Share2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { useToast } from '@/components/feedback/toastContext'
 import { Button } from '@/components/ui/button'
 
-export function CopyProductLinkButton() {
+export function CopyProductLinkButton({
+  shareLabelKey = 'products.detail.share',
+  copiedLabelKey = 'products.detail.copied',
+} = {}) {
   const { t } = useTranslation()
+  const { pushToast } = useToast()
   const [status, setStatus] = useState('idle')
   const timerRef = useRef(null)
 
@@ -25,8 +30,10 @@ export function CopyProductLinkButton() {
         throw new Error('Clipboard API unavailable')
       }
       setStatus('copied')
+      pushToast(t(copiedLabelKey), 'success')
     } catch {
       setStatus('error')
+      pushToast(t('products.detail.shareError'), 'error')
     }
 
     timerRef.current = setTimeout(() => {
@@ -36,10 +43,10 @@ export function CopyProductLinkButton() {
 
   const labelKey =
     status === 'copied'
-      ? 'products.detail.copied'
+      ? copiedLabelKey
       : status === 'error'
         ? 'products.detail.shareError'
-        : 'products.detail.share'
+        : shareLabelKey
 
   return (
     <Button

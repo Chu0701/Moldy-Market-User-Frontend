@@ -18,10 +18,14 @@ export function parseDisputeImageUrls(rawText) {
     .filter(Boolean)
 }
 
+const publicMediaPathPattern = /^\/api\/v1\/files\/public\/[0-9a-fA-F-]+(?:\/[^/\s]+)?$/
+
 function isValidHttpsUrl(value) {
+  if (value.length > 1000) return false
+  if (publicMediaPathPattern.test(value)) return true
   try {
     const parsed = new URL(value)
-    return parsed.protocol === 'https:' && value.length <= 1000
+    return parsed.protocol === 'https:'
   } catch {
     return false
   }

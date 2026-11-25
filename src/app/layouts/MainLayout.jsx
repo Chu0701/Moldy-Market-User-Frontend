@@ -36,6 +36,7 @@ import { useChatRealtime } from '@/features/chat/hooks/useChatRealtime'
 import { UnreadBadge } from '@/features/chat/components/UnreadBadge'
 import { ChatRealtimeContext } from '@/features/chat/chatRealtimeContext'
 import { HeaderNotificationBell } from '@/features/notifications/components/HeaderNotificationBell'
+import { CompareBar } from '@/features/products/components/CompareBar'
 import { myWalletKey } from '@/features/wallet/walletKeys'
 
 function getTrustTierKey(points) {
@@ -445,6 +446,8 @@ export function MainLayout() {
           <Outlet />
         </ChatRealtimeContext>
       </main>
+
+      <CompareBar />
 
       <footer className="border-t border-border bg-surface-subtle">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">

@@ -4,6 +4,7 @@ import {
   createStoreReview,
   getOrderReview,
   getStoreReviews,
+  replyToStoreReview,
 } from '@/services/reviews/reviewService'
 
 export const orderReviewQueryKey = (orderId) => ['reviews', 'order', orderId]
@@ -39,6 +40,21 @@ export function useCreateStoreReview() {
       queryClient.setQueryData(orderReviewQueryKey(variables.orderId), review)
       if (review?.storeId) {
         void queryClient.invalidateQueries({ queryKey: storeReviewsQueryKey(review.storeId) })
+      }
+    },
+  })
+}
+
+/** @param {string | null | undefined} storeId */
+export function useReplyToStoreReview(storeId) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ reviewId, reply }) => replyToStoreReview({ reviewId, reply }),
+    onSuccess: (updatedReview) => {
+      const targetStoreId = storeId ?? updatedReview?.storeId
+      if (targetStoreId) {
+        void queryClient.invalidateQueries({ queryKey: storeReviewsQueryKey(targetStoreId) })
       }
     },
   })

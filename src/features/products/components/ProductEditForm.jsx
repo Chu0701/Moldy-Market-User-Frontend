@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
-import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
+import { ProductMediaField } from '@/features/products/components/ProductMediaField'
 import { useEditProductForm } from '@/features/products/hooks/useEditProductForm'
 
 const conditions = [
@@ -59,6 +60,11 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         <div className="product-create-field">
           <label htmlFor="product-edit-price">{t('products.create.priceLabel')}</label>
           <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
+          {Number(form.watch('price')) > 0 && (
+            <p className="text-xs font-medium text-muted-foreground tabular-nums">
+              ≈ <ProductPrice value={Number(form.watch('price'))} />
+            </p>
+          )}
           {fieldError('price')}
         </div>
 
@@ -83,34 +89,18 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         }
       />
 
-      <div className="product-create-field">
-        <label htmlFor="product-edit-images">{t('products.create.imagesLabel')}</label>
-        <textarea
-          {...fieldProps('images', imagedError)}
-          aria-describedby={
-            imagedError
-              ? 'product-edit-images-hint product-edit-images-error'
-              : 'product-edit-images-hint'
-          }
-          rows={3}
-          readOnly={isSubmitting}
-        />
-        <MediaUploadButton
-          purpose="PRODUCT_IMAGE"
-          disabled={isSubmitting || hasConflict}
-          onUploaded={(url) => {
-            const current = form.getValues('images')?.trim()
-            form.setValue('images', current ? `${current}\n${url}` : url, {
-              shouldValidate: true,
-              shouldDirty: true,
-            })
-          }}
-        />
-        <p id="product-edit-images-hint" className="profile-edit-hint">
-          {t('products.create.imagesHint')}
-        </p>
-        {fieldError('images', imagedError)}
-      </div>
+      <ProductMediaField
+        idPrefix="product-edit"
+        value={form.watch('images')}
+        onValueChange={(next) =>
+          form.setValue('images', next, { shouldValidate: true, shouldDirty: true })
+        }
+        disabled={isSubmitting}
+        uploadDisabled={hasConflict}
+        textareaProps={fieldProps('images', imagedError)}
+        hasError={Boolean(imagedError)}
+        errorNode={fieldError('images', imagedError)}
+      />
 
       {hasConflict && (
         <div>

@@ -4,12 +4,22 @@ export const productConditions = ['NEW', 'LIKE_NEW', 'USED', 'DAMAGED']
 
 const pricePattern = /^[0-9]+(?:[.,][0-9]{1,2})?$/
 
+const publicMediaPathPattern = /^\/api\/v1\/files\/public\/[0-9a-fA-F-]+(?:\/[^/\s]+)?$/
+
 const imageUrlSchema = z
-  .url({
-    protocol: /^https$/,
-    error: 'products.create.imageInvalid',
-  })
+  .string()
   .max(500, 'products.create.imageTooLong')
+  .refine(
+    (value) => {
+      if (publicMediaPathPattern.test(value)) return true
+      try {
+        return new URL(value).protocol === 'https:'
+      } catch {
+        return false
+      }
+    },
+    { message: 'products.create.imageInvalid' },
+  )
 
 export const createProductSchema = z.object({
   categoryId: z.uuid('products.create.categoryRequired'),
