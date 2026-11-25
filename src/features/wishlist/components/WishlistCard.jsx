@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { ImageWithFallback } from '@/components/common/ImageWithFallback'
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 
 /**
  * Renders one saved product card in the user's wishlist grid.
@@ -40,7 +41,7 @@ export function WishlistCard({
       <div className="flex items-start gap-3.5">
         <div className="size-22 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-muted">
           <ImageWithFallback
-            src={product?.images?.[0]}
+            src={getProductMediaUrls(product)[0]}
             alt={product?.title || t('wishlist.unavailableProduct')}
             className="size-full object-cover"
           />

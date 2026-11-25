@@ -2,6 +2,7 @@ import { z } from 'zod'
 const vietnamesePhonePattern = /^(?:\+84|0)[0-9]{9}$/
 
 export const editProfileSchema = z.object({
+  avatarFileId: z.string().optional(),
   fullName: z
     .string()
     .trim()
@@ -16,20 +17,6 @@ export const editProfileSchema = z.object({
       'profile.edit.phoneInvalid',
     )
     .transform((value) => (value === '' ? undefined : value)),
-
-  avatarUrl: z
-    .string()
-    .trim()
-    .max(1000, 'profile.edit.avatarUrlTooLong')
-    .refine(
-      (value) =>
-        value === '' ||
-        /^https?:\/\//i.test(value) ||
-        /^\/api\/v1\/files\/public\/[0-9a-fA-F-]+(?:\/[^/\s]+)?$/.test(value),
-      'profile.edit.avatarUrlInvalid',
-    )
-    .optional()
-    .transform((value) => (!value ? undefined : value)),
 
   address: z
     .string()

@@ -15,6 +15,7 @@ import { ProductSkeleton } from '@/features/marketplace/components/ProductSkelet
 import { categoryKeys } from '@/features/marketplace/hooks/useCategories'
 import { ProductCard } from '@/features/products/components/ProductCard'
 import { ProductSearchForm } from '@/features/products/components/ProductSearchForm'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { useProductSearch } from '@/features/products/hooks/useProductSearch'
 import { wishlistKeys } from '@/features/wishlist/wishlistKeys'
 import { addToWishlist, removeFromWishlist } from '@/services/wishlist/wishlistService'
@@ -295,7 +296,8 @@ export function ProductSearchPanel({ storeId, categoryId }) {
               id={product.id}
               title={product.title}
               price={product.price}
-              imageUrl={product.images?.[0]}
+              imageUrl={getProductMediaUrls(product)[0]}
+              onImageError={() => query.refetch()}
               createdAt={product.createdAt}
               condition={product.condition}
               conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
@@ -308,7 +310,7 @@ export function ProductSearchPanel({ storeId, categoryId }) {
                 id: product.id,
                 title: product.title,
                 price: product.price,
-                imageUrl: product.images?.[0],
+                imageUrl: getProductMediaUrls(product)[0],
                 condition: product.condition,
                 status: product.status,
                 storeId: product.storeId,

@@ -12,13 +12,27 @@ function mapUploadError(error) {
     case 'FE_VIDEO_TOO_LARGE':
       return 'upload.errors.videoTooLarge'
     case 'FILE_STORAGE_UNAVAILABLE':
-      return 'upload.errors.storageUnavailable'
+      return 'upload.errors.s3UploadFailed'
+    case 'FILE_PRESIGN_FAILED':
+      return 'upload.errors.presignFailed'
+    case 'FILE_CONFIRM_FAILED':
+      return 'upload.errors.confirmFailed'
     default:
       return 'upload.errors.generic'
   }
 }
 
-export function MediaUploadButton({ purpose, allowVideo = true, disabled = false, onUploaded }) {
+export function MediaUploadButton({
+  purpose,
+  allowVideo = true,
+  disabled = false,
+  resolveDownloadUrl = true,
+  showHint = true,
+  onUploaded,
+  onUploadResult,
+  onUploadingChange,
+  onUploadError,
+}) {
   const { t } = useTranslation()
   const inputRef = useRef(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -35,13 +49,19 @@ export function MediaUploadButton({ purpose, allowVideo = true, disabled = false
 
     setErrorKey(null)
     setIsUploading(true)
+    onUploadingChange?.(true)
+    onUploadError?.(null)
     try {
-      const { url } = await uploadMediaFile({ file, purpose, allowVideo })
-      if (url) onUploaded(url)
+      const result = await uploadMediaFile({ file, purpose, allowVideo, resolveDownloadUrl })
+      if (onUploadResult) onUploadResult(result, file)
+      else if (result.url) onUploaded(result.url)
     } catch (error) {
-      setErrorKey(mapUploadError(error))
+      const key = mapUploadError(error)
+      setErrorKey(key)
+      onUploadError?.(key)
     } finally {
       setIsUploading(false)
+      onUploadingChange?.(false)
     }
   }
 
@@ -71,9 +91,11 @@ export function MediaUploadButton({ purpose, allowVideo = true, disabled = false
                 : 'upload.chooseImage',
           )}
         </Button>
-        <span className="text-xs text-muted-foreground">
-          {t(allowVideo ? 'upload.mediaHint' : 'upload.imageHint')}
-        </span>
+        {showHint && (
+          <span className="text-xs text-muted-foreground">
+            {t(allowVideo ? 'upload.mediaHint' : 'upload.imageHint')}
+          </span>
+        )}
       </div>
       {errorKey && (
         <p role="alert" className="text-xs text-destructive">

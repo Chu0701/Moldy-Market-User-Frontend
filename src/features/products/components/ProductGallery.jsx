@@ -6,7 +6,7 @@ import { ImageWithFallback } from '@/components/common/ImageWithFallback'
 import { isVideoUrl } from '@/services/files/fileUploadService'
 
 /** @param {{ images?: string[], title: string }} props */
-export function ProductGallery({ images = [], title }) {
+export function ProductGallery({ images = [], title, onMediaError }) {
   const { t } = useTranslation()
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -58,6 +58,7 @@ export function ProductGallery({ images = [], title }) {
               src={activeMedia}
               alt={title}
               className={activeMedia ? 'cursor-zoom-in' : undefined}
+              onError={onMediaError}
               onClick={() => {
                 if (activeMedia) setLightboxOpen(true)
               }}

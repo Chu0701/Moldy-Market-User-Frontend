@@ -8,7 +8,7 @@ import {
 } from '@/features/products/schemas/editProductSchema'
 import { updateProduct } from '@/services/products/productService'
 
-export function useEditProductForm({ product, refetch, onSaved }) {
+export function useEditProductForm({ product, refetch, onSaved, imageFileIds }) {
   const [hasConflict, setHasConflict] = useState(false)
   const form = useForm({
     resolver: zodResolver(editProductSchema),
@@ -20,7 +20,11 @@ export function useEditProductForm({ product, refetch, onSaved }) {
     if (hasConflict) return
 
     try {
-      await updateProduct({ ...values, productId: product.id })
+      await updateProduct({
+        ...values,
+        productId: product.id,
+        ...(imageFileIds ? { imageFileIds } : {}),
+      })
     } catch (error) {
       if (error?.status === 409 && error.code === 'CONCURRENT_MODIFICATION') {
         setHasConflict(true)

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { useCart } from '@/features/cart/hooks/useCart'
 import { useCartProducts } from '@/features/cart/hooks/useCartProducts'
 import { useCreateCheckout } from '@/features/checkout/hooks/useCheckout'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import {
   estimateVoucherDiscount,
   getCheckoutErrorKey,
@@ -223,7 +224,7 @@ export function CheckoutPage() {
                 <li key={item.listingId} className="flex items-center gap-3">
                   <div className="size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-background">
                     <ImageWithFallback
-                      src={productData.images?.[0]}
+                      src={getProductMediaUrls(productData)[0]}
                       alt={productData.title}
                       compact
                       className="size-full"

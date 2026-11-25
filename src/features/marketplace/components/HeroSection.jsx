@@ -7,6 +7,7 @@ import { ImageWithFallback } from '@/components/common/ImageWithFallback'
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/features/auth/hooks/useSession'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { getStoreContext } from '@/features/stores/getStoreContext'
 import { cn } from '@/lib/utils'
 
@@ -67,7 +68,8 @@ export function HeroSection({ newestProducts = [], totalProducts = 0 }) {
       : '/open-store'
 
   const visualProducts = newestProducts
-    .filter((item) => Array.isArray(item.images) && item.images.length > 0 && item.images[0])
+    .map((item) => ({ item, previewUrl: getProductMediaUrls(item)[0] }))
+    .filter(({ previewUrl }) => Boolean(previewUrl))
     .slice(0, 3)
 
   useEffect(() => {
@@ -191,7 +193,7 @@ export function HeroSection({ newestProducts = [], totalProducts = 0 }) {
                 <span className="text-[11px] text-muted-foreground">{t('hero.spotlightHint')}</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {visualProducts.map((item) => (
+                {visualProducts.map(({ item, previewUrl }) => (
                   <button
                     key={item.id}
                     type="button"
@@ -200,7 +202,7 @@ export function HeroSection({ newestProducts = [], totalProducts = 0 }) {
                   >
                     <div className="aspect-square w-full overflow-hidden bg-muted">
                       <ImageWithFallback
-                        src={item.images[0]}
+                        src={previewUrl}
                         alt={item.title}
                         compact
                         className="size-full transition-transform duration-200 group-hover:scale-105"

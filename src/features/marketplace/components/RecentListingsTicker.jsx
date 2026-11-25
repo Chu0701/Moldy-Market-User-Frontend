@@ -34,7 +34,7 @@ export function RecentListingsTicker({ products = [] }) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
 
-  if (!Array.isArray(products) || products.length === 0) return null
+  if (!Array.isArray(products) || products.length < 2) return null
 
   return (
     <div

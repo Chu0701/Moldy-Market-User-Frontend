@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { MobileBuyBar } from '@/features/products/components/MobileBuyBar'
 import { ProductGallery } from '@/features/products/components/ProductGallery'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { ProductInfo } from '@/features/products/components/ProductInfo'
 import { RecentlyViewedSection } from '@/features/products/components/RecentlyViewedSection'
 import { SimilarProductsSection } from '@/features/products/components/SimilarProductsSection'
@@ -43,19 +44,11 @@ export function ProductDetailPage() {
       id: loadedProduct.id,
       title: loadedProduct.title,
       price: loadedProduct.price,
-      imageUrl: loadedProduct.images?.[0],
+      imageUrl: getProductMediaUrls(loadedProduct)[0],
       condition: loadedProduct.condition,
       createdAt: loadedProduct.createdAt,
     })
-  }, [
-    loadedProduct?.id,
-    loadedProduct?.title,
-    loadedProduct?.price,
-    loadedProduct?.images,
-    loadedProduct?.condition,
-    loadedProduct?.createdAt,
-    loadedProduct?.status,
-  ])
+  }, [loadedProduct])
 
   if (query.isPending) {
     return (
@@ -127,7 +120,7 @@ export function ProductDetailPage() {
               id: product.id,
               title: product.title,
               price: product.price,
-              imageUrl: product.images?.[0],
+              imageUrl: getProductMediaUrls(product)[0],
             }}
           />
         )}
@@ -136,7 +129,7 @@ export function ProductDetailPage() {
             id: product.id,
             title: product.title,
             price: product.price,
-            imageUrl: product.images?.[0],
+            imageUrl: getProductMediaUrls(product)[0],
             condition: product.condition,
             status: product.status,
             storeId: product.storeId,
@@ -184,7 +177,12 @@ export function ProductDetailPage() {
         </div>
 
         <article className="product-detail-page">
-          <ProductGallery key={product.id} images={product.images ?? []} title={product.title} />
+          <ProductGallery
+            key={product.id}
+            images={getProductMediaUrls(product)}
+            title={product.title}
+            onMediaError={() => query.refetch()}
+          />
 
           <ProductInfo
             title={product.title}

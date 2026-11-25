@@ -11,6 +11,7 @@ import { FeaturedProducts } from '@/features/marketplace/components/FeaturedProd
 import { ProductSkeleton } from '@/features/marketplace/components/ProductSkeleton'
 import { useNewestProducts } from '@/features/marketplace/hooks/useNewestProducts'
 import { ProductCard } from '@/features/products/components/ProductCard'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { wishlistKeys } from '@/features/wishlist/wishlistKeys'
 import { addToWishlist, removeFromWishlist } from '@/services/wishlist/wishlistService'
 
@@ -105,6 +106,7 @@ export function NewestProductsSection({ query: providedQuery } = {}) {
         product.id in localWishlistOverrides
           ? localWishlistOverrides[product.id]
           : cachedWishlistIds.has(product.id)
+      const primaryImage = getProductMediaUrls(product)[0]
 
       return (
         <ProductCard
@@ -112,7 +114,8 @@ export function NewestProductsSection({ query: providedQuery } = {}) {
           id={product.id}
           title={product.title}
           price={product.price}
-          imageUrl={product.images?.[0]}
+          imageUrl={primaryImage}
+          onImageError={() => query.refetch()}
           createdAt={product.createdAt}
           condition={product.condition}
           conditionLabel={t(conditionKeys[product.condition] ?? 'products.conditions.unknown')}
@@ -125,7 +128,7 @@ export function NewestProductsSection({ query: providedQuery } = {}) {
             id: product.id,
             title: product.title,
             price: product.price,
-            imageUrl: product.images?.[0],
+            imageUrl: primaryImage,
             condition: product.condition,
             status: product.status,
             storeId: product.storeId,

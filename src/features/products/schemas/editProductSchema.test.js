@@ -8,18 +8,21 @@ const product = {
   price: 45000.5,
   condition: 'USED',
   images: ['https://example.com/book.jpg'],
+  imageFileIds: ['managed-id'],
   version: 0,
 }
 
-test('prefills the form with the loaded version and sends empty values when clearing optional fields', () => {
+test('prefills editable fields and preserves the product version', () => {
   const defaults = getEditProductDefaults(product)
 
-  expect(defaults).toEqual({ ...product, price: '45000.5', images: product.images[0] })
-  expect(editProductSchema.parse({ ...defaults, description: '', images: '' })).toEqual({
-    ...product,
-    description: '',
-    images: [],
+  expect(defaults).toEqual({
+    title: product.title,
+    description: product.description,
+    price: '45000.5',
+    condition: product.condition,
+    version: 0,
   })
+  expect(editProductSchema.parse(defaults)).toEqual({ ...defaults, price: 45000.5 })
 })
 
 test('rejects edits when the loaded product has no version', () => {

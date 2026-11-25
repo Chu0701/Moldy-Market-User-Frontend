@@ -1,11 +1,12 @@
+import { useEffect, useRef, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
-import { ProductMediaField } from '@/features/products/components/ProductMediaField'
 import {
   createProductSchema,
   productConditions,
@@ -21,6 +22,16 @@ const conditionKeys = {
 
 export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
   const { t } = useTranslation()
+  const [uploadedImages, setUploadedImages] = useState([])
+  const [isUploading, setIsUploading] = useState(false)
+  const uploadedImagesRef = useRef(uploadedImages)
+  const imageFileIds = uploadedImages.map(({ fileId }) => fileId)
+  uploadedImagesRef.current = uploadedImages
+  useEffect(
+    () => () =>
+      uploadedImagesRef.current.forEach(({ previewUrl }) => URL.revokeObjectURL(previewUrl)),
+    [],
+  )
   const {
     register,
     handleSubmit,
@@ -36,7 +47,6 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
       description: '',
       price: '',
       condition: '',
-      images: '',
     },
   })
 
@@ -44,7 +54,7 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
     let product
 
     try {
-      product = await createStoreProduct({ ...values, storeId })
+      product = await createStoreProduct({ ...values, storeId, imageFileIds })
     } catch (error) {
       if (['CATEGORY_INACTIVE', 'CATEGORY_NOT_LEAF', 'CATEGORY_NOT_FOUND'].includes(error?.code)) {
         setError('categoryId', { message: 'products.create.categoryUnavailable' })
@@ -155,24 +165,62 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
         }
       />
 
-      <ProductMediaField
-        idPrefix="product-create"
-        value={watch('images')}
-        onValueChange={(next) =>
-          setValue('images', next, { shouldValidate: true, shouldDirty: true })
-        }
-        disabled={isSubmitting}
-        textareaProps={fieldProps('images')}
-        hasError={Boolean(errors.images)}
-        errorNode={fieldError(
-          'images',
-          errors.images?.root ?? errors.images?.find?.(Boolean) ?? errors.images,
+      <div className="product-create-field">
+        <span className="product-create-field-label">{t('products.create.imagesLabel')}</span>
+        <MediaUploadButton
+          purpose="PRODUCT_IMAGE"
+          resolveDownloadUrl={false}
+          disabled={isSubmitting || isUploading || uploadedImages.length >= 10}
+          onUploadingChange={setIsUploading}
+          onUploadResult={({ fileId }, file) => {
+            setUploadedImages((current) =>
+              current.some((image) => image.fileId === fileId)
+                ? current
+                : [
+                    ...current,
+                    { fileId, fileName: file.name, previewUrl: URL.createObjectURL(file) },
+                  ],
+            )
+          }}
+        />
+        {uploadedImages.length > 0 && (
+          <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {uploadedImages.map((image, index) => (
+              <li key={image.fileId} className="relative">
+                <img
+                  src={image.previewUrl}
+                  alt={image.fileName}
+                  className="aspect-square w-full rounded-md object-cover"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {index + 1}. {image.fileName}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    URL.revokeObjectURL(image.previewUrl)
+                    setUploadedImages((current) =>
+                      current.filter((item) => item.fileId !== image.fileId),
+                    )
+                  }}
+                >
+                  {t('products.create.removeImage', 'Xóa ảnh')}
+                </Button>
+              </li>
+            ))}
+          </ol>
         )}
-      />
+        <p id="product-create-images-hint" className="profile-edit-hint">
+          {t('products.create.uploadedImagesCount', { count: uploadedImages.length })}
+        </p>
+      </div>
 
       {fieldError('server', errors.root?.server)}
 
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting || isUploading}>
         {t(isSubmitting ? 'products.create.submitting' : 'products.create.submit')}
       </Button>
     </form>

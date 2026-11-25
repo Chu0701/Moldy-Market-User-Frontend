@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { MediaUploadButton } from '@/components/common/MediaUploadButton'
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
-import { ProductMediaField } from '@/features/products/components/ProductMediaField'
 import { useEditProductForm } from '@/features/products/hooks/useEditProductForm'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 
 const conditions = [
   ['NEW', 'products.conditions.new'],
@@ -16,13 +18,27 @@ const conditions = [
 
 export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
   const { t } = useTranslation()
-  const { form, submit, reload, hasConflict } = useEditProductForm({ product, refetch, onSaved })
+  const [mediaChanged, setMediaChanged] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [mediaItems, setMediaItems] = useState(() => {
+    const urls = getProductMediaUrls(product)
+    return urls.map((url, index) => ({
+      fileId: product.imageFileIds?.[index] ?? null,
+      fileName: product.media?.[index]?.fileName ?? `Image ${index + 1}`,
+      previewUrl: url,
+    }))
+  })
+  const imageFileIds = mediaChanged ? mediaItems.map(({ fileId }) => fileId).filter(Boolean) : null
+  const { form, submit, reload, hasConflict } = useEditProductForm({
+    product,
+    refetch,
+    onSaved,
+    imageFileIds,
+  })
   const {
     register,
     formState: { errors, isSubmitting },
   } = form
-
-  const imagedError = errors.images?.root ?? errors.images?.find?.(Boolean) ?? errors.images
 
   function fieldProps(name, error = errors[name]) {
     const id = `product-edit-${name}`
@@ -40,6 +56,17 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         {t(error.message)}
       </p>
     ) : null
+  }
+
+  function moveMedia(index, offset) {
+    const target = index + offset
+    if (target < 0 || target >= mediaItems.length) return
+    setMediaItems((items) => {
+      const next = [...items]
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return next
+    })
+    setMediaChanged(true)
   }
 
   return (
@@ -89,18 +116,79 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         }
       />
 
-      <ProductMediaField
-        idPrefix="product-edit"
-        value={form.watch('images')}
-        onValueChange={(next) =>
-          form.setValue('images', next, { shouldValidate: true, shouldDirty: true })
-        }
-        disabled={isSubmitting}
-        uploadDisabled={hasConflict}
-        textareaProps={fieldProps('images', imagedError)}
-        hasError={Boolean(imagedError)}
-        errorNode={fieldError('images', imagedError)}
-      />
+      <div className="product-create-field">
+        <span className="product-create-field-label">{t('products.create.imagesLabel')}</span>
+        <MediaUploadButton
+          purpose="PRODUCT_IMAGE"
+          allowVideo={false}
+          resolveDownloadUrl={false}
+          disabled={isSubmitting || hasConflict || mediaItems.length >= 10}
+          onUploadingChange={setIsUploading}
+          onUploadResult={({ fileId }, file) => {
+            setMediaItems((items) => [
+              ...items,
+              { fileId, fileName: file.name, previewUrl: URL.createObjectURL(file) },
+            ])
+            setMediaChanged(true)
+          }}
+        />
+        {mediaItems.length > 0 && (
+          <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {mediaItems.map((image, index) => (
+              <li key={`${image.fileId ?? image.previewUrl}-${index}`} className="relative">
+                <img
+                  src={image.previewUrl}
+                  alt={image.fileName}
+                  className="aspect-square w-full rounded-md object-cover"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {index + 1}. {image.fileName}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={index === 0 || isSubmitting}
+                    onClick={() => moveMedia(index, -1)}
+                  >
+                    {t('products.edit.moveUp')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={index === mediaItems.length - 1 || isSubmitting}
+                    onClick={() => moveMedia(index, 1)}
+                  >
+                    {t('products.edit.moveDown')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      setMediaItems((items) => items.filter((_, itemIndex) => itemIndex !== index))
+                      setMediaChanged(true)
+                    }}
+                  >
+                    {t('products.create.removeImage', 'Xóa ảnh')}
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+        {!mediaChanged &&
+          (product.imageFileIds ?? []).length === 0 &&
+          product.images?.length > 0 && (
+            <p className="profile-edit-hint">{t('products.edit.legacyImagesHint')}</p>
+          )}
+        <p className="profile-edit-hint">
+          {t('products.create.uploadedImagesCount', { count: mediaItems.length })}
+        </p>
+      </div>
 
       {hasConflict && (
         <div>
@@ -121,7 +209,7 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
       {fieldError('server', errors.root?.server)}
 
       <div className="profile-edit-actions">
-        <Button type="submit" disabled={isSubmitting || hasConflict}>
+        <Button type="submit" disabled={isSubmitting || hasConflict || isUploading}>
           {t(isSubmitting ? 'products.edit.saving' : 'actions.save')}
         </Button>
         <Button asChild variant="outline">

@@ -319,7 +319,8 @@ Hiển thị thông báo, nút về trang chủ và ô tìm kiếm. Đã có s�
 
 | Route | Nội dung | Trạng thái |
 |---|---|---|
-| `/appraisals`, `/appraiser/queue`, `/appraiser/requests/:requestId` | Yêu cầu thẩm định giá và hàng đợi người thẩm định. DTO pricing, appraiser chưa audit; B2 (chưa có kiểm tra quyền) | `IN_PROGRESS`, chỉ skeleton |
+| `/appraiser/profile`, `/appraiser/queue`, `/appraiser/applications`, `/appraiser/invitations`, `/appraiser/assignments`, `/appraiser/assignments/:assignmentId`, `/appraiser/commissions` | Workspace hồ sơ, yêu cầu, ứng tuyển, lời mời, công việc, báo cáo và hoa hồng | UI preview có role gate và điều hướng; không có service/API call hoặc dữ liệu nghiệp vụ mẫu cho tới khi doc 14 được audit |
+| `/appraisals`, `/appraiser/queue`, `/appraiser/requests/:requestId` | Yêu cầu thẩm định giá và hàng đợi người thẩm định. DTO pricing, appraiser chưa audit | `IN_PROGRESS`, chỉ skeleton |
 | `/wishlist` | Danh sách yêu thích | `NOT_FOUND` |
 | `/transactions` | Lịch sử giao dịch | `NOT_FOUND`; phạm vi cần xác nhận |
 

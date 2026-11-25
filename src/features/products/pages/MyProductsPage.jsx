@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { ProductSkeleton } from '@/features/marketplace/components/ProductSkeleton'
 import { useMyProducts } from '@/features/products/hooks/useMyProducts'
 import { productKeys } from '@/features/products/hooks/useProductSearch'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { cn } from '@/lib/utils'
 import { changeProductStatus, deleteProduct } from '@/services/products/productService'
 
@@ -243,11 +244,12 @@ export function MyProductsPage({ store = false } = {}) {
                         {/* Col 1: Product thumbnail + link (includes sr-only status for link contract) */}
                         <div className="order-1 col-span-2 flex min-w-0 items-center gap-3 pr-2 lg:col-span-1 lg:pr-3">
                           <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted/70">
-                            {product.images?.[0] ? (
+                            {getProductMediaUrls(product)[0] ? (
                               <img
-                                src={product.images[0]}
+                                src={getProductMediaUrls(product)[0]}
                                 alt={product.title}
                                 loading="lazy"
+                                onError={() => void query.refetch()}
                                 className="size-full object-cover"
                               />
                             ) : (

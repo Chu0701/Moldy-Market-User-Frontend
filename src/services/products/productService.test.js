@@ -45,7 +45,7 @@ test('posts a store listing with the seller-set pricing strategy', async () => {
     title: 'Sách cũ',
     price: 45000.5,
     condition: 'USED',
-    images: ['https://example.com/book.jpg'],
+    imageFileIds: ['file-1'],
   }
   const product = { id: 'product-1', ...fields }
   const post = vi.spyOn(apiClient, 'post').mockResolvedValue({
@@ -55,9 +55,43 @@ test('posts a store listing with the seller-set pricing strategy', async () => {
 
   await expect(createStoreProduct(fields)).resolves.toEqual(product)
   expect(post).toHaveBeenCalledExactlyOnceWith('/api/v1/products', {
-    ...fields,
-    description: undefined,
+    storeId: fields.storeId,
+    categoryId: fields.categoryId,
+    title: fields.title,
+    description: '',
+    price: fields.price,
+    condition: fields.condition,
     pricingStrategy: 'SELLER_SET',
+    imageFileIds: ['file-1'],
+  })
+})
+
+test('preserves a provided description when posting a store listing', async () => {
+  const fields = {
+    storeId: 'store-1',
+    categoryId: 'a8098c1a-f86e-11da-bd1a-00112444be1f',
+    title: 'iPhone',
+    description: 'iphone',
+    price: 100000,
+    condition: 'NEW',
+    imageFileIds: [],
+  }
+  const post = vi.spyOn(apiClient, 'post').mockResolvedValue({
+    status: 201,
+    data: { success: true, code: 'SUCCESS', data: fields },
+  })
+
+  await createStoreProduct(fields)
+
+  expect(post).toHaveBeenCalledExactlyOnceWith('/api/v1/products', {
+    storeId: fields.storeId,
+    categoryId: fields.categoryId,
+    title: fields.title,
+    description: fields.description,
+    price: fields.price,
+    condition: fields.condition,
+    pricingStrategy: 'SELLER_SET',
+    imageFileIds: [],
   })
 })
 
@@ -68,7 +102,7 @@ test('does not post a listing without a store ID', async () => {
   expect(post).not.toHaveBeenCalled()
 })
 
-test('updates a listing with version zero and preserves cleared optional fields', async () => {
+test('updates a listing with version zero and an explicit empty managed-media replacement', async () => {
   const productId = 'a8098c1a-f86e-11da-bd1a-00112444be1f'
   const changes = {
     version: 0,
@@ -76,7 +110,7 @@ test('updates a listing with version zero and preserves cleared optional fields'
     description: '',
     price: 45000.5,
     condition: 'USED',
-    images: [],
+    imageFileIds: [],
   }
   const product = { id: productId, ...changes }
   const put = vi.spyOn(apiClient, 'put').mockResolvedValue({
@@ -224,4 +258,17 @@ test('serializes selected filters as repeated query parameters understood by Bac
   expect(request.searchParams.getAll('condition')).toEqual(condition)
   expect(request.searchParams.get('minPrice')).toBe('0')
   expect(request.searchParams.get('maxPrice')).toBe('200000')
+})
+
+test('omits media fields when product update does not change media', async () => {
+  const put = vi.spyOn(apiClient, 'put').mockResolvedValue({
+    data: { success: true, code: 'SUCCESS', data: { id: 'product-1', version: 2 } },
+  })
+
+  await updateProduct({ productId: 'product-1', version: 1, title: 'Updated title' })
+
+  expect(put).toHaveBeenCalledExactlyOnceWith('/api/v1/products/product-1', {
+    version: 1,
+    title: 'Updated title',
+  })
 })
