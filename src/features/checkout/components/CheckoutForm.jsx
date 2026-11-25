@@ -36,6 +36,7 @@ export function CheckoutForm({
   const { profileQuery } = useSession()
   const fullName = profileQuery.data?.fullName ?? ''
   const phone = profileQuery.data?.phone ?? ''
+  const address = profileQuery.data?.address ?? ''
   const editedFields = useRef(new Set())
   const submitLock = useRef(false)
   const {
@@ -49,21 +50,25 @@ export function CheckoutForm({
     defaultValues: {
       receiverName: fullName,
       phoneNumber: phone,
-      shippingAddress: '',
+      shippingAddress: address,
       method: 'COD',
       note: '',
     },
   })
 
   useEffect(() => {
-    const profileValues = { receiverName: fullName, phoneNumber: phone }
+    const profileValues = {
+      receiverName: fullName,
+      phoneNumber: phone,
+      shippingAddress: address,
+    }
 
     for (const [name, value] of Object.entries(profileValues)) {
       if (!editedFields.current.has(name)) {
         setValue(name, value)
       }
     }
-  }, [fullName, phone, setValue])
+  }, [address, fullName, phone, setValue])
 
   return (
     <form

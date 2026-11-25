@@ -6,14 +6,25 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { CategoryCard } from '@/features/marketplace/components/CategoryCard'
 import { CategoryGrid } from '@/features/marketplace/components/CategoryGrid'
 import { CategorySkeleton } from '@/features/marketplace/components/CategorySkeleton'
+import { EscrowTrustSection } from '@/features/marketplace/components/EscrowTrustSection'
 import { HeroSection } from '@/features/marketplace/components/HeroSection'
 import { NewestProductsSection } from '@/features/marketplace/components/NewestProductsSection'
+import { RecentListingsTicker } from '@/features/marketplace/components/RecentListingsTicker'
+import { SellerCtaBanner } from '@/features/marketplace/components/SellerCtaBanner'
 import { useCategories } from '@/features/marketplace/hooks/useCategories'
+import { useNewestProducts } from '@/features/marketplace/hooks/useNewestProducts'
+import { RecentlyViewedSection } from '@/features/products/components/RecentlyViewedSection'
 
 export function HomePage() {
   const { t } = useTranslation()
 
   const { data: categories = [], isPending, isError, error, refetch, isFetching } = useCategories()
+  const newestQuery = useNewestProducts()
+  const newestItems = newestQuery.data?.items ?? []
+  const totalProducts =
+    typeof newestQuery.data?.totalElements === 'number'
+      ? newestQuery.data.totalElements
+      : newestItems.length
 
   let content
 
@@ -38,15 +49,24 @@ export function HomePage() {
     )
   } else {
     content = categories.map((category) => (
-      <CategoryCard key={category.id} name={category.name} to={`/categories/${category.id}`} />
+      <CategoryCard
+        key={category.id}
+        name={category.name}
+        to={`/categories/${category.id}`}
+        subCount={Array.isArray(category.children) ? category.children.length : 0}
+      />
     ))
   }
 
   return (
     <>
-      <HeroSection />
+      <HeroSection newestProducts={newestItems} totalProducts={totalProducts} />
+      <RecentListingsTicker products={newestItems} />
       <CategoryGrid>{content}</CategoryGrid>
-      <NewestProductsSection />
+      <NewestProductsSection query={newestQuery} />
+      <RecentlyViewedSection />
+      <EscrowTrustSection />
+      <SellerCtaBanner />
     </>
   )
 }

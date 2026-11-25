@@ -27,7 +27,7 @@ export function CategoryGrid({ children }) {
           </p>
         </div>
       </div>
-      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-4">
         {children}
       </div>
     </section>

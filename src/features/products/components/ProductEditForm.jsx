@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
-import { Button } from '@/components/ui/button'
 import { MediaUploadButton } from '@/components/common/MediaUploadButton'
+import { ProductPrice } from '@/components/common/ProductPrice'
+import { Button } from '@/components/ui/button'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
 import { useEditProductForm } from '@/features/products/hooks/useEditProductForm'
 import { getProductMediaUrls } from '@/features/products/utils/productMedia'
@@ -86,6 +87,11 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         <div className="product-create-field">
           <label htmlFor="product-edit-price">{t('products.create.priceLabel')}</label>
           <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
+          {Number(form.watch('price')) > 0 && (
+            <p className="text-xs font-medium text-muted-foreground tabular-nums">
+              ≈ <ProductPrice value={Number(form.watch('price'))} />
+            </p>
+          )}
           {fieldError('price')}
         </div>
 

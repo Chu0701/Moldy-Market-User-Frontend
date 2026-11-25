@@ -9,18 +9,60 @@ import { ForbiddenState } from '@/components/feedback/ForbiddenState'
 import { Button } from '@/components/ui/button'
 import { useSellerAnalytics } from '@/features/analytics/hooks/useAnalytics'
 
+function formatDateInput(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function StoreRevenuePage() {
   const { t, i18n } = useTranslation()
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [activePreset, setActivePreset] = useState('all')
   const { profileQuery, overviewQuery, revenueQuery, topProductsQuery } = useSellerAnalytics({
     from,
     to,
     limit: 5,
   })
 
+  function applyRangePreset(preset) {
+    setActivePreset(preset)
+    if (preset === 'all') {
+      setFrom('')
+      setTo('')
+      return
+    }
+    const end = new Date()
+    const start = new Date(end)
+    if (preset === '7d') {
+      start.setDate(end.getDate() - 6)
+    } else if (preset === '30d') {
+      start.setDate(end.getDate() - 29)
+    } else if (preset === 'month') {
+      start.setDate(1)
+    }
+    setFrom(formatDateInput(start))
+    setTo(formatDateInput(end))
+  }
+
   if (profileQuery.isPending || overviewQuery.isPending) {
-    return <p role="status">{t('analytics.seller.loading')}</p>
+    return (
+      <section className="mx-auto max-w-5xl space-y-6" role="status" aria-busy="true">
+        <span className="sr-only">{t('analytics.seller.loading')}</span>
+        <div className="space-y-2">
+          <div className="skeleton-shimmer h-4 w-28 rounded-md" />
+          <div className="skeleton-shimmer h-8 w-56 rounded-lg" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="skeleton-shimmer h-24 rounded-xl" />
+          ))}
+        </div>
+        <div className="skeleton-shimmer h-56 rounded-xl" />
+      </section>
+    )
   }
 
   if (overviewQuery.error?.status === 403) {
@@ -54,7 +96,7 @@ export function StoreRevenuePage() {
 
   return (
     <section className="mx-auto max-w-5xl space-y-6" aria-labelledby="store-revenue-heading">
-      <header className="space-y-1">
+      <div className="space-y-1">
         <Link
           to="/store"
           className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
@@ -63,12 +105,12 @@ export function StoreRevenuePage() {
         </Link>
         <h1
           id="store-revenue-heading"
-          className="text-3xl font-semibold tracking-tight sm:text-4xl"
+          className="scroll-mt-24 text-2xl font-semibold tracking-tight sm:text-3xl"
         >
           {t('analytics.seller.title')}
         </h1>
         <p className="text-sm text-muted-foreground">{t('analytics.seller.description')}</p>
-      </header>
+      </div>
 
       <div className="kn-stats-band sm:grid-cols-2 lg:grid-cols-4">
         <div className="kn-stat-cell">
@@ -108,9 +150,40 @@ export function StoreRevenuePage() {
 
       <section className="kn-table-card" aria-labelledby="revenue-chart-heading">
         <div className="kn-table-toolbar">
-          <h2 id="revenue-chart-heading" className="text-base font-semibold tracking-tight">
-            {t('analytics.seller.revenueChartTitle')}
-          </h2>
+          <div className="space-y-2">
+            <h2 id="revenue-chart-heading" className="text-base font-semibold tracking-tight">
+              {t('analytics.seller.revenueChartTitle')}
+            </h2>
+            <div
+              className="flex flex-wrap gap-1.5"
+              role="group"
+              aria-label={t('analytics.seller.presetsLabel')}
+            >
+              {[
+                ['7d', 'analytics.seller.presets.last7Days'],
+                ['30d', 'analytics.seller.presets.last30Days'],
+                ['month', 'analytics.seller.presets.thisMonth'],
+                ['all', 'analytics.seller.presets.allTime'],
+              ].map(([key, labelKey]) => {
+                const isSelected = activePreset === key
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => applyRangePreset(key)}
+                    className={
+                      isSelected
+                        ? 'rounded-full border border-primary bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground transition-colors'
+                        : 'rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground'
+                    }
+                  >
+                    {t(labelKey)}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
           <div className="flex flex-wrap items-end gap-2.5">
             <div className="grid gap-1">
               <label
@@ -123,7 +196,10 @@ export function StoreRevenuePage() {
                 id="analytics-from"
                 type="date"
                 value={from}
-                onChange={(e) => setFrom(e.target.value)}
+                onChange={(e) => {
+                  setActivePreset('custom')
+                  setFrom(e.target.value)
+                }}
                 className="kn-input min-h-8.5 py-1 text-xs"
               />
             </div>
@@ -138,7 +214,10 @@ export function StoreRevenuePage() {
                 id="analytics-to"
                 type="date"
                 value={to}
-                onChange={(e) => setTo(e.target.value)}
+                onChange={(e) => {
+                  setActivePreset('custom')
+                  setTo(e.target.value)
+                }}
                 className="kn-input min-h-8.5 py-1 text-xs"
               />
             </div>
@@ -147,10 +226,7 @@ export function StoreRevenuePage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setFrom('')
-                  setTo('')
-                }}
+                onClick={() => applyRangePreset('all')}
               >
                 {t('analytics.seller.clearDates')}
               </Button>

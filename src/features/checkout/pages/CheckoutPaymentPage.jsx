@@ -1,3 +1,4 @@
+import { RefreshCw, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { ProductPrice } from '@/components/common/ProductPrice'
@@ -42,17 +43,27 @@ export function CheckoutPaymentPage() {
   return (
     <section className="checkout-page" aria-labelledby="checkout-payment-title">
       <div className="order-heading">
-        <h1 id="checkout-payment-title">{t('checkoutPayment.title')}</h1>
+        <h1
+          id="checkout-payment-title"
+          className="scroll-mt-24 text-2xl font-semibold tracking-tight sm:text-3xl"
+        >
+          {t('checkoutPayment.title')}
+        </h1>
         <Button
           type="button"
           variant="outline"
+          size="sm"
           onClick={async () => {
             const result = await query.refetch()
             if (!result.isError) cancel.reset()
           }}
           disabled={query.isFetching || cancel.isPending}
         >
-          {t('checkoutPayment.refresh')}
+          <RefreshCw
+            aria-hidden="true"
+            className={query.isFetching ? 'size-4 animate-spin' : 'size-4'}
+          />
+          <span>{t('checkoutPayment.refresh')}</span>
         </Button>
       </div>
       {query.isRefetchError && (
@@ -105,7 +116,11 @@ export function CheckoutPaymentPage() {
               : t('checkoutPayment.unknownMethod')}
           </p>
           <p className="text-sm text-muted-foreground">{t('checkoutPayment.serverAmount')}</p>
-          <div className="grid justify-items-start gap-3">
+          <p className="flex items-start gap-2 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
+            <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-success" />
+            <span>{t('products.detail.protectionDesc')}</span>
+          </p>
+          <div className="grid justify-items-start gap-3 border-t border-border pt-3">
             <Link to="/orders" className="underline underline-offset-4">
               {t('checkoutPayment.viewOrders')}
             </Link>

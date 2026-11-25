@@ -12,6 +12,7 @@ import {
   EyeOff,
   Heart,
   LogOut,
+  MapPin,
   MessageCircle,
   Package,
   Pencil,
@@ -424,30 +425,43 @@ export function ProfilePage() {
                   </dl>
                 </div>
 
-                {profile.phone && (
-                  <dl className="border-t border-border pt-3 text-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <dt className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <Phone className="size-3.5" aria-hidden="true" />
-                        <span>{t('profile.edit.phone')}</span>
-                      </dt>
-                      <dd className="flex items-center gap-1.5 text-xs font-medium text-foreground tabular-nums">
-                        <span>{showPhone ? profile.phone : maskPhone(profile.phone)}</span>
-                        <button
-                          type="button"
-                          onClick={() => setShowPhone((value) => !value)}
-                          aria-label={t(showPhone ? 'profile.hidePhone' : 'profile.showPhone')}
-                          title={t(showPhone ? 'profile.hidePhone' : 'profile.showPhone')}
-                          className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          {showPhone ? (
-                            <EyeOff className="size-3.5" aria-hidden="true" />
-                          ) : (
-                            <Eye className="size-3.5" aria-hidden="true" />
-                          )}
-                        </button>
-                      </dd>
-                    </div>
+                {(profile.phone || profile.address) && (
+                  <dl className="grid gap-2.5 border-t border-border pt-3 text-sm">
+                    {profile.phone && (
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                          <Phone className="size-3.5" aria-hidden="true" />
+                          <span>{t('profile.edit.phone')}</span>
+                        </dt>
+                        <dd className="flex items-center gap-1.5 text-xs font-medium text-foreground tabular-nums">
+                          <span>{showPhone ? profile.phone : maskPhone(profile.phone)}</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowPhone((value) => !value)}
+                            aria-label={t(showPhone ? 'profile.hidePhone' : 'profile.showPhone')}
+                            title={t(showPhone ? 'profile.hidePhone' : 'profile.showPhone')}
+                            className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            {showPhone ? (
+                              <EyeOff className="size-3.5" aria-hidden="true" />
+                            ) : (
+                              <Eye className="size-3.5" aria-hidden="true" />
+                            )}
+                          </button>
+                        </dd>
+                      </div>
+                    )}
+                    {profile.address && (
+                      <div className="grid gap-1">
+                        <dt className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                          <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+                          <span>{t('profile.edit.address')}</span>
+                        </dt>
+                        <dd className="text-xs leading-5 break-words text-foreground">
+                          {profile.address}
+                        </dd>
+                      </div>
+                    )}
                   </dl>
                 )}
 

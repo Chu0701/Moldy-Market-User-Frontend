@@ -48,10 +48,28 @@ test('missing store, blocked owner store and ordinary buyer are not allowed to q
 })
 
 test('reads one-based page and optional known status from URL', () => {
-  expect(readStoreOrderParams(new URLSearchParams())).toEqual({ page: 1, status: '', valid: true })
-  expect(readStoreOrderParams(new URLSearchParams('page=2&status=PENDING_CONFIRMED'))).toEqual({
+  expect(readStoreOrderParams(new URLSearchParams())).toEqual({
+    page: 1,
+    status: '',
+    q: '',
+    from: '',
+    to: '',
+    oldestFirst: false,
+    sort: 'newest',
+    valid: true,
+  })
+  expect(
+    readStoreOrderParams(
+      new URLSearchParams('page=2&status=PENDING_CONFIRMED&q=iphone&from=2026-11-01&to=2026-11-25'),
+    ),
+  ).toEqual({
     page: 2,
     status: 'PENDING_CONFIRMED',
+    q: 'iphone',
+    from: '2026-11-01',
+    to: '2026-11-25',
+    oldestFirst: true,
+    sort: 'oldest',
     valid: true,
   })
 })
@@ -72,6 +90,9 @@ test.each([
   'status=toString',
   'status=UNKNOWN',
   'status=CONFIRMED&status=CANCELLED',
+  'from=not-a-date',
+  'from=2026-11-25&to=2026-11-20',
+  'sort=bogus',
 ])('invalid filter prevents HTTP rather than silently submitting another query: %s', (query) => {
   expect(readStoreOrderParams(new URLSearchParams(query)).valid).toBe(false)
 })

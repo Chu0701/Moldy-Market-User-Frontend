@@ -26,3 +26,11 @@ export async function getStoreReviews({ storeId, signal }) {
   })
   return unwrap(response)
 }
+
+/** @param {{ reviewId: string, reply: string }} payload */
+export async function replyToStoreReview({ reviewId, reply }) {
+  const response = await apiClient.post(`/api/v1/reviews/${encodeURIComponent(reviewId)}/reply`, {
+    reply: reply.trim(),
+  })
+  return unwrap(response)
+}

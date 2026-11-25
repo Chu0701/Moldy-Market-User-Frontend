@@ -530,6 +530,13 @@ export const routes = [
             }),
           },
           {
+            path: 'forgot-password',
+            lazy: async () => ({
+              Component: (await import('@/features/auth/pages/ForgotPasswordPage'))
+                .ForgotPasswordPage,
+            }),
+          },
+          {
             // The wildcard is a real 404 page, rather than a silent redirect home.
             path: '*',
             lazy: async () => ({

@@ -54,12 +54,19 @@ export function useChatRealtime(userId, enabled) {
           return
         }
         const outgoing = pending.current
+        const matchesText =
+          outgoing?.type === 'TEXT' &&
+          message.type === 'TEXT' &&
+          message.content === outgoing.content
+        const matchesImage =
+          outgoing?.type === 'IMAGE' &&
+          message.type === 'IMAGE' &&
+          message.attachmentUrl === outgoing.attachmentUrl
         if (
           outgoing &&
           outgoing.conversationId === message.conversationId &&
           message.senderId === userId &&
-          message.type === 'TEXT' &&
-          message.content === outgoing.content
+          (matchesText || matchesImage)
         )
           finish()
         const key = chatKeys.messages(userId, message.conversationId)
@@ -115,10 +122,39 @@ export function useChatRealtime(userId, enabled) {
     }
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => active.finish(sendError('chat.sendUncertain')), 15000)
-      pending.current = { conversationId, content, resolve, reject, timer }
+      pending.current = { type: 'TEXT', conversationId, content, resolve, reject, timer }
       setIsPending(true)
       try {
         active.transport.sendText(conversationId, content)
+      } catch {
+        active.finish(sendError('chat.sendUnavailable'))
+      }
+    })
+  }
+
+  function sendImage(conversationId, attachmentUrl) {
+    const active = connection.current
+    const room = client
+      .getQueryData(chatKeys.conversations(userId))
+      ?.find((item) => item.id === conversationId)
+    if (
+      !active ||
+      active.token !== getAccessToken() ||
+      active.userId !== client.getQueryData(meQueryKey)?.id ||
+      pending.current ||
+      !attachmentUrl ||
+      room?.status !== 'ACTIVE' ||
+      room.canSend !== true ||
+      ![room.participant1Id, room.participant2Id].includes(userId)
+    ) {
+      return Promise.reject(sendError('chat.sendUnavailable'))
+    }
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => active.finish(sendError('chat.sendUncertain')), 15000)
+      pending.current = { type: 'IMAGE', conversationId, attachmentUrl, resolve, reject, timer }
+      setIsPending(true)
+      try {
+        active.transport.sendImage(conversationId, attachmentUrl)
       } catch {
         active.finish(sendError('chat.sendUnavailable'))
       }
@@ -129,6 +165,7 @@ export function useChatRealtime(userId, enabled) {
     status: enabled && token ? status : 'idle',
     isPending,
     sendText,
+    sendImage,
     reconnect: () => setAttempt((value) => value + 1),
   }
 }

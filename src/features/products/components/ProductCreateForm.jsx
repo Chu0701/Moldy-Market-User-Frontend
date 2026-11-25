@@ -3,8 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { MediaUploadButton } from '@/components/common/MediaUploadButton'
+import { ProductPrice } from '@/components/common/ProductPrice'
+import { Button } from '@/components/ui/button'
 import { AutoPricingPanel } from '@/features/pricing/components/AutoPricingPanel'
 import {
   createProductSchema,
@@ -134,6 +135,11 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
         <div className="product-create-field">
           <label htmlFor="product-create-price">{t('products.create.priceLabel')}</label>
           <input {...fieldProps('price')} inputMode="decimal" required readOnly={isSubmitting} />
+          {Number(watch('price')) > 0 && (
+            <p className="text-xs font-medium text-muted-foreground tabular-nums">
+              ≈ <ProductPrice value={Number(watch('price'))} />
+            </p>
+          )}
           {fieldError('price')}
         </div>
 

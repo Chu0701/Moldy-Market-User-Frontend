@@ -61,6 +61,7 @@ export function ProductSearchForm({
   action = '/products',
   showCategoryFilter = true,
   hasFilter = false,
+  facets = null,
   formRef,
   onApplyPricePreset,
   onAfterSubmit,
@@ -69,6 +70,11 @@ export function ProductSearchForm({
   const [priceError, setPriceError] = useState(false)
   const [categoryError, setCategoryError] = useState(false)
   const selectedCategoryIds = Array.isArray(params.categoryId) ? params.categoryId : []
+  const conditionCounts = new Map(
+    Array.isArray(facets?.conditions)
+      ? facets.conditions.map((item) => [item.value, item.count])
+      : [],
+  )
 
   function handleSubmit(event) {
     const values = new FormData(event.currentTarget)
@@ -120,27 +126,42 @@ export function ProductSearchForm({
       </div>
 
       {showCategoryFilter && (
-        <ProductCategoryFilter selectedIds={selectedCategoryIds} hasError={categoryError} />
+        <ProductCategoryFilter
+          selectedIds={selectedCategoryIds}
+          hasError={categoryError}
+          categoryFacets={facets?.categories}
+        />
       )}
 
       <fieldset className="product-filter-group">
         <legend>{t('products.filters.condition')}</legend>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          {conditionOptions.map(([value, label]) => (
-            <label
-              key={value}
-              className="mb-0 inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-medium tracking-normal text-foreground normal-case transition-colors hover:border-foreground/40 has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground"
-            >
-              <input
-                type="checkbox"
-                name="condition"
-                value={value}
-                defaultChecked={params.condition?.includes(value)}
-                className="size-3.5 shrink-0 accent-primary focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <span className="truncate">{t(label)}</span>
-            </label>
-          ))}
+          {conditionOptions.map(([value, label]) => {
+            const count = conditionCounts.get(value)
+            return (
+              <label
+                key={value}
+                className="mb-0 inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-medium tracking-normal text-foreground normal-case transition-colors hover:border-foreground/40 has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground"
+              >
+                <input
+                  type="checkbox"
+                  name="condition"
+                  value={value}
+                  defaultChecked={params.condition?.includes(value)}
+                  className="size-3.5 shrink-0 accent-primary focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <span className="min-w-0 flex-1 truncate">{t(label)}</span>
+                {count !== undefined && (
+                  <span
+                    aria-hidden="true"
+                    className="shrink-0 text-[10.5px] opacity-65 tabular-nums"
+                  >
+                    {count}
+                  </span>
+                )}
+              </label>
+            )
+          })}
         </div>
       </fieldset>
 

@@ -55,8 +55,8 @@ export function StoreOrderProgress({ order, canConfirm = false }) {
         {t('storeOrders.progress.hints.' + hint)}
       </p>
       {milestones.length > 0 ? (
-        <details>
-          <summary className="cursor-pointer rounded-sm text-sm underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+        <details className="group border-0 bg-transparent p-0 shadow-none">
+          <summary className="cursor-pointer list-none rounded-sm border-0 bg-transparent text-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
             {t('storeOrders.progress.history')}
           </summary>
           <ol

@@ -27,11 +27,25 @@ function filterTree(categories, term) {
   return result
 }
 
+function buildFacetCountMap(facets, map = new Map()) {
+  if (!Array.isArray(facets)) return map
+  for (const facet of facets) {
+    if (facet?.id && typeof facet.count === 'number') {
+      map.set(facet.id, facet.count)
+    }
+    if (Array.isArray(facet?.children)) {
+      buildFacetCountMap(facet.children, map)
+    }
+  }
+  return map
+}
+
 function CategoryTreeBranch({
   category,
   parentPath,
   selectedIds,
   collapsedIds,
+  facetCounts,
   onToggleCollapse,
   depth = 0,
 }) {
@@ -40,6 +54,7 @@ function CategoryTreeBranch({
   const hasChildren = children.length > 0
   const isCollapsed = collapsedIds.has(category.id)
   const fullPath = parentPath ? `${parentPath} / ${category.name}` : category.name
+  const count = facetCounts.get(category.id)
 
   return (
     <div className="space-y-0.5">
@@ -80,6 +95,14 @@ function CategoryTreeBranch({
             className="size-3.5 shrink-0 accent-primary focus-visible:ring-2 focus-visible:ring-ring"
           />
           <span className="truncate">{category.name}</span>
+          {count !== undefined && (
+            <span
+              aria-hidden="true"
+              className="ml-auto shrink-0 text-[11px] text-muted-foreground tabular-nums"
+            >
+              {count}
+            </span>
+          )}
         </label>
       </div>
 
@@ -92,6 +115,7 @@ function CategoryTreeBranch({
               parentPath={fullPath}
               selectedIds={selectedIds}
               collapsedIds={collapsedIds}
+              facetCounts={facetCounts}
               onToggleCollapse={onToggleCollapse}
               depth={depth + 1}
             />
@@ -102,8 +126,12 @@ function CategoryTreeBranch({
   )
 }
 
-/** @param {{ selectedIds?: string[], hasError?: boolean }} props */
-export function ProductCategoryFilter({ selectedIds = [], hasError = false }) {
+/** @param {{ selectedIds?: string[], hasError?: boolean, categoryFacets?: Array<object> }} props */
+export function ProductCategoryFilter({
+  selectedIds = [],
+  hasError = false,
+  categoryFacets = null,
+}) {
   const { t } = useTranslation()
   const query = useCategories()
   const [searchTerm, setSearchTerm] = useState('')
@@ -112,6 +140,7 @@ export function ProductCategoryFilter({ selectedIds = [], hasError = false }) {
   const tree = useMemo(() => query.data ?? [], [query.data])
   const totalCount = useMemo(() => countNodes(tree), [tree])
   const filteredTree = useMemo(() => filterTree(tree, searchTerm.trim()), [tree, searchTerm])
+  const facetCounts = useMemo(() => buildFacetCountMap(categoryFacets), [categoryFacets])
 
   function toggleCollapse(id) {
     setCollapsedIds((prev) => {
@@ -178,6 +207,7 @@ export function ProductCategoryFilter({ selectedIds = [], hasError = false }) {
                   parentPath=""
                   selectedIds={selectedIds}
                   collapsedIds={collapsedIds}
+                  facetCounts={facetCounts}
                   onToggleCollapse={toggleCollapse}
                 />
               ))

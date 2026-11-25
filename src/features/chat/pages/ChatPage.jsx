@@ -1,7 +1,7 @@
 import { MessageSquare, RefreshCw } from 'lucide-react'
 import { useContext } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -25,7 +25,9 @@ const connectionDotClass = {
 
 export function ChatPage() {
   const { t } = useTranslation()
+  const location = useLocation()
   const { conversationId } = useParams()
+  const productContext = location.state?.productContext ?? null
   const { userId, query } = useConversations()
   const realtime = useContext(ChatRealtimeContext)
   const connectionText = t(`chat.connection.${realtime.status}`)
@@ -122,6 +124,7 @@ export function ChatPage() {
               getPeerName(selected, userId) ?? t('chat.conversationTitle', { number: index + 1 })
             }
             realtime={realtime}
+            productContext={productContext}
           />
         ) : conversationId ? (
           <section className="chat-thread items-center justify-center p-8">

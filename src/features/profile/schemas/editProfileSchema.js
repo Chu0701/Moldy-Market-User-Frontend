@@ -17,4 +17,11 @@ export const editProfileSchema = z.object({
       'profile.edit.phoneInvalid',
     )
     .transform((value) => (value === '' ? undefined : value)),
+
+  address: z
+    .string()
+    .trim()
+    .max(500, 'profile.edit.addressTooLong')
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value)),
 })

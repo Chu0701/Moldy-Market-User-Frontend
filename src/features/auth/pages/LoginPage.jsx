@@ -135,6 +135,9 @@ export function LoginPage() {
         <Link to="/register" className="login-register-link">
           {t('navigation.register')}
         </Link>
+        <Link to="/forgot-password" className="login-register-link">
+          {t('auth.forgot.link')}
+        </Link>
         <Link to="/verify-email" className="login-register-link">
           {t('auth.verify.title')}
         </Link>

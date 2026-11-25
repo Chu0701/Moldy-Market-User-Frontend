@@ -6,7 +6,7 @@ import { productKeys } from '@/features/products/hooks/useProductSearch'
 export function useNewestProducts() {
   const params = {
     page: 1,
-    size: 8,
+    size: 10,
     sort: 'newest',
   }
 

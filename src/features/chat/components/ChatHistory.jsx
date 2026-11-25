@@ -1,8 +1,9 @@
-import { ArrowLeft, MessageSquare, RefreshCw } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { ArrowLeft, MessageSquare, Package, RefreshCw, Send, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { ProductPrice } from '@/components/common/ProductPrice'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
@@ -26,11 +27,46 @@ function isWithinGroupWindow(prevSentAt, currSentAt) {
   return Math.abs(curr - prev) <= GROUP_WINDOW_MS
 }
 
-/** @param {{ conversation: object, userId: string, title: string, realtime: object }} props */
-export function ChatHistory({ conversation, userId, title, realtime }) {
-  const { t } = useTranslation()
+/** @param {{ conversation: object, userId: string, title: string, realtime: object, productContext?: { id: string, title: string, price: number, imageUrl?: string } | null }} props */
+export function ChatHistory({ conversation, userId, title, realtime, productContext = null }) {
+  const { t, i18n } = useTranslation()
   const query = useConversationMessages(conversation.id)
   const scrollRef = useRef(null)
+  const [dismissedProductId, setDismissedProductId] = useState(null)
+  const [sendingProductCard, setSendingProductCard] = useState(false)
+  const activeProduct =
+    productContext?.id && dismissedProductId !== productContext.id ? productContext : null
+  const canSendNow =
+    query.isSuccess &&
+    !query.isRefetchError &&
+    conversation.status === 'ACTIVE' &&
+    conversation.canSend === true &&
+    realtime.status === 'connected' &&
+    !realtime.isPending
+
+  async function handleSendProductInquiry() {
+    if (!activeProduct || !canSendNow || sendingProductCard) return
+    setSendingProductCard(true)
+    try {
+      const formattedPrice = new Intl.NumberFormat(i18n.resolvedLanguage, {
+        style: 'currency',
+        currency: 'VND',
+        maximumFractionDigits: 0,
+      }).format(Number(activeProduct.price ?? 0))
+      const productUrl = `${window.location.origin}/products/${encodeURIComponent(activeProduct.id)}`
+      const message = t('chat.productCard.quickMessage', {
+        title: activeProduct.title,
+        price: formattedPrice,
+        url: productUrl,
+      })
+      await realtime.sendText(conversation.id, message)
+      setDismissedProductId(activeProduct.id)
+    } catch {
+      // Keep card visible so user can retry or type manually.
+    } finally {
+      setSendingProductCard(false)
+    }
+  }
   const messages = getChronologicalMessages(query.data?.pages)
   const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null
 
@@ -218,6 +254,58 @@ export function ChatHistory({ conversation, userId, title, realtime }) {
       </div>
 
       <footer className="chat-thread-footer">
+        {activeProduct && (
+          <div className="mb-2.5 flex items-center gap-3 rounded-xl border border-border bg-surface-subtle p-2.5">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+              {activeProduct.imageUrl ? (
+                <img
+                  src={activeProduct.imageUrl}
+                  alt={activeProduct.title}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <Package aria-hidden="true" className="size-4 text-muted-foreground/50" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                {t('chat.productCard.heading')}
+              </p>
+              <Link
+                to={`/products/${encodeURIComponent(activeProduct.id)}`}
+                className="block truncate text-xs font-semibold text-foreground underline-offset-4 hover:underline sm:text-sm"
+              >
+                {activeProduct.title}
+              </Link>
+              <ProductPrice
+                value={activeProduct.price}
+                className="text-xs font-bold text-foreground tabular-nums"
+              />
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 gap-1.5 px-2.5 text-xs"
+                disabled={!canSendNow || sendingProductCard}
+                onClick={() => void handleSendProductInquiry()}
+              >
+                <Send aria-hidden="true" className="size-3.5" />
+                <span>{t('chat.productCard.sendAction')}</span>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7 rounded-full text-muted-foreground hover:text-foreground"
+                aria-label={t('actions.close')}
+                onClick={() => setDismissedProductId(activeProduct.id)}
+              >
+                <X aria-hidden="true" className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
         {read.hasError && (
           <div
             role="alert"

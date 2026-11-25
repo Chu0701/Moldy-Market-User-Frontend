@@ -1,9 +1,10 @@
-import { useMutation } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowLeft, ShieldCheck, TicketPercent } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useNavigation, useSearchParams } from 'react-router'
 
+import { ImageWithFallback } from '@/components/common/ImageWithFallback'
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -12,12 +13,14 @@ import { Button } from '@/components/ui/button'
 import { useCart } from '@/features/cart/hooks/useCart'
 import { useCartProducts } from '@/features/cart/hooks/useCartProducts'
 import { useCreateCheckout } from '@/features/checkout/hooks/useCheckout'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import {
   estimateVoucherDiscount,
   getCheckoutErrorKey,
   isAmbiguousCheckoutError,
 } from '@/features/checkout/checkoutPayment'
-import { checkVoucher } from '@/services/vouchers/voucherService'
+import { cn } from '@/lib/utils'
+import { checkVoucher, getAvailableVouchers } from '@/services/vouchers/voucherService'
 
 import { CheckoutForm } from '@/features/checkout/components/CheckoutForm'
 
@@ -50,6 +53,26 @@ export function CheckoutPage() {
     ? (query.data?.items ?? []).filter((item) => requestedIds.includes(item.listingId))
     : []
   const productQueries = useCartProducts(selectedItems)
+  const productsReady =
+    selectedItems.length > 0 &&
+    productQueries.every(
+      (productQuery) => productQuery.isSuccess && productQuery.data?.status === 'ACTIVE',
+    )
+  const storeIds = useMemo(() => {
+    if (!productsReady) return []
+    return [...new Set(productQueries.map((q) => q.data?.storeId).filter(Boolean))]
+  }, [productsReady, productQueries])
+
+  const availableVouchersQuery = useQuery({
+    queryKey: ['vouchers', 'available', storeIds],
+    queryFn: ({ signal }) =>
+      typeof getAvailableVouchers === 'function'
+        ? getAvailableVouchers({ storeIds, signal })
+        : Promise.resolve([]),
+    enabled: productsReady,
+    staleTime: 60_000,
+    retry: false,
+  })
 
   if (query.isPending) return <p role="status">{t('cart.loading')}</p>
   if (query.error?.status === 403) return <ForbiddenState />
@@ -65,8 +88,12 @@ export function CheckoutPage() {
   }
 
   const backLink = (
-    <Link to="/cart" className="underline underline-offset-4">
-      {t('checkout.backToCart')}
+    <Link
+      to="/cart"
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+    >
+      <ArrowLeft aria-hidden="true" className="size-4" />
+      <span>{t('checkout.backToCart')}</span>
     </Link>
   )
 
@@ -117,8 +144,8 @@ export function CheckoutPage() {
   const estimatedDiscount = voucherPreview?.applicable ? voucherPreview.discount : 0
   const estimatedPayable = Math.max(0, estimate - estimatedDiscount)
 
-  async function handleCheckVoucher() {
-    const code = voucherInput.trim()
+  async function handleCheckVoucher(overrideCode) {
+    const code = (typeof overrideCode === 'string' ? overrideCode : voucherInput).trim()
     if (!code) {
       setAppliedVoucher(null)
       setVoucherErrorKey('checkout.voucher.emptyCode')
@@ -145,11 +172,20 @@ export function CheckoutPage() {
     }
   }
 
+  const availableVouchers = (availableVouchersQuery.data ?? []).filter(
+    (voucher) => estimateVoucherDiscount(voucher, previewItems).applicable,
+  )
+
   return (
     <section className="checkout-page" aria-labelledby="checkout-title">
-      <div className="grid gap-3">
-        {backLink}
-        <h1 id="checkout-title">{t('checkout.title')}</h1>
+      <div className="grid gap-2">
+        <div>{backLink}</div>
+        <h1
+          id="checkout-title"
+          className="scroll-mt-24 text-2xl font-semibold tracking-tight sm:text-3xl"
+        >
+          {t('checkout.title')}
+        </h1>
       </div>
       <div className="checkout-grid">
         <div className="grid content-start gap-4">
@@ -181,18 +217,32 @@ export function CheckoutPage() {
           aria-labelledby="checkout-summary"
         >
           <h2 id="checkout-summary">{t('checkout.summaryTitle')}</h2>
-          <ul className="grid gap-4">
-            {selectedItems.map((item, index) => (
-              <li key={item.listingId} className="flex items-start justify-between gap-4">
-                <Link
-                  to={'/products/' + encodeURIComponent(item.listingId)}
-                  className="min-w-0 break-words underline underline-offset-4"
-                >
-                  {productQueries[index].data.title}
-                </Link>
-                <ProductPrice value={item.totalPrice} className="shrink-0" />
-              </li>
-            ))}
+          <ul className="grid gap-3">
+            {selectedItems.map((item, index) => {
+              const productData = productQueries[index].data
+              return (
+                <li key={item.listingId} className="flex items-center gap-3">
+                  <div className="size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-background">
+                    <ImageWithFallback
+                      src={getProductMediaUrls(productData)[0]}
+                      alt={productData.title}
+                      compact
+                      className="size-full"
+                    />
+                  </div>
+                  <Link
+                    to={'/products/' + encodeURIComponent(item.listingId)}
+                    className="line-clamp-2 min-w-0 flex-1 text-sm font-medium break-words text-foreground underline-offset-4 hover:underline"
+                  >
+                    {productData.title}
+                  </Link>
+                  <ProductPrice
+                    value={item.totalPrice}
+                    className="shrink-0 text-sm font-semibold tabular-nums"
+                  />
+                </li>
+              )
+            })}
           </ul>
 
           <div className="grid gap-2 border-t border-border pt-4">
@@ -235,6 +285,47 @@ export function CheckoutPage() {
                 </Button>
               )}
             </div>
+            {availableVouchers.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t('checkout.voucher.availableLabel')}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {availableVouchers.slice(0, 6).map((voucher) => {
+                    const isSelected = appliedVoucher?.code === voucher.code
+                    return (
+                      <button
+                        key={voucher.code}
+                        type="button"
+                        disabled={create.isPending || voucherCheck.isPending}
+                        onClick={() => {
+                          setVoucherInput(voucher.code)
+                          void handleCheckVoucher(voucher.code)
+                        }}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          isSelected
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-border bg-background text-foreground hover:border-foreground/40',
+                        )}
+                      >
+                        <TicketPercent aria-hidden="true" className="size-3.5 shrink-0" />
+                        <span className="font-mono">{voucher.code}</span>
+                        <span className="opacity-75">
+                          {voucher.discountType === 'PERCENT' ? (
+                            `-${voucher.discountValue}%`
+                          ) : (
+                            <>
+                              -<ProductPrice value={voucher.discountValue} />
+                            </>
+                          )}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
             {voucherErrorKey && (
               <p role="alert" className="checkout-error text-sm">
                 {t(voucherErrorKey)}

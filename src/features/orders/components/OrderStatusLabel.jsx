@@ -35,8 +35,8 @@ const statusToneMap = {
     live: false,
   },
   DISPUTED: {
-    dot: 'bg-destructive',
-    pill: 'border-destructive/30 bg-destructive/10 text-destructive',
+    dot: 'bg-orange-500',
+    pill: 'border-orange-300 bg-orange-50 text-orange-700',
     live: true,
   },
   CANCELLED: {
@@ -56,17 +56,29 @@ const statusToneMap = {
   },
 }
 
-/** @param {{ status: string }} props */
-export function OrderStatusLabel({ status }) {
+/** @param {{ status: string, compact?: boolean, title?: string }} props */
+export function OrderStatusLabel({ status, compact = false, title }) {
   const { t } = useTranslation()
   const tone = statusToneMap[status] ?? {
     dot: 'bg-muted-foreground/60',
     pill: 'border-border bg-surface-subtle text-foreground',
     live: false,
   }
+  const labelKey =
+    compact && status === 'PENDING_CONFIRMED'
+      ? 'storeOrders.shortStatuses.pendingConfirmed'
+      : getOrderStatusKey(status)
+  const mutedCompleted = compact && status === 'COMPLETED'
 
   return (
-    <span className={cn('order-status inline-flex items-center gap-2', tone.pill)}>
+    <span
+      title={title}
+      className={cn(
+        'order-status inline-flex items-center gap-1.5 whitespace-nowrap',
+        compact && 'px-2.5 py-0.5 text-xs',
+        mutedCompleted ? 'border-emerald-200/70 bg-emerald-50/50 text-emerald-700/75' : tone.pill,
+      )}
+    >
       <span aria-hidden="true" className="relative inline-flex size-2 shrink-0">
         {tone.live && (
           <span
@@ -76,9 +88,14 @@ export function OrderStatusLabel({ status }) {
             )}
           />
         )}
-        <span className={cn('relative inline-flex size-2 rounded-full', tone.dot)} />
+        <span
+          className={cn(
+            'relative inline-flex size-2 rounded-full',
+            mutedCompleted ? 'bg-emerald-500/60' : tone.dot,
+          )}
+        />
       </span>
-      <span>{t(getOrderStatusKey(status))}</span>
+      <span>{t(labelKey)}</span>
     </span>
   )
 }

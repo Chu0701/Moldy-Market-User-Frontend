@@ -8,8 +8,8 @@ import { useStartStoreChat } from '@/features/chat/hooks/useStartStoreChat'
 import { useMyStaffProfile } from '@/features/stores/hooks/useMyStaffProfile'
 import { getChatBlockReasonKey } from '@/features/chat/chatIdentity'
 
-/** @param {{storeId: string, storeQuery?: object}} props */
-export function StoreChatButton({ storeId, storeQuery: providedQuery }) {
+/** @param {{storeId: string, storeQuery?: object, product?: { id: string, title: string, price: number, imageUrl?: string }}} props */
+export function StoreChatButton({ storeId, storeQuery: providedQuery, product }) {
   const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -45,7 +45,12 @@ export function StoreChatButton({ storeId, storeQuery: providedQuery }) {
 
   async function open() {
     const room = await action.open(ownerId)
-    if (room) void navigate(`/chat/${encodeURIComponent(room.id)}`)
+    if (room) {
+      void navigate(
+        `/chat/${encodeURIComponent(room.id)}`,
+        product ? { state: { productContext: product } } : undefined,
+      )
+    }
   }
   return (
     <div className="grid justify-items-start gap-2">

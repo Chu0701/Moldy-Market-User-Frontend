@@ -9,13 +9,14 @@ export const productKeys = {
   detail: (productId) => ['products', 'detail', productId],
 }
 
-/** @param {{ storeId?: string, categoryId?: string }} [options] */
-export function useProductSearch({ storeId, categoryId } = {}) {
+/** @param {{ storeId?: string, categoryId?: string, facets?: boolean }} [options] */
+export function useProductSearch({ storeId, categoryId, facets } = {}) {
   const [searchParams, setSearchParams] = useSearchParams()
   const params = {
     ...readProductSearchParams(searchParams),
     ...(storeId ? { storeId } : {}),
     ...(categoryId ? { categoryId } : {}),
+    ...(facets ? { facets: true } : {}),
   }
 
   const query = useQuery({

@@ -12,7 +12,7 @@ import { editProfileSchema } from '@/features/profile/schemas/editProfileSchema'
 
 /**
  * @param {{
- *  profile: { fullName: string, phone?: string | null, avatarUrl?: string | null },
+ *  profile: { fullName: string, phone?: string | null, avatarUrl?: string | null, address?: string | null },
  *  onSaved: () => void
  * }}
  */
@@ -22,19 +22,19 @@ export function ProfileEditForm({ profile, onSaved }) {
   const [avatarPreview, setAvatarPreview] = useState(profile.avatarUrl ?? '')
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [avatarUploadError, setAvatarUploadError] = useState('')
-  const [saveSuccess, setSaveSuccess] = useState(false)
   const {
     register,
     handleSubmit,
     setError,
     setValue,
-    formState: { errors, isDirty, isSubmitting, isValid },
+    formState: { errors, isDirty, dirtyFields, isSubmitting },
   } = useForm({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
       fullName: profile.fullName ?? '',
       phone: profile.phone ?? '',
       avatarFileId: undefined,
+      address: profile.address ?? '',
     },
     mode: 'onTouched',
   })
@@ -48,6 +48,7 @@ export function ProfileEditForm({ profile, onSaved }) {
       fullName: values.fullName,
       phone: values.phone,
       ...(values.avatarFileId !== undefined ? { avatarFileId: values.avatarFileId } : {}),
+      ...(dirtyFields.address || values.address ? { address: values.address ?? '' } : {}),
     }
 
     try {
@@ -68,7 +69,6 @@ export function ProfileEditForm({ profile, onSaved }) {
     }
 
     onSaved()
-    setSaveSuccess(true)
   }
 
   if (error?.status === 403) {
@@ -117,7 +117,6 @@ export function ProfileEditForm({ profile, onSaved }) {
             onUploadError={setAvatarUploadError}
             onUploadResult={(result, file) => {
               setAvatarUploadError('')
-              setSaveSuccess(false)
               setValue('avatarFileId', result.fileId, { shouldDirty: true, shouldValidate: true })
               setAvatarPreview(URL.createObjectURL(file))
             }}
@@ -176,6 +175,30 @@ export function ProfileEditForm({ profile, onSaved }) {
         )}
       </div>
 
+      <div className="profile-edit-field">
+        <label htmlFor="profile-address">{t('profile.edit.address')}</label>
+        <textarea
+          id="profile-address"
+          rows={3}
+          autoComplete="street-address"
+          readOnly={isSubmitting}
+          placeholder={t('profile.edit.addressPlaceholder')}
+          aria-invalid={Boolean(errors.address)}
+          aria-describedby={
+            errors.address ? 'profile-address-hint profile-address-error' : 'profile-address-hint'
+          }
+          {...register('address')}
+        />
+        <p id="profile-address-hint" className="profile-edit-hint">
+          {t('profile.edit.addressHint')}
+        </p>
+        {errors.address && (
+          <p id="profile-address-error" className="profile-edit-error" role="alert">
+            {t(errors.address.message)}
+          </p>
+        )}
+      </div>
+
       {errors.root?.server?.message && (
         <p className="profile-edit-error" role="alert">
           {t(errors.root.server.message)}
@@ -183,16 +206,9 @@ export function ProfileEditForm({ profile, onSaved }) {
       )}
 
       <div className="profile-edit-actions">
-        {saveSuccess && (
-          <p className="profile-edit-hint" role="status">
-            {t('profile.edit.saved')}
-          </p>
-        )}
         <Button
           type="submit"
-          disabled={
-            !isDirty || !isValid || isSubmitting || isUploadingAvatar || Boolean(avatarUploadError)
-          }
+          disabled={!isDirty || isSubmitting || isUploadingAvatar || Boolean(avatarUploadError)}
         >
           {t(isSubmitting ? 'profile.edit.saving' : 'profile.edit.save')}
         </Button>
