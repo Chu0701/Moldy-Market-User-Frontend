@@ -1,30 +1,25 @@
 import { useEffect } from 'react'
-import { ArrowLeft, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, BadgeDollarSign } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ForbiddenState } from '@/components/feedback/ForbiddenState'
+import { ProductPriceHistoryPanel } from '@/features/analytics/components/ProductPriceHistoryPanel'
+import { useSession } from '@/features/auth/hooks/useSession'
 import { MobileBuyBar } from '@/features/products/components/MobileBuyBar'
+import { ProductDeleteButton } from '@/features/products/components/ProductDeleteButton'
 import { ProductGallery } from '@/features/products/components/ProductGallery'
-import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import { ProductInfo } from '@/features/products/components/ProductInfo'
+import { ProductPurchaseBox } from '@/features/products/components/ProductPurchaseBox'
+import { ProductVisibilityButton } from '@/features/products/components/ProductVisibilityButton'
 import { RecentlyViewedSection } from '@/features/products/components/RecentlyViewedSection'
 import { SimilarProductsSection } from '@/features/products/components/SimilarProductsSection'
-import { recordRecentlyViewed } from '@/features/products/recentlyViewedStorage'
-import { useSession } from '@/features/auth/hooks/useSession'
-import { ProductVisibilityButton } from '@/features/products/components/ProductVisibilityButton'
-import { ProductDeleteButton } from '@/features/products/components/ProductDeleteButton'
 import { useProductDetail } from '@/features/products/hooks/useProductDetail'
 import { useProductManagementAccess } from '@/features/products/hooks/useProductManagementAccess'
-import { AddToCartButton } from '@/features/cart/components/AddToCartButton'
-import { BuyNowButton } from '@/features/cart/components/BuyNowButton'
-import { StoreChatButton } from '@/features/chat/components/StoreChatButton'
-import { MakeOfferButton } from '@/features/offers/components/MakeOfferButton'
-import { CompareToggleButton } from '@/features/products/components/CompareToggleButton'
-import { WishlistButton } from '@/features/wishlist/components/WishlistButton'
-import { ProductPriceHistoryPanel } from '@/features/analytics/components/ProductPriceHistoryPanel'
+import { recordRecentlyViewed } from '@/features/products/recentlyViewedStorage'
+import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 
 export function ProductDetailPage() {
   const { t } = useTranslation()
@@ -104,53 +99,8 @@ export function ProductDetailPage() {
     )
   }
 
-  const buyerActions = (
-    <div
-      id="product-purchase-box"
-      className="space-y-4 rounded-lg border border-border bg-surface-subtle p-4 sm:p-5"
-    >
-      <div className="flex flex-wrap items-start gap-2.5">
-        <BuyNowButton key={`buy-${product.id}`} product={product} />
-        <AddToCartButton key={product.id} product={product} variant="outline" />
-        <MakeOfferButton key={`offer-${product.id}`} product={product} />
-        <WishlistButton key={`wishlist-${product.id}`} productId={product.id} />
-        {product.storeId && (
-          <StoreChatButton
-            key={`chat-${product.id}`}
-            storeId={product.storeId}
-            product={{
-              id: product.id,
-              title: product.title,
-              price: product.price,
-              imageUrl: getProductMediaUrls(product)[0],
-            }}
-          />
-        )}
-        <CompareToggleButton
-          product={{
-            id: product.id,
-            title: product.title,
-            price: product.price,
-            imageUrl: getProductMediaUrls(product)[0],
-            condition: product.condition,
-            status: product.status,
-            storeId: product.storeId,
-            attributes: product.attributes,
-          }}
-        />
-      </div>
-      <div className="flex items-start gap-2.5 border-t border-border pt-3.5 text-xs leading-5 text-muted-foreground">
-        <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-success" />
-        <div>
-          <p className="font-semibold text-foreground">{t('products.detail.protectionTitle')}</p>
-          <p>{t('products.detail.protectionDesc')}</p>
-        </div>
-      </div>
-    </div>
-  )
-
   const manageActions = canManage ? (
-    <div className="flex flex-wrap items-start gap-3 rounded-lg border border-border bg-card p-4">
+    <div className="flex flex-wrap items-start gap-2.5 rounded-xl border border-border bg-card p-4">
       <Button asChild variant="outline">
         <Link
           to={`${product.storeId ? '/store/products' : '/my-products'}/${encodeURIComponent(product.id)}/edit`}
@@ -158,12 +108,20 @@ export function ProductDetailPage() {
           {t('products.edit.title')}
         </Link>
       </Button>
+      {product.storeId && (
+        <Button asChild variant="outline">
+          <Link to="/store/offers">
+            <BadgeDollarSign aria-hidden="true" className="size-4" />
+            <span>{t('products.detail.viewReceivedOffers')}</span>
+          </Link>
+        </Button>
+      )}
       <ProductVisibilityButton key={product.id} productId={product.id} status={product.status} />
       <ProductDeleteButton key={`delete-${product.id}`} productId={product.id} />
     </div>
   ) : null
 
-  const showMobileBar = product.status === 'ACTIVE'
+  const showMobileBar = product.status === 'ACTIVE' && !canManage
 
   return (
     <div className={showMobileBar ? 'space-y-10 pb-20 md:pb-0' : 'space-y-10'}>
@@ -194,7 +152,8 @@ export function ProductDetailPage() {
             description={product.description}
             attributes={product.attributes}
             storeId={product.storeId}
-            actions={buyerActions}
+            hideInlinePrice
+            actions={<ProductPurchaseBox product={product} canManage={canManage} />}
             manageActions={manageActions}
             priceHistory={
               <ProductPriceHistoryPanel
@@ -209,7 +168,7 @@ export function ProductDetailPage() {
       <SimilarProductsSection categoryId={product.categoryId} currentProductId={product.id} />
       <RecentlyViewedSection excludeProductId={product.id} />
 
-      {showMobileBar && <MobileBuyBar price={product.price} />}
+      {showMobileBar && <MobileBuyBar price={product.price} product={product} />}
     </div>
   )
 }

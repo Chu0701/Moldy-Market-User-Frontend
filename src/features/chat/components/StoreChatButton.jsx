@@ -8,8 +8,8 @@ import { useStartStoreChat } from '@/features/chat/hooks/useStartStoreChat'
 import { useMyStaffProfile } from '@/features/stores/hooks/useMyStaffProfile'
 import { getChatBlockReasonKey } from '@/features/chat/chatIdentity'
 
-/** @param {{storeId: string, storeQuery?: object, product?: { id: string, title: string, price: number, imageUrl?: string }}} props */
-export function StoreChatButton({ storeId, storeQuery: providedQuery, product }) {
+/** @param {{storeId: string, storeQuery?: object, product?: { id: string, title: string, price: number, imageUrl?: string }, subtle?: boolean }} props */
+export function StoreChatButton({ storeId, storeQuery: providedQuery, product, subtle = false }) {
   const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -35,7 +35,12 @@ export function StoreChatButton({ storeId, storeQuery: providedQuery, product })
 
   if (!hasAccessToken)
     return (
-      <Button asChild variant="outline">
+      <Button
+        asChild
+        variant={subtle ? 'ghost' : 'outline'}
+        size={subtle ? 'sm' : 'default'}
+        className={subtle ? 'purchase-tier3-btn' : undefined}
+      >
         <Link to="/login" state={{ from: location.pathname + location.search }}>
           <MessageCircle className="size-4" aria-hidden="true" />
           {t('chat.storeChat')}
@@ -56,7 +61,9 @@ export function StoreChatButton({ storeId, storeQuery: providedQuery, product })
     <div className="grid justify-items-start gap-2">
       <Button
         type="button"
-        variant="outline"
+        variant={subtle ? 'ghost' : 'outline'}
+        size={subtle ? 'sm' : 'default'}
+        className={subtle ? 'purchase-tier3-btn' : undefined}
         disabled={
           !userId ||
           profileQuery.isError ||

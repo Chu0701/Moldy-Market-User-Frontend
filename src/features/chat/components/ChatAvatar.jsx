@@ -8,9 +8,10 @@ function getInitials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-/** @param {{ name?: string | null, src?: string | null, size?: 'sm' | 'md', className?: string }} props */
+/** @param {{ name?: string | null, src?: string | null, size?: 'xs' | 'sm' | 'md', className?: string }} props */
 export function ChatAvatar({ name, src, size = 'md', className }) {
-  const sizeClass = size === 'sm' ? 'size-8 text-[11px]' : 'size-10 text-xs'
+  const sizeClass =
+    size === 'xs' ? 'size-7 text-[10px]' : size === 'sm' ? 'size-8 text-[11px]' : 'size-10 text-xs'
 
   if (src) {
     return (

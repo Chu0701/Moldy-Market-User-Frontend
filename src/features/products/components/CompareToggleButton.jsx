@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils'
  *   className?: string,
  * }} props
  */
-export function CompareToggleButton({ product, compact = false, className }) {
+export function CompareToggleButton({ product, compact = false, subtle = false, className }) {
   const { t } = useTranslation()
   const { pushToast } = useToast()
   const [selected, setSelected] = useState(() =>
@@ -84,11 +84,11 @@ export function CompareToggleButton({ product, compact = false, className }) {
   return (
     <Button
       type="button"
-      variant={selected ? 'secondary' : 'outline'}
+      variant={selected ? 'secondary' : subtle ? 'ghost' : 'outline'}
       size="sm"
       aria-pressed={selected}
       onClick={handleToggle}
-      className={cn('min-h-10 shrink-0 gap-1.5', className)}
+      className={cn(subtle ? 'purchase-tier3-btn' : 'min-h-10 shrink-0 gap-1.5', className)}
     >
       <Scale aria-hidden="true" className="size-4" />
       <span>{label}</span>

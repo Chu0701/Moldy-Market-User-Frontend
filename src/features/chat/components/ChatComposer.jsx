@@ -1,4 +1,4 @@
-import { ArrowUp, ImagePlus, Loader2 } from 'lucide-react'
+import { ArrowUp, BadgeDollarSign, ImagePlus, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,7 @@ function mapImageUploadError(error) {
   }
 }
 
-export function ChatComposer({ conversation, realtime, canSend }) {
+export function ChatComposer({ conversation, realtime, canSend, onOpenMakeOffer }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState('')
   const [error, setError] = useState(null)
@@ -132,6 +132,20 @@ export function ChatComposer({ conversation, realtime, canSend }) {
             <ImagePlus className="size-4" aria-hidden="true" />
           )}
         </Button>
+        {onOpenMakeOffer && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={closed || blocked}
+            onClick={onOpenMakeOffer}
+            aria-label={t('offers.actions.makeOffer')}
+            title={t('offers.actions.makeOffer')}
+            className="size-9 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
+          >
+            <BadgeDollarSign className="size-4" aria-hidden="true" />
+          </Button>
+        )}
 
         <label htmlFor="chat-message-draft" className="sr-only">
           {t('chat.messageLabel')}

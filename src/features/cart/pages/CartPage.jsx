@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { CartItemRow } from '@/features/cart/components/CartItemRow'
 import { useCart, useRemoveCartItem } from '@/features/cart/hooks/useCart'
 import { useCartProducts } from '@/features/cart/hooks/useCartProducts'
+import { useAcceptedOffersMap } from '@/features/offers/hooks/useOffers'
 
 const MAX_CHECKOUT_SELECTION = 20
 
@@ -55,6 +56,7 @@ export function CartPage() {
   const [cleaningUnavailable, setCleaningUnavailable] = useState(false)
   const items = query.data?.items ?? []
   const productQueries = useCartProducts(items)
+  const { offersByProductId } = useAcceptedOffersMap()
 
   const availableItems = items.filter(
     (_, index) =>
@@ -69,7 +71,10 @@ export function CartPage() {
     )
   })
   const selectedItems = availableItems.filter((item) => selectedIds.includes(item.listingId))
-  const selectedTotal = selectedItems.reduce((total, item) => total + Number(item.totalPrice), 0)
+  const selectedTotal = selectedItems.reduce((total, item) => {
+    const accepted = offersByProductId.get(item.listingId)
+    return total + Number(accepted ? accepted.price : item.totalPrice)
+  }, 0)
   const selectedSellerCount = new Set(selectedItems.map((item) => item.sellerId)).size
   const atLimit = selectedItems.length >= MAX_CHECKOUT_SELECTION
   const checkoutParams = new URLSearchParams()
@@ -280,6 +285,7 @@ export function CartPage() {
                           key={item.listingId}
                           item={item}
                           productQuery={productQuery}
+                          acceptedOffer={offersByProductId.get(item.listingId) ?? null}
                           selected={selected}
                           canSelect={available && (selected || !atLimit)}
                           onToggle={() => toggleItem(item.listingId)}

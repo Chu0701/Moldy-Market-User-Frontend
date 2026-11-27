@@ -48,6 +48,8 @@ const errorKeys = {
   VOUCHER_NOT_APPLICABLE: 'checkout.voucherErrors.notApplicable',
   VOUCHER_MINIMUM_ORDER_NOT_MET: 'checkout.voucherErrors.minimumOrderNotMet',
   VOUCHER_STORE_MISMATCH: 'checkout.voucherErrors.storeMismatch',
+  OFF_010: 'offers.errors.OFF_010',
+  OFFER_VOUCHER_NOT_ALLOWED: 'offers.errors.OFF_010',
 }
 
 export function getCheckoutErrorKey(error) {

@@ -840,6 +840,11 @@
       "breadcrumbLabel": "Đường dẫn trang",
       "protectionTitle": "Bảo vệ người mua Moldy Escrow",
       "protectionDesc": "Tiền thanh toán chỉ được chuyển cho người bán sau khi bạn xác nhận nhận đúng sản phẩm.",
+      "protectionShort": "Tiền được giữ an toàn cho đến khi bạn xác nhận nhận hàng.",
+      "learnMore": "Tìm hiểu thêm",
+      "soldNotice": "Sản phẩm này đã được bán. Bạn có thể lưu lại hoặc xem các sản phẩm tương tự bên dưới.",
+      "hiddenNotice": "Sản phẩm này hiện đang tạm ẩn và không thể đặt mua.",
+      "viewReceivedOffers": "Xem đề nghị nhận được",
       "similarTitle": "Sản phẩm tương tự",
       "similarDescription": "Những món đồ khác trong cùng danh mục bạn có thể quan tâm.",
       "similarViewMore": "Xem thêm cùng danh mục",
@@ -2111,6 +2116,50 @@
     "createdAt": "Tạo lúc",
     "expiresAt": "Hết hạn phản hồi",
     "checkoutBefore": "Thanh toán trước",
+    "roundLabel": "Lượt {{current}}/{{max}}",
+    "roundTooltip": "Tối đa {{max}} lượt thương lượng cho mỗi sản phẩm",
+    "viewOrderLink": "Xem đơn hàng đã đặt",
+    "contextualPending": {
+      "yourTurn": "Chờ bạn phản hồi",
+      "waitingSeller": "Chờ người bán phản hồi",
+      "waitingBuyer": "Chờ người mua phản hồi"
+    },
+    "turn": {
+      "yourTurn": "Đến lượt bạn",
+      "waitingPeer": "Đang chờ đối phương phản hồi"
+    },
+    "countdown": {
+      "remaining": "Còn",
+      "orderBefore": "Đặt hàng trong",
+      "expired": "Đã hết hạn"
+    },
+    "tabs": {
+      "label": "Lọc đề nghị trả giá",
+      "all": "Tất cả",
+      "needsResponse": "Cần phản hồi",
+      "needsAction": "Cần xử lý",
+      "accepted": "Đã đồng ý",
+      "closed": "Đã hết hạn / đóng",
+      "emptyTitle": "Không có đề nghị nào ở mục này",
+      "emptyDescription": "Chuyển sang tab khác để xem các đề nghị trước đó."
+    },
+    "productBanner": {
+      "acceptedLabel": "Người bán đã đồng ý giá"
+    },
+    "checkout": {
+      "applyingAccepted": "Đang áp dụng giá đã thỏa thuận cho đơn hàng này",
+      "agreedPriceBadge": "Giá đã thỏa thuận",
+      "youSave": "Bạn tiết kiệm từ trả giá",
+      "voucherDisabled": "Không áp dụng mã giảm giá chung khi đơn có sản phẩm đang dùng giá đã thương lượng."
+    },
+    "chatCard": {
+      "yourOffer": "Đề nghị của bạn",
+      "offerFrom": "Đề nghị từ {{name}}",
+      "pinnedLabel": "Đề nghị đang hiệu lực",
+      "scrollToOffer": "Cuộn tới thẻ đề nghị mới nhất",
+      "acceptedForBuyer": "Người bán đã đồng ý mức giá này",
+      "acceptedForSeller": "Đã đồng ý · Đang chờ người mua đặt hàng"
+    },
     "side": {
       "BUYER": "Người mua đề nghị",
       "SELLER": "Người bán đề nghị"
@@ -2119,25 +2168,33 @@
       "PENDING": "Đang chờ",
       "ACCEPTED": "Đã chốt giá",
       "REJECTED": "Đã từ chối",
-      "CANCELLED": "Đã hủy",
+      "CANCELLED": "Đã rút",
       "EXPIRED": "Hết hạn",
-      "SUPERSEDED": "Đã thay thế"
+      "SUPERSEDED": "Đã trả giá lại"
     },
     "actions": {
-      "makeOffer": "Trả giá",
+      "makeOffer": "Đưa ra đề nghị giá",
+      "viewYourOffer": "Xem đề nghị của bạn",
+      "orderNowAtOffer": "Đặt hàng ngay",
       "accept": "Chấp nhận",
       "reject": "Từ chối",
       "counter": "Trả giá lại",
       "cancel": "Hủy đề nghị",
+      "cancelConfirmPrompt": "Rút đề nghị này?",
+      "confirmCancel": "Xác nhận hủy",
       "buyAtOfferPrice": "Mua ngay theo giá chốt",
+      "openChat": "Nhắn tin",
       "history": "Lịch sử"
     },
     "modal": {
-      "title": "Gửi đề nghị trả giá",
+      "title": "Đưa ra đề nghị giá",
       "listedPrice": "Giá niêm yết",
       "quickSuggestions": "Gợi ý mức giá nhanh",
-      "priceLabel": "Mức giá đề nghị (VND)",
-      "rangeHintPrefix": "Khoảng hợp lệ (75% – dưới 100%):",
+      "priceLabel": "Mức giá bạn đề nghị",
+      "rangeHintPrefix": "Bạn có thể đề nghị từ",
+      "noteLabel": "Lời nhắn cho người bán (tùy chọn)",
+      "notePlaceholder": "Ví dụ: Mình ở gần, lấy trong ngày được ạ",
+      "escrowHint": "Nếu người bán đồng ý, bạn có 24 giờ để đặt hàng với giá này. Tiền vẫn được giữ ký quỹ an toàn.",
       "submit": "Gửi đề nghị",
       "submitting": "Đang gửi..."
     },
@@ -2153,8 +2210,10 @@
     "validation": {
       "priceRequired": "Vui lòng nhập mức giá đề nghị.",
       "pricePositive": "Mức giá phải lớn hơn 0.",
-      "priceBelowMin": "Mức giá tối thiểu là 75% giá niêm yết.",
-      "priceMustBeBelowOriginal": "Mức giá đề nghị phải thấp hơn giá niêm yết."
+      "priceBelowMin": "Giá thấp hơn mức tối thiểu 75% giá niêm yết.",
+      "priceMustBeBelowOriginal": "Mức giá đề nghị phải thấp hơn giá niêm yết.",
+      "counterOutOfRange": "Mức giá đề nghị lại chưa nằm trong khoảng thương lượng hợp lệ.",
+      "noteTooLong": "Lời nhắn tối đa 300 ký tự."
     },
     "toast": {
       "created": "Đã gửi đề nghị trả giá tới người bán.",
@@ -2174,6 +2233,7 @@
       "OFF_007": "Trạng thái đề nghị không còn hợp lệ cho thao tác này.",
       "OFF_008": "Đề nghị trả giá đã hết hạn.",
       "OFF_009": "Hiện chưa đến lượt bạn phản hồi đề nghị này.",
+      "OFF_010": "Không thể dùng mã giảm giá chung với mức giá đã thương lượng.",
       "COMMON_004": "Bạn không có quyền thực hiện thao tác này."
     }
   }

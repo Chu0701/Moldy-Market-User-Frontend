@@ -6,6 +6,7 @@ import { ImageWithFallback } from '@/components/common/ImageWithFallback'
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { Button } from '@/components/ui/button'
 import { useRemoveCartItem } from '@/features/cart/hooks/useCart'
+import { OfferCountdown } from '@/features/offers/components/OfferCountdown'
 import { cn } from '@/lib/utils'
 import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 
@@ -16,7 +17,15 @@ const conditionKeys = {
   DAMAGED: 'products.conditions.damaged',
 }
 
-export function CartItemRow({ item, productQuery, selected, canSelect, onToggle, onRemoved }) {
+export function CartItemRow({
+  item,
+  productQuery,
+  acceptedOffer = null,
+  selected,
+  canSelect,
+  onToggle,
+  onRemoved,
+}) {
   const { t } = useTranslation()
   const removal = useRemoveCartItem()
   const product = productQuery.data
@@ -143,6 +152,9 @@ export function CartItemRow({ item, productQuery, selected, canSelect, onToggle,
               {t(priceDropped ? 'cart.priceDropped' : 'cart.priceIncreased')}
             </span>
           )}
+          {acceptedOffer && !unavailable && (
+            <span className="offer-agreed-pill">{t('offers.checkout.agreedPriceBadge')}</span>
+          )}
         </div>
 
         {productQuery.isError && !unavailable && (
@@ -159,10 +171,26 @@ export function CartItemRow({ item, productQuery, selected, canSelect, onToggle,
           </div>
         )}
 
-        <ProductPrice
-          value={item.totalPrice}
-          className="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
-        />
+        {acceptedOffer && !unavailable ? (
+          <div className="mt-0.5 space-y-1">
+            <div className="offer-price-pair">
+              <ProductPrice
+                value={acceptedOffer.price}
+                className="text-base font-semibold tracking-tight text-success tabular-nums"
+              />
+              <ProductPrice value={item.totalPrice} className="offer-price-original" />
+            </div>
+            <OfferCountdown
+              targetIso={acceptedOffer.acceptedExpiresAt}
+              prefix={t('offers.countdown.remaining')}
+            />
+          </div>
+        ) : (
+          <ProductPrice
+            value={item.totalPrice}
+            className="mt-0.5 text-base font-semibold tracking-tight tabular-nums"
+          />
+        )}
         {item.note && <p className="text-xs text-muted-foreground">{item.note}</p>}
         {removal.error && (
           <p role="alert" className="text-xs font-medium text-destructive">

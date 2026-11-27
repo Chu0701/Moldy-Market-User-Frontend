@@ -70,7 +70,8 @@ export function MainLayout() {
 
   useEffect(() => {
     function handleScroll() {
-      setIsScrolled(window.scrollY > 12)
+      const y = window.scrollY
+      setIsScrolled((prev) => (prev ? y > 4 : y > 16))
     }
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -178,12 +179,7 @@ export function MainLayout() {
           isScrolled ? 'bg-background/95 shadow-xs backdrop-blur-sm' : 'bg-background',
         )}
       >
-        <div
-          className={cn(
-            'mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 transition-[padding] duration-200 sm:px-8 md:flex-nowrap md:gap-5',
-            isScrolled ? 'py-2' : 'py-3',
-          )}
-        >
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8 md:flex-nowrap md:gap-5">
           <Logo />
 
           <HeaderSearchBar />

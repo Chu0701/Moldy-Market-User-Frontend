@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useSession } from '@/features/auth/hooks/useSession'
 import { useAddCartItem } from '@/features/cart/hooks/useCart'
 
-export function AddToCartButton({ product, variant = 'default' }) {
+export function AddToCartButton({ product, variant = 'default', className }) {
   const { t } = useTranslation()
   const { pushToast } = useToast()
   const { hasAccessToken, profileQuery } = useSession()
@@ -21,7 +21,7 @@ export function AddToCartButton({ product, variant = 'default' }) {
 
   if (!hasAccessToken) {
     return (
-      <Button asChild variant={variant}>
+      <Button asChild variant={variant} className={className}>
         <Link to="/login" state={{ from: `/products/${encodeURIComponent(product.id)}` }}>
           {t('cart.add')}
         </Link>
@@ -32,10 +32,11 @@ export function AddToCartButton({ product, variant = 'default' }) {
   if (!profile) return null
 
   return (
-    <div className="grid justify-items-start gap-2">
+    <div className="grid gap-1.5">
       <Button
         type="button"
         variant={variant}
+        className={className}
         disabled={mutation.isPending}
         onClick={() =>
           mutation.mutate(

@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button'
 import { useCart } from '@/features/cart/hooks/useCart'
 import { useCartProducts } from '@/features/cart/hooks/useCartProducts'
 import { useCreateCheckout } from '@/features/checkout/hooks/useCheckout'
+import { OfferCountdown } from '@/features/offers/components/OfferCountdown'
+import { useAcceptedOffersMap } from '@/features/offers/hooks/useOffers'
 import { getProductMediaUrls } from '@/features/products/utils/productMedia'
 import {
   estimateVoucherDiscount,
@@ -53,6 +55,7 @@ export function CheckoutPage() {
     ? (query.data?.items ?? []).filter((item) => requestedIds.includes(item.listingId))
     : []
   const productQueries = useCartProducts(selectedItems)
+  const { offersByProductId, query: offersQuery } = useAcceptedOffersMap()
   const productsReady =
     selectedItems.length > 0 &&
     productQueries.every(
@@ -133,14 +136,32 @@ export function CheckoutPage() {
     )
   }
 
-  const estimate = selectedItems.reduce((total, item) => total + Number(item.totalPrice), 0)
-  const previewItems = selectedItems.map((item, index) => ({
-    price: Number(item.totalPrice),
-    storeId: productQueries[index]?.data?.storeId ?? null,
-  }))
-  const voucherPreview = appliedVoucher
-    ? estimateVoucherDiscount(appliedVoucher, previewItems)
-    : null
+  const matchedOffers = selectedItems
+    .map((item) => offersByProductId.get(item.listingId))
+    .filter(Boolean)
+  const hasAcceptedOffer = matchedOffers.length > 0
+  const earliestOfferDeadline = matchedOffers.reduce((earliest, offer) => {
+    if (!offer.acceptedExpiresAt) return earliest
+    if (!earliest) return offer.acceptedExpiresAt
+    return Date.parse(offer.acceptedExpiresAt) < Date.parse(earliest)
+      ? offer.acceptedExpiresAt
+      : earliest
+  }, null)
+  const listedTotal = selectedItems.reduce((total, item) => total + Number(item.totalPrice), 0)
+  const estimate = selectedItems.reduce((total, item) => {
+    const accepted = offersByProductId.get(item.listingId)
+    return total + Number(accepted ? accepted.price : item.totalPrice)
+  }, 0)
+  const offerSavings = Math.max(0, listedTotal - estimate)
+  const previewItems = selectedItems.map((item, index) => {
+    const accepted = offersByProductId.get(item.listingId)
+    return {
+      price: Number(accepted ? accepted.price : item.totalPrice),
+      storeId: productQueries[index]?.data?.storeId ?? null,
+    }
+  })
+  const activeVoucher = hasAcceptedOffer ? null : appliedVoucher
+  const voucherPreview = activeVoucher ? estimateVoucherDiscount(activeVoucher, previewItems) : null
   const estimatedDiscount = voucherPreview?.applicable ? voucherPreview.discount : 0
   const estimatedPayable = Math.max(0, estimate - estimatedDiscount)
 
@@ -186,6 +207,18 @@ export function CheckoutPage() {
         >
           {t('checkout.title')}
         </h1>
+        {hasAcceptedOffer && (
+          <div role="status" className="offer-checkout-banner">
+            <span className="font-medium text-success">
+              {t('offers.checkout.applyingAccepted')}
+            </span>
+            <OfferCountdown
+              targetIso={earliestOfferDeadline}
+              prefix={t('offers.countdown.remaining')}
+              onExpire={() => void offersQuery.refetch()}
+            />
+          </div>
+        )}
       </div>
       <div className="checkout-grid">
         <div className="grid content-start gap-4">
@@ -200,7 +233,7 @@ export function CheckoutPage() {
               const checkout = await create.mutateAsync({
                 ...values,
                 productIds: selectedItems.map((item) => item.listingId),
-                ...(appliedVoucher?.code ? { voucherCode: appliedVoucher.code } : {}),
+                ...(activeVoucher?.code ? { voucherCode: activeVoucher.code } : {}),
               })
               if (mounted.current && checkout)
                 navigate('/checkout/' + encodeURIComponent(checkout.id))
@@ -220,6 +253,7 @@ export function CheckoutPage() {
           <ul className="grid gap-3">
             {selectedItems.map((item, index) => {
               const productData = productQueries[index].data
+              const accepted = offersByProductId.get(item.listingId)
               return (
                 <li key={item.listingId} className="flex items-center gap-3">
                   <div className="size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-background">
@@ -230,16 +264,33 @@ export function CheckoutPage() {
                       className="size-full"
                     />
                   </div>
-                  <Link
-                    to={'/products/' + encodeURIComponent(item.listingId)}
-                    className="line-clamp-2 min-w-0 flex-1 text-sm font-medium break-words text-foreground underline-offset-4 hover:underline"
-                  >
-                    {productData.title}
-                  </Link>
-                  <ProductPrice
-                    value={item.totalPrice}
-                    className="shrink-0 text-sm font-semibold tabular-nums"
-                  />
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <Link
+                      to={'/products/' + encodeURIComponent(item.listingId)}
+                      className="line-clamp-2 block text-sm font-medium break-words text-foreground underline-offset-4 hover:underline"
+                    >
+                      {productData.title}
+                    </Link>
+                    {accepted && (
+                      <span className="offer-agreed-pill">
+                        {t('offers.checkout.agreedPriceBadge')}
+                      </span>
+                    )}
+                  </div>
+                  {accepted ? (
+                    <div className="shrink-0 text-right">
+                      <ProductPrice
+                        value={accepted.price}
+                        className="block text-sm font-semibold text-success tabular-nums"
+                      />
+                      <ProductPrice value={item.totalPrice} className="offer-price-original" />
+                    </div>
+                  ) : (
+                    <ProductPrice
+                      value={item.totalPrice}
+                      className="shrink-0 text-sm font-semibold tabular-nums"
+                    />
+                  )}
                 </li>
               )
             })}
@@ -249,103 +300,123 @@ export function CheckoutPage() {
             <label htmlFor="checkout-voucher-code" className="text-sm font-medium">
               {t('checkout.voucher.label')}
             </label>
-            <div className="flex flex-wrap gap-2">
-              <input
-                id="checkout-voucher-code"
-                type="text"
-                value={voucherInput}
-                onChange={(event) => {
-                  setVoucherInput(event.target.value)
-                  if (voucherErrorKey) setVoucherErrorKey(null)
-                }}
-                placeholder={t('checkout.voucher.placeholder')}
-                disabled={create.isPending || voucherCheck.isPending}
-                className="min-h-10 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm uppercase"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void handleCheckVoucher()}
-                disabled={create.isPending || voucherCheck.isPending}
-              >
-                {t(voucherCheck.isPending ? 'checkout.voucher.checking' : 'checkout.voucher.apply')}
-              </Button>
-              {appliedVoucher && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setAppliedVoucher(null)
-                    setVoucherInput('')
-                    setVoucherErrorKey(null)
-                  }}
-                  disabled={create.isPending}
-                >
-                  {t('checkout.voucher.remove')}
-                </Button>
-              )}
-            </div>
-            {availableVouchers.length > 0 && (
-              <div className="space-y-1.5 pt-1">
-                <p className="text-xs font-medium text-muted-foreground">
-                  {t('checkout.voucher.availableLabel')}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {availableVouchers.slice(0, 6).map((voucher) => {
-                    const isSelected = appliedVoucher?.code === voucher.code
-                    return (
-                      <button
-                        key={voucher.code}
-                        type="button"
-                        disabled={create.isPending || voucherCheck.isPending}
-                        onClick={() => {
-                          setVoucherInput(voucher.code)
-                          void handleCheckVoucher(voucher.code)
-                        }}
-                        className={cn(
-                          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                          isSelected
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-border bg-background text-foreground hover:border-foreground/40',
-                        )}
-                      >
-                        <TicketPercent aria-hidden="true" className="size-3.5 shrink-0" />
-                        <span className="font-mono">{voucher.code}</span>
-                        <span className="opacity-75">
-                          {voucher.discountType === 'PERCENT' ? (
-                            `-${voucher.discountValue}%`
-                          ) : (
-                            <>
-                              -<ProductPrice value={voucher.discountValue} />
-                            </>
-                          )}
-                        </span>
-                      </button>
-                    )
-                  })}
+            {hasAcceptedOffer ? (
+              <p className="rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground">
+                {t('offers.checkout.voucherDisabled')}
+              </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    id="checkout-voucher-code"
+                    type="text"
+                    value={voucherInput}
+                    onChange={(event) => {
+                      setVoucherInput(event.target.value)
+                      if (voucherErrorKey) setVoucherErrorKey(null)
+                    }}
+                    placeholder={t('checkout.voucher.placeholder')}
+                    disabled={create.isPending || voucherCheck.isPending}
+                    className="min-h-10 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm uppercase"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void handleCheckVoucher()}
+                    disabled={create.isPending || voucherCheck.isPending}
+                  >
+                    {t(
+                      voucherCheck.isPending
+                        ? 'checkout.voucher.checking'
+                        : 'checkout.voucher.apply',
+                    )}
+                  </Button>
+                  {appliedVoucher && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setAppliedVoucher(null)
+                        setVoucherInput('')
+                        setVoucherErrorKey(null)
+                      }}
+                      disabled={create.isPending}
+                    >
+                      {t('checkout.voucher.remove')}
+                    </Button>
+                  )}
                 </div>
-              </div>
-            )}
-            {voucherErrorKey && (
-              <p role="alert" className="checkout-error text-sm">
-                {t(voucherErrorKey)}
-              </p>
-            )}
-            {appliedVoucher && voucherPreview?.applicable && (
-              <p role="status" className="text-sm text-primary">
-                {t('checkout.voucher.applied', { code: appliedVoucher.code })}
-              </p>
+                {availableVouchers.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {t('checkout.voucher.availableLabel')}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableVouchers.slice(0, 6).map((voucher) => {
+                        const isSelected = appliedVoucher?.code === voucher.code
+                        return (
+                          <button
+                            key={voucher.code}
+                            type="button"
+                            disabled={create.isPending || voucherCheck.isPending}
+                            onClick={() => {
+                              setVoucherInput(voucher.code)
+                              void handleCheckVoucher(voucher.code)
+                            }}
+                            className={cn(
+                              'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                              isSelected
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : 'border-border bg-background text-foreground hover:border-foreground/40',
+                            )}
+                          >
+                            <TicketPercent aria-hidden="true" className="size-3.5 shrink-0" />
+                            <span className="font-mono">{voucher.code}</span>
+                            <span className="opacity-75">
+                              {voucher.discountType === 'PERCENT' ? (
+                                `-${voucher.discountValue}%`
+                              ) : (
+                                <>
+                                  -<ProductPrice value={voucher.discountValue} />
+                                </>
+                              )}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {voucherErrorKey && (
+                  <p role="alert" className="checkout-error text-sm">
+                    {t(voucherErrorKey)}
+                  </p>
+                )}
+                {activeVoucher && voucherPreview?.applicable && (
+                  <p role="status" className="text-sm text-primary">
+                    {t('checkout.voucher.applied', { code: activeVoucher.code })}
+                  </p>
+                )}
+              </>
             )}
           </div>
 
           <div className="grid gap-2 border-t border-border pt-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p>{t('cart.selectedCount', { count: selectedItems.length })}</p>
-              <ProductPrice value={estimate} />
+              <ProductPrice value={listedTotal} />
             </div>
-            {estimatedDiscount > 0 && (
+            {offerSavings > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-medium text-success">
+                <span>{t('offers.checkout.youSave')}</span>
+                <span>
+                  -<ProductPrice value={offerSavings} />
+                </span>
+              </div>
+            )}
+            {estimatedDiscount > 0 && activeVoucher && (
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-primary">
-                <span>{t('checkout.voucher.discountLabel', { code: appliedVoucher.code })}</span>
+                <span>{t('checkout.voucher.discountLabel', { code: activeVoucher.code })}</span>
                 <span>
                   -<ProductPrice value={estimatedDiscount} />
                 </span>

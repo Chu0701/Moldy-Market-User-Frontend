@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { meQueryKey } from '@/features/auth/hooks/useSession'
+import { offerKeys } from '@/features/offers/offerKeys'
 import { chatKeys } from './useChat'
 import { getAccessToken, subscribeToAccessToken } from '@/lib/tokenStorage'
 import { connectChat } from '@/services/chat/chatConnection'
@@ -74,6 +75,9 @@ export function useChatRealtime(userId, enabled) {
         if (!isCurrent()) return
         void client.invalidateQueries({ queryKey: key, exact: true })
         void client.invalidateQueries({ queryKey: chatKeys.conversations(userId), exact: true })
+        if (message.offerId) {
+          void client.invalidateQueries({ queryKey: offerKeys.all(userId) })
+        }
       },
       onError: (error) => {
         if (!isCurrent()) return

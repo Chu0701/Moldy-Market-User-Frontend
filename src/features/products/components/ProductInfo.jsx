@@ -46,6 +46,7 @@ export function ProductInfo({
   actions,
   manageActions,
   priceHistory,
+  hideInlinePrice = false,
 }) {
   const { t } = useTranslation()
 
@@ -57,7 +58,7 @@ export function ProductInfo({
           <CopyProductLinkButton />
         </div>
 
-        <ProductPrice value={price} className="product-detail-price" />
+        {!hideInlinePrice && <ProductPrice value={price} className="product-detail-price" />}
 
         <div className="product-info-badges">
           <span>{t(conditionKeys[condition] ?? 'products.conditions.unknown')}</span>

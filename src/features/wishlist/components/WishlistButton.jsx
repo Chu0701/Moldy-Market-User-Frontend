@@ -8,9 +8,9 @@ import { useWishlistToggle } from '@/features/wishlist/hooks/useWishlist'
 
 /**
  * Toggle button to save/remove a product from the authenticated user's wishlist.
- * @param {{ productId: string }} props
+ * @param {{ productId: string, subtle?: boolean }} props
  */
-export function WishlistButton({ productId }) {
+export function WishlistButton({ productId, subtle = false }) {
   const { t } = useTranslation()
   const { pushToast } = useToast()
   const location = useLocation()
@@ -22,9 +22,17 @@ export function WishlistButton({ productId }) {
     pushToast(t(nextSaved ? 'wishlist.savedToast' : 'wishlist.removedToast'), 'info')
   }
 
+  const buttonSize = subtle ? 'sm' : 'default'
+  const buttonClass = subtle ? 'purchase-tier3-btn' : undefined
+
   if (!isAuthenticated) {
     return (
-      <Button asChild variant="outline">
+      <Button
+        asChild
+        variant={subtle ? 'ghost' : 'outline'}
+        size={buttonSize}
+        className={buttonClass}
+      >
         <Link to="/login" state={{ from: location.pathname + location.search }}>
           <Heart className="size-4" aria-hidden="true" />
           <span>{t('wishlist.saveAction')}</span>
@@ -33,11 +41,16 @@ export function WishlistButton({ productId }) {
     )
   }
 
+  const savedVariant = subtle ? 'secondary' : 'default'
+  const unsavedVariant = subtle ? 'ghost' : 'outline'
+
   return (
     <div className="flex flex-col items-start gap-1">
       <Button
         type="button"
-        variant={isSaved ? 'default' : 'outline'}
+        variant={isSaved ? savedVariant : unsavedVariant}
+        size={buttonSize}
+        className={buttonClass}
         aria-pressed={isSaved}
         disabled={isPending}
         onClick={handleToggle}

@@ -2,7 +2,9 @@ import { CheckCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { ChatAvatar } from '@/features/chat/components/ChatAvatar'
 import { ChatTime } from '@/features/chat/components/ChatTime'
+import { ChatOfferCard } from '@/features/offers/components/ChatOfferCard'
 import { cn } from '@/lib/utils'
 import { getParticipantName } from '@/features/chat/chatIdentity'
 
@@ -125,53 +127,121 @@ export function ChatMessage({
 
       {isFirstInGroup && <span className="sr-only">{senderLabel}</span>}
 
-      <div
-        className={cn(
-          'chat-message',
-          bubbleShape,
-          isMine ? 'chat-message-own' : 'chat-message-peer',
-        )}
-      >
-        {isImageWithUrl && (
-          <a
-            href={message.attachmentUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t('chat.openImage')}
-            className="block overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <img
-              src={message.attachmentUrl}
-              alt={t('chat.imageMessage')}
-              loading="lazy"
-              decoding="async"
-              className="max-h-72 w-full max-w-[240px] rounded-xl object-cover"
+      {message.offerId ? (
+        isMine ? (
+          <div className="flex flex-col items-end">
+            <ChatOfferCard
+              offerId={message.offerId}
+              userId={userId}
+              peerName={senderName}
+              isMine
+              fallbackText={content}
             />
-          </a>
-        )}
-        {content && (
-          <p
-            className={cn(
-              'text-[14px] leading-relaxed whitespace-pre-wrap',
-              isImageWithUrl && 'mt-1.5',
+            {isLastInGroup && (
+              <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                <ChatTime value={message.sentAt} mode="time" />
+              </span>
             )}
-          >
-            {renderMessageContent(content)}
-          </p>
-        )}
-        {isLastInGroup && (
-          <span
-            className={cn(
-              'mt-1 block text-right text-[11px] leading-none tabular-nums',
-              isMine ? 'text-primary-foreground/65' : 'text-muted-foreground',
+          </div>
+        ) : (
+          <div className="chat-peer-row">
+            <div className="chat-peer-avatar-slot">
+              {isLastInGroup && <ChatAvatar name={senderName ?? t('chat.peer')} size="xs" />}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col items-start">
+              <ChatOfferCard
+                offerId={message.offerId}
+                userId={userId}
+                peerName={senderName}
+                isMine={false}
+                fallbackText={content}
+              />
+              {isLastInGroup && (
+                <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                  <ChatTime value={message.sentAt} mode="time" />
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      ) : isMine ? (
+        <div className={cn('chat-message', bubbleShape, 'chat-message-own')}>
+          {isImageWithUrl && (
+            <a
+              href={message.attachmentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t('chat.openImage')}
+              className="block overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <img
+                src={message.attachmentUrl}
+                alt={t('chat.imageMessage')}
+                loading="lazy"
+                decoding="async"
+                className="max-h-72 w-full max-w-[240px] rounded-xl object-cover"
+              />
+            </a>
+          )}
+          {content && (
+            <p
+              className={cn(
+                'text-[14px] leading-relaxed whitespace-pre-wrap',
+                isImageWithUrl && 'mt-1.5',
+              )}
+            >
+              {renderMessageContent(content)}
+            </p>
+          )}
+          {isLastInGroup && (
+            <span className="mt-1 block text-right text-[11px] leading-none text-primary-foreground/65 tabular-nums">
+              <ChatTime value={message.sentAt} mode="time" />
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="chat-peer-row">
+          <div className="chat-peer-avatar-slot">
+            {isLastInGroup && <ChatAvatar name={senderName ?? t('chat.peer')} size="xs" />}
+          </div>
+          <div className={cn('chat-message', bubbleShape, 'chat-message-peer')}>
+            {isImageWithUrl && (
+              <a
+                href={message.attachmentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t('chat.openImage')}
+                className="block overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <img
+                  src={message.attachmentUrl}
+                  alt={t('chat.imageMessage')}
+                  loading="lazy"
+                  decoding="async"
+                  className="max-h-72 w-full max-w-[240px] rounded-xl object-cover"
+                />
+              </a>
             )}
-          >
-            <ChatTime value={message.sentAt} mode="time" />
-          </span>
-        )}
-      </div>
+            {content && (
+              <p
+                className={cn(
+                  'text-[14px] leading-relaxed whitespace-pre-wrap',
+                  isImageWithUrl && 'mt-1.5',
+                )}
+              >
+                {renderMessageContent(content)}
+              </p>
+            )}
+            {isLastInGroup && (
+              <span className="mt-1 block text-right text-[11px] leading-none text-muted-foreground tabular-nums">
+                <ChatTime value={message.sentAt} mode="time" />
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
-      {isLastReadOwn && (
+      {isLastReadOwn && !message.offerId && (
         <p className="mt-1 inline-flex items-center justify-end gap-1 self-end text-[11px] text-muted-foreground">
           <CheckCheck className="size-3.5" aria-hidden="true" />
           <span>{t('chat.read')}</span>

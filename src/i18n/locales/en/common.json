@@ -840,6 +840,11 @@
       "breadcrumbLabel": "Breadcrumb",
       "protectionTitle": "Moldy Escrow Buyer Protection",
       "protectionDesc": "Payment is held safely and only released to the seller once you confirm delivery.",
+      "protectionShort": "Payment stays protected until you confirm delivery.",
+      "learnMore": "Learn more",
+      "soldNotice": "This item has been sold. You can save it or browse similar items below.",
+      "hiddenNotice": "This listing is currently hidden and unavailable for purchase.",
+      "viewReceivedOffers": "View received offers",
       "similarTitle": "Similar items",
       "similarDescription": "More finds in the same category you might like.",
       "similarViewMore": "View more in category",
@@ -2111,6 +2116,50 @@
     "createdAt": "Created",
     "expiresAt": "Response deadline",
     "checkoutBefore": "Checkout before",
+    "roundLabel": "Round {{current}}/{{max}}",
+    "roundTooltip": "Up to {{max}} negotiation rounds per item",
+    "viewOrderLink": "View placed order",
+    "contextualPending": {
+      "yourTurn": "Waiting for your response",
+      "waitingSeller": "Waiting for seller",
+      "waitingBuyer": "Waiting for buyer"
+    },
+    "turn": {
+      "yourTurn": "Your turn",
+      "waitingPeer": "Waiting for response"
+    },
+    "countdown": {
+      "remaining": "Left",
+      "orderBefore": "Order within",
+      "expired": "Expired"
+    },
+    "tabs": {
+      "label": "Filter offers",
+      "all": "All",
+      "needsResponse": "Needs response",
+      "needsAction": "Needs action",
+      "accepted": "Accepted",
+      "closed": "Expired / Closed",
+      "emptyTitle": "No offers in this tab",
+      "emptyDescription": "Switch tabs to see other offers."
+    },
+    "productBanner": {
+      "acceptedLabel": "Seller accepted your price"
+    },
+    "checkout": {
+      "applyingAccepted": "Applying your accepted offer price to this checkout",
+      "agreedPriceBadge": "Agreed price",
+      "youSave": "Offer savings",
+      "voucherDisabled": "Vouchers cannot be stacked when an item uses an accepted offer price."
+    },
+    "chatCard": {
+      "yourOffer": "Your offer",
+      "offerFrom": "Offer from {{name}}",
+      "pinnedLabel": "Active offer",
+      "scrollToOffer": "Scroll to latest offer card",
+      "acceptedForBuyer": "Seller accepted this price",
+      "acceptedForSeller": "Accepted · Waiting for buyer checkout"
+    },
     "side": {
       "BUYER": "Buyer offer",
       "SELLER": "Seller counter-offer"
@@ -2119,25 +2168,33 @@
       "PENDING": "Pending",
       "ACCEPTED": "Accepted",
       "REJECTED": "Rejected",
-      "CANCELLED": "Cancelled",
+      "CANCELLED": "Withdrawn",
       "EXPIRED": "Expired",
-      "SUPERSEDED": "Superseded"
+      "SUPERSEDED": "Countered"
     },
     "actions": {
-      "makeOffer": "Make offer",
+      "makeOffer": "Make an offer",
+      "viewYourOffer": "View your offer",
+      "orderNowAtOffer": "Order now",
       "accept": "Accept",
       "reject": "Reject",
       "counter": "Counter",
       "cancel": "Cancel offer",
+      "cancelConfirmPrompt": "Withdraw this offer?",
+      "confirmCancel": "Confirm cancel",
       "buyAtOfferPrice": "Buy at agreed price",
+      "openChat": "Chat",
       "history": "History"
     },
     "modal": {
       "title": "Make an offer",
       "listedPrice": "Listed price",
       "quickSuggestions": "Quick offer suggestions",
-      "priceLabel": "Your offer price (VND)",
-      "rangeHintPrefix": "Allowed range (75% – below 100%):",
+      "priceLabel": "Your offer price",
+      "rangeHintPrefix": "You can offer between",
+      "noteLabel": "Note to seller (optional)",
+      "notePlaceholder": "e.g., I'm nearby and can pick up today",
+      "escrowHint": "If the seller accepts, you have 24 hours to place the order at this price. Payment stays protected in escrow.",
       "submit": "Send offer",
       "submitting": "Sending..."
     },
@@ -2153,8 +2210,10 @@
     "validation": {
       "priceRequired": "Please enter an offer price.",
       "pricePositive": "Offer price must be greater than 0.",
-      "priceBelowMin": "Minimum offer is 75% of the listed price.",
-      "priceMustBeBelowOriginal": "Offer price must be below the listed price."
+      "priceBelowMin": "Offer is below the 75% minimum of the listed price.",
+      "priceMustBeBelowOriginal": "Offer price must be below the listed price.",
+      "counterOutOfRange": "Counter-offer price is outside the allowed negotiation range.",
+      "noteTooLong": "Note must be 300 characters or fewer."
     },
     "toast": {
       "created": "Offer sent to the seller.",
@@ -2174,6 +2233,7 @@
       "OFF_007": "This offer is no longer in a valid state for that action.",
       "OFF_008": "This offer has expired.",
       "OFF_009": "It is not your turn to respond to this offer.",
+      "OFF_010": "Vouchers cannot be combined with an accepted offer price.",
       "COMMON_004": "You do not have permission to perform this action."
     }
   }
