@@ -717,6 +717,8 @@
       "imagesLabel": "Ảnh sản phẩm (tùy chọn)",
       "imagesHint": "Tải lên tối đa 10 ảnh sản phẩm.",
       "uploadedImagesCount": "Đã tải lên {{count}} ảnh.",
+      "allowOfferLabel": "Cho phép người mua trả giá",
+      "allowOfferHint": "Người mua có thể gửi đề nghị thương lượng giá (từ 75% đến dưới 100% giá niêm yết).",
       "imageInvalid": "Mỗi ảnh phải có URL HTTP hoặc HTTPS hợp lệ.",
       "imageTooLong": "URL ảnh tối đa 500 ký tự.",
       "imagesTooMany": "Chỉ được thêm tối đa 10 ảnh.",
@@ -1425,6 +1427,12 @@
       "heading": "Đang hỏi về sản phẩm",
       "sendAction": "Gửi câu hỏi",
       "quickMessage": "Chào shop, mình quan tâm sản phẩm \"{{title}}\" ({{price}}): {{url}}"
+    },
+    "offerCard": {
+      "heading": "Đề nghị trả giá vừa gửi",
+      "sending": "Đang gửi thông tin trả giá…",
+      "sendAction": "Gửi lại tin trả giá",
+      "quickMessage": "Mình vừa gửi đề nghị trả giá {{offerPrice}} (giá niêm yết {{originalPrice}}) cho sản phẩm \"{{title}}\".\nLink sản phẩm: {{productUrl}}\nXem & phản hồi đề nghị: {{offersUrl}}"
     }
   },
   "checkoutCancel": {
@@ -2087,5 +2095,86 @@
     "sellNowCta": "Đăng tin ngay",
     "manageStoreCta": "Vào gian hàng của tôi",
     "browseCta": "Khám phá sản phẩm"
+  },
+  "offers": {
+    "sentTitle": "Đề nghị trả giá của tôi",
+    "sentSubtitle": "Theo dõi các mức giá bạn đã thương lượng và mua ngay khi người bán đồng ý.",
+    "receivedTitle": "Đề nghị trả giá",
+    "receivedSubtitle": "Xem, chấp nhận, từ chối hoặc đề xuất lại giá cho khách hàng của gian hàng.",
+    "loadError": "Không thể tải danh sách đề nghị trả giá",
+    "sentEmptyTitle": "Bạn chưa gửi đề nghị trả giá nào",
+    "sentEmptyDescription": "Mở sản phẩm cho phép trả giá và bấm nút Trả giá để bắt đầu thương lượng.",
+    "receivedEmptyTitle": "Chưa có đề nghị trả giá nào",
+    "receivedEmptyDescription": "Khi người mua gửi đề nghị trả giá cho sản phẩm của shop, yêu cầu sẽ hiện tại đây.",
+    "exploreProducts": "Khám phá sản phẩm",
+    "productRef": "Sản phẩm #{{id}}…",
+    "createdAt": "Tạo lúc",
+    "expiresAt": "Hết hạn phản hồi",
+    "checkoutBefore": "Thanh toán trước",
+    "side": {
+      "BUYER": "Người mua đề nghị",
+      "SELLER": "Người bán đề nghị"
+    },
+    "status": {
+      "PENDING": "Đang chờ",
+      "ACCEPTED": "Đã chốt giá",
+      "REJECTED": "Đã từ chối",
+      "CANCELLED": "Đã hủy",
+      "EXPIRED": "Hết hạn",
+      "SUPERSEDED": "Đã thay thế"
+    },
+    "actions": {
+      "makeOffer": "Trả giá",
+      "accept": "Chấp nhận",
+      "reject": "Từ chối",
+      "counter": "Trả giá lại",
+      "cancel": "Hủy đề nghị",
+      "buyAtOfferPrice": "Mua ngay theo giá chốt",
+      "history": "Lịch sử"
+    },
+    "modal": {
+      "title": "Gửi đề nghị trả giá",
+      "listedPrice": "Giá niêm yết",
+      "quickSuggestions": "Gợi ý mức giá nhanh",
+      "priceLabel": "Mức giá đề nghị (VND)",
+      "rangeHintPrefix": "Khoảng hợp lệ (75% – dưới 100%):",
+      "submit": "Gửi đề nghị",
+      "submitting": "Đang gửi..."
+    },
+    "counter": {
+      "priceLabel": "Mức giá đề nghị mới (VND)",
+      "placeholder": "Nhập mức giá đề xuất lại...",
+      "send": "Gửi mức giá mới"
+    },
+    "history": {
+      "title": "Lịch sử thương lượng",
+      "loadError": "Không thể tải lịch sử thương lượng"
+    },
+    "validation": {
+      "priceRequired": "Vui lòng nhập mức giá đề nghị.",
+      "pricePositive": "Mức giá phải lớn hơn 0.",
+      "priceBelowMin": "Mức giá tối thiểu là 75% giá niêm yết.",
+      "priceMustBeBelowOriginal": "Mức giá đề nghị phải thấp hơn giá niêm yết."
+    },
+    "toast": {
+      "created": "Đã gửi đề nghị trả giá tới người bán.",
+      "accepted": "Đã chấp nhận mức giá thương lượng.",
+      "rejected": "Đã từ chối đề nghị trả giá.",
+      "cancelled": "Đã hủy đề nghị trả giá.",
+      "countered": "Đã gửi mức giá đề xuất mới."
+    },
+    "errors": {
+      "default": "Không thể xử lý đề nghị trả giá. Vui lòng thử lại.",
+      "OFF_001": "Sản phẩm này hiện không cho phép trả giá.",
+      "OFF_002": "Bạn không thể tự trả giá sản phẩm của chính mình hoặc gian hàng mình.",
+      "OFF_003": "Mức giá không hợp lệ (cần nằm trong khoảng thương lượng cho phép).",
+      "OFF_004": "Bạn đã hết số lượt trả giá cho sản phẩm này.",
+      "OFF_005": "Bạn đang có một đề nghị chờ xử lý hoặc đã chốt cho sản phẩm này.",
+      "OFF_006": "Không tìm thấy đề nghị trả giá.",
+      "OFF_007": "Trạng thái đề nghị không còn hợp lệ cho thao tác này.",
+      "OFF_008": "Đề nghị trả giá đã hết hạn.",
+      "OFF_009": "Hiện chưa đến lượt bạn phản hồi đề nghị này.",
+      "COMMON_004": "Bạn không có quyền thực hiện thao tác này."
+    }
   }
 }

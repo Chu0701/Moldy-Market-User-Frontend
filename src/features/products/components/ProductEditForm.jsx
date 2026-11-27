@@ -190,6 +190,23 @@ export function ProductEditForm({ product, refetch, isFetching, onSaved }) {
         </p>
       </div>
 
+      <label className="offer-checkbox-field" htmlFor="product-edit-allowOffer">
+        <input
+          id="product-edit-allowOffer"
+          type="checkbox"
+          disabled={isSubmitting || hasConflict}
+          {...register('allowOffer')}
+        />
+        <span className="grid gap-0.5 text-sm">
+          <span className="font-medium text-foreground">
+            {t('products.create.allowOfferLabel')}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {t('products.create.allowOfferHint')}
+          </span>
+        </span>
+      </label>
+
       {hasConflict && (
         <div>
           <p className="product-create-error" role="alert">

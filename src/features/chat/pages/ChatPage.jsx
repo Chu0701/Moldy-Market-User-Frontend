@@ -28,6 +28,7 @@ export function ChatPage() {
   const location = useLocation()
   const { conversationId } = useParams()
   const productContext = location.state?.productContext ?? null
+  const offerContext = location.state?.offerContext ?? null
   const { userId, query } = useConversations()
   const realtime = useContext(ChatRealtimeContext)
   const connectionText = t(`chat.connection.${realtime.status}`)
@@ -125,6 +126,7 @@ export function ChatPage() {
             }
             realtime={realtime}
             productContext={productContext}
+            offerContext={offerContext}
           />
         ) : conversationId ? (
           <section className="chat-thread items-center justify-center p-8">

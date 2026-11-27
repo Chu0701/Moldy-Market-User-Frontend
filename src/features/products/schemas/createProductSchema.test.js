@@ -16,6 +16,7 @@ test('normalizes form input for the create request', () => {
     title: 'Sách cũ',
     description: undefined,
     price: 45000.5,
+    allowOffer: true,
   })
 })
 

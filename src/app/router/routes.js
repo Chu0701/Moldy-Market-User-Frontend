@@ -373,6 +373,13 @@ export const routes = [
                 }),
               },
               {
+                path: 'offers',
+                lazy: async () => ({
+                  Component: (await import('@/features/offers/pages/SentOffersPage'))
+                    .SentOffersPage,
+                }),
+              },
+              {
                 path: 'orders/:orderId',
                 lazy: async () => ({
                   Component: (await import('@/features/orders/pages/OrderDetailPage'))
@@ -439,6 +446,13 @@ export const routes = [
                     lazy: async () => ({
                       Component: (await import('@/features/orders/pages/StoreOrdersPage'))
                         .StoreOrdersPage,
+                    }),
+                  },
+                  {
+                    path: 'offers',
+                    lazy: async () => ({
+                      Component: (await import('@/features/offers/pages/ReceivedOffersPage'))
+                        .ReceivedOffersPage,
                     }),
                   },
                   {

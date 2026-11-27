@@ -1,9 +1,53 @@
 import { CheckCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { ChatTime } from '@/features/chat/components/ChatTime'
 import { cn } from '@/lib/utils'
 import { getParticipantName } from '@/features/chat/chatIdentity'
+
+const URL_SPLIT_PATTERN = /(https?:\/\/[^\s]+)/g
+const URL_TEST_PATTERN = /^https?:\/\/[^\s]+$/
+
+function renderMessageContent(text) {
+  const parts = String(text).split(URL_SPLIT_PATTERN)
+  return parts.map((part, index) => {
+    if (!URL_TEST_PATTERN.test(part)) return part
+    const trimmed = part.replace(/[.,!?;:)\]]+$/, '')
+    const trailing = part.slice(trimmed.length)
+    try {
+      const parsed = new URL(trimmed)
+      if (typeof window !== 'undefined' && parsed.origin === window.location.origin) {
+        return (
+          <span key={index}>
+            <Link
+              to={`${parsed.pathname}${parsed.search}${parsed.hash}`}
+              className="underline underline-offset-2 break-all hover:opacity-80"
+            >
+              {trimmed}
+            </Link>
+            {trailing}
+          </span>
+        )
+      }
+      return (
+        <span key={index}>
+          <a
+            href={trimmed}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 break-all hover:opacity-80"
+          >
+            {trimmed}
+          </a>
+          {trailing}
+        </span>
+      )
+    } catch {
+      return part
+    }
+  })
+}
 
 const fallbackKeys = {
   IMAGE: 'chat.imageMessage',
@@ -112,7 +156,7 @@ export function ChatMessage({
               isImageWithUrl && 'mt-1.5',
             )}
           >
-            {content}
+            {renderMessageContent(content)}
           </p>
         )}
         {isLastInGroup && (

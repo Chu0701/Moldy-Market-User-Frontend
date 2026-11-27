@@ -1,7 +1,7 @@
 import { ArrowLeft, MessageSquare, Package, RefreshCw, Send, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import { ProductPrice } from '@/components/common/ProductPrice'
 import { EmptyState } from '@/components/feedback/EmptyState'
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { ChatComposer } from './ChatComposer'
 
 const GROUP_WINDOW_MS = 5 * 60 * 1000
+const autoSentOfferIds = new Set()
 
 function isWithinGroupWindow(prevSentAt, currSentAt) {
   if (!prevSentAt || !currSentAt) return false
@@ -27,15 +28,38 @@ function isWithinGroupWindow(prevSentAt, currSentAt) {
   return Math.abs(curr - prev) <= GROUP_WINDOW_MS
 }
 
-/** @param {{ conversation: object, userId: string, title: string, realtime: object, productContext?: { id: string, title: string, price: number, imageUrl?: string } | null }} props */
-export function ChatHistory({ conversation, userId, title, realtime, productContext = null }) {
+/**
+ * @param {{
+ *   conversation: object,
+ *   userId: string,
+ *   title: string,
+ *   realtime: object,
+ *   productContext?: { id: string, title: string, price: number, imageUrl?: string } | null,
+ *   offerContext?: { id: string, productId: string, productTitle: string, productImageUrl?: string, originalPrice: number, offerPrice: number } | null,
+ * }} props
+ */
+export function ChatHistory({
+  conversation,
+  userId,
+  title,
+  realtime,
+  productContext = null,
+  offerContext = null,
+}) {
   const { t, i18n } = useTranslation()
+  const location = useLocation()
+  const navigate = useNavigate()
   const query = useConversationMessages(conversation.id)
   const scrollRef = useRef(null)
   const [dismissedProductId, setDismissedProductId] = useState(null)
+  const [dismissedOfferId, setDismissedOfferId] = useState(null)
   const [sendingProductCard, setSendingProductCard] = useState(false)
+  const [sendingOfferCard, setSendingOfferCard] = useState(false)
+  const activeOffer = offerContext?.id && dismissedOfferId !== offerContext.id ? offerContext : null
   const activeProduct =
-    productContext?.id && dismissedProductId !== productContext.id ? productContext : null
+    !offerContext?.id && productContext?.id && dismissedProductId !== productContext.id
+      ? productContext
+      : null
   const canSendNow =
     query.isSuccess &&
     !query.isRefetchError &&
@@ -44,19 +68,84 @@ export function ChatHistory({ conversation, userId, title, realtime, productCont
     realtime.status === 'connected' &&
     !realtime.isPending
 
+  const formatVnd = useCallback(
+    (amount) =>
+      new Intl.NumberFormat(i18n.resolvedLanguage, {
+        style: 'currency',
+        currency: 'VND',
+        maximumFractionDigits: 0,
+      }).format(Number(amount ?? 0)),
+    [i18n.resolvedLanguage],
+  )
+
+  const buildOfferMessage = useCallback(
+    (offer) => {
+      const productUrl = `${window.location.origin}/products/${encodeURIComponent(offer.productId)}`
+      const offersUrl = `${window.location.origin}/store/offers`
+      return t('chat.offerCard.quickMessage', {
+        title: offer.productTitle,
+        offerPrice: formatVnd(offer.offerPrice),
+        originalPrice: formatVnd(offer.originalPrice),
+        productUrl,
+        offersUrl,
+      })
+    },
+    [formatVnd, t],
+  )
+
+  const handleResendOfferMessage = useCallback(
+    async (offer) => {
+      setSendingOfferCard(true)
+      autoSentOfferIds.add(offer.id)
+      try {
+        await realtime.sendText(conversation.id, buildOfferMessage(offer))
+        setDismissedOfferId(offer.id)
+        setDismissedProductId(offer.productId)
+        void navigate(location.pathname, { replace: true, state: null })
+      } catch {
+        autoSentOfferIds.delete(offer.id)
+      } finally {
+        setSendingOfferCard(false)
+      }
+    },
+    [buildOfferMessage, conversation.id, location.pathname, navigate, realtime],
+  )
+
+  useEffect(() => {
+    if (!activeOffer?.id || !canSendNow || autoSentOfferIds.has(activeOffer.id)) return
+    autoSentOfferIds.add(activeOffer.id)
+    let active = true
+    Promise.resolve(realtime.sendText(conversation.id, buildOfferMessage(activeOffer)))
+      .then(() => {
+        if (!active) return
+        setDismissedOfferId(activeOffer.id)
+        setDismissedProductId(activeOffer.productId)
+        void navigate(location.pathname, { replace: true, state: null })
+      })
+      .catch(() => {
+        autoSentOfferIds.delete(activeOffer.id)
+      })
+    return () => {
+      active = false
+    }
+  }, [
+    activeOffer,
+    buildOfferMessage,
+    canSendNow,
+    conversation.id,
+    location.pathname,
+    navigate,
+    realtime,
+  ])
+
   async function handleSendProductInquiry() {
     if (!activeProduct || !canSendNow || sendingProductCard) return
     setSendingProductCard(true)
     try {
-      const formattedPrice = new Intl.NumberFormat(i18n.resolvedLanguage, {
-        style: 'currency',
-        currency: 'VND',
-        maximumFractionDigits: 0,
-      }).format(Number(activeProduct.price ?? 0))
       const productUrl = `${window.location.origin}/products/${encodeURIComponent(activeProduct.id)}`
       const message = t('chat.productCard.quickMessage', {
         title: activeProduct.title,
-        price: formattedPrice,
+        price: formatVnd(activeProduct.price),
         url: productUrl,
       })
       await realtime.sendText(conversation.id, message)
@@ -254,6 +343,63 @@ export function ChatHistory({ conversation, userId, title, realtime, productCont
       </div>
 
       <footer className="chat-thread-footer">
+        {activeOffer && (
+          <div className="mb-2.5 flex items-center gap-3 rounded-xl border border-border bg-surface-subtle p-2.5">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+              {activeOffer.productImageUrl ? (
+                <img
+                  src={activeOffer.productImageUrl}
+                  alt={activeOffer.productTitle}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <Package aria-hidden="true" className="size-4 text-muted-foreground/50" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                {t('chat.offerCard.heading')}
+              </p>
+              <Link
+                to={`/products/${encodeURIComponent(activeOffer.productId)}`}
+                className="block truncate text-xs font-semibold text-foreground underline-offset-4 hover:underline sm:text-sm"
+              >
+                {activeOffer.productTitle}
+              </Link>
+              <div className="offer-price-pair">
+                <ProductPrice
+                  value={activeOffer.offerPrice}
+                  className="text-xs font-bold text-foreground tabular-nums"
+                />
+                <ProductPrice value={activeOffer.originalPrice} className="offer-price-original" />
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 gap-1.5 px-2.5 text-xs"
+                disabled={!canSendNow || sendingOfferCard}
+                onClick={() => void handleResendOfferMessage(activeOffer)}
+              >
+                <Send aria-hidden="true" className="size-3.5" />
+                <span>
+                  {sendingOfferCard ? t('chat.offerCard.sending') : t('chat.offerCard.sendAction')}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7 rounded-full text-muted-foreground hover:text-foreground"
+                aria-label={t('actions.close')}
+                onClick={() => setDismissedOfferId(activeOffer.id)}
+              >
+                <X aria-hidden="true" className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
         {activeProduct && (
           <div className="mb-2.5 flex items-center gap-3 rounded-xl border border-border bg-surface-subtle p-2.5">
             <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">

@@ -13,6 +13,7 @@ export function getEditProductDefaults(product) {
     description: product.description ?? '',
     price: String(product.price),
     condition: product.condition,
+    allowOffer: product.allowOffer ?? true,
     version: product.version,
   }
 }

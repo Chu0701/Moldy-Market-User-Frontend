@@ -717,6 +717,8 @@
       "imagesLabel": "Product images (optional)",
       "imagesHint": "Upload up to 10 product images.",
       "uploadedImagesCount": "{{count}} images uploaded.",
+      "allowOfferLabel": "Allow buyers to make offers",
+      "allowOfferHint": "Buyers can send price negotiation offers (from 75% up to below 100% of listed price).",
       "imageInvalid": "Each image must have a valid HTTP or HTTPS URL.",
       "imageTooLong": "Image URLs must be 500 characters or fewer.",
       "imagesTooMany": "You can add up to 10 images.",
@@ -1435,6 +1437,12 @@
       "heading": "Asking about this item",
       "sendAction": "Send inquiry",
       "quickMessage": "Hi, I am interested in \"{{title}}\" ({{price}}): {{url}}"
+    },
+    "offerCard": {
+      "heading": "Offer just submitted",
+      "sending": "Sending offer details…",
+      "sendAction": "Resend offer message",
+      "quickMessage": "I just sent an offer of {{offerPrice}} (listed at {{originalPrice}}) for \"{{title}}\".\nProduct link: {{productUrl}}\nReview offer: {{offersUrl}}"
     }
   },
   "storeOrders": {
@@ -2087,5 +2095,86 @@
     "sellNowCta": "Create a listing",
     "manageStoreCta": "Go to my store",
     "browseCta": "Browse products"
+  },
+  "offers": {
+    "sentTitle": "My sent offers",
+    "sentSubtitle": "Track your price negotiations and buy immediately once the seller accepts.",
+    "receivedTitle": "Received offers",
+    "receivedSubtitle": "Review, accept, reject, or counter buyer offers for your store.",
+    "loadError": "Could not load offers",
+    "sentEmptyTitle": "No offers sent yet",
+    "sentEmptyDescription": "Open a negotiable listing and click Make offer to start negotiating.",
+    "receivedEmptyTitle": "No offers received yet",
+    "receivedEmptyDescription": "Buyer offers for your store products will appear here.",
+    "exploreProducts": "Browse products",
+    "productRef": "Product #{{id}}…",
+    "createdAt": "Created",
+    "expiresAt": "Response deadline",
+    "checkoutBefore": "Checkout before",
+    "side": {
+      "BUYER": "Buyer offer",
+      "SELLER": "Seller counter-offer"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected",
+      "CANCELLED": "Cancelled",
+      "EXPIRED": "Expired",
+      "SUPERSEDED": "Superseded"
+    },
+    "actions": {
+      "makeOffer": "Make offer",
+      "accept": "Accept",
+      "reject": "Reject",
+      "counter": "Counter",
+      "cancel": "Cancel offer",
+      "buyAtOfferPrice": "Buy at agreed price",
+      "history": "History"
+    },
+    "modal": {
+      "title": "Make an offer",
+      "listedPrice": "Listed price",
+      "quickSuggestions": "Quick offer suggestions",
+      "priceLabel": "Your offer price (VND)",
+      "rangeHintPrefix": "Allowed range (75% – below 100%):",
+      "submit": "Send offer",
+      "submitting": "Sending..."
+    },
+    "counter": {
+      "priceLabel": "Counter-offer price (VND)",
+      "placeholder": "Enter counter-offer price...",
+      "send": "Send counter"
+    },
+    "history": {
+      "title": "Negotiation history",
+      "loadError": "Could not load negotiation history"
+    },
+    "validation": {
+      "priceRequired": "Please enter an offer price.",
+      "pricePositive": "Offer price must be greater than 0.",
+      "priceBelowMin": "Minimum offer is 75% of the listed price.",
+      "priceMustBeBelowOriginal": "Offer price must be below the listed price."
+    },
+    "toast": {
+      "created": "Offer sent to the seller.",
+      "accepted": "Offer accepted.",
+      "rejected": "Offer rejected.",
+      "cancelled": "Offer cancelled.",
+      "countered": "Counter-offer sent."
+    },
+    "errors": {
+      "default": "Could not process the offer. Please try again.",
+      "OFF_001": "This product does not allow price offers.",
+      "OFF_002": "You cannot make an offer on your own or your store's product.",
+      "OFF_003": "Offer price is outside the allowed negotiation range.",
+      "OFF_004": "You have reached the maximum number of offers for this product.",
+      "OFF_005": "You already have an active or accepted offer for this product.",
+      "OFF_006": "Offer was not found.",
+      "OFF_007": "This offer is no longer in a valid state for that action.",
+      "OFF_008": "This offer has expired.",
+      "OFF_009": "It is not your turn to respond to this offer.",
+      "COMMON_004": "You do not have permission to perform this action."
+    }
   }
 }

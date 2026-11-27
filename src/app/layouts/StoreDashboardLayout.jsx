@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import {
+  BadgeDollarSign,
   ClipboardList,
   LayoutDashboard,
   Package,
@@ -55,6 +56,9 @@ export function StoreDashboardLayout() {
     if (staffContext.canReadOrders) {
       navItems.push({ to: '/store/orders', label: 'storeOrders.title', icon: ClipboardList })
     }
+    if (staffContext.canHandleOffers) {
+      navItems.push({ to: '/store/offers', label: 'offers.receivedTitle', icon: BadgeDollarSign })
+    }
     if (staffContext.canManageProducts) {
       navItems.push({ to: '/store/products', label: 'stores.productsTitle', icon: Package })
     }
@@ -76,6 +80,7 @@ export function StoreDashboardLayout() {
     })
     if (!isBlocked) {
       navItems.push({ to: '/store/orders', label: 'storeOrders.title', icon: ClipboardList })
+      navItems.push({ to: '/store/offers', label: 'offers.receivedTitle', icon: BadgeDollarSign })
     }
     navItems.push({ to: '/store/products', label: 'stores.productsTitle', icon: Package })
     if (!isBlocked) {

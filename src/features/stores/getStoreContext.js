@@ -17,6 +17,7 @@ export function getStoreContext(profile, staffProfile) {
       canCreateProduct: Boolean(storeId && permissions?.includes('PRODUCT_CREATE')),
       canManageProducts: Boolean(storeId && permissions?.includes('PRODUCT_MANAGE_OWN')),
       canReadOrders: Boolean(storeId && permissions?.includes('ORDER_PROCESS')),
+      canHandleOffers: Boolean(storeId && permissions?.includes('OFFER_HANDLE')),
     }
   }
 

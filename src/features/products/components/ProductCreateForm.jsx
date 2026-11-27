@@ -47,6 +47,7 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
       description: '',
       price: '',
       condition: '',
+      allowOffer: true,
     },
   })
 
@@ -217,6 +218,23 @@ export function ProductCreateForm({ storeId, categoryGroups, onCreated }) {
           {t('products.create.uploadedImagesCount', { count: uploadedImages.length })}
         </p>
       </div>
+
+      <label className="offer-checkbox-field" htmlFor="product-create-allowOffer">
+        <input
+          id="product-create-allowOffer"
+          type="checkbox"
+          disabled={isSubmitting}
+          {...register('allowOffer')}
+        />
+        <span className="grid gap-0.5 text-sm">
+          <span className="font-medium text-foreground">
+            {t('products.create.allowOfferLabel')}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {t('products.create.allowOfferHint')}
+          </span>
+        </span>
+      </label>
 
       {fieldError('server', errors.root?.server)}
 

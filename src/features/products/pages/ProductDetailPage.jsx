@@ -21,6 +21,7 @@ import { useProductManagementAccess } from '@/features/products/hooks/useProduct
 import { AddToCartButton } from '@/features/cart/components/AddToCartButton'
 import { BuyNowButton } from '@/features/cart/components/BuyNowButton'
 import { StoreChatButton } from '@/features/chat/components/StoreChatButton'
+import { MakeOfferButton } from '@/features/offers/components/MakeOfferButton'
 import { CompareToggleButton } from '@/features/products/components/CompareToggleButton'
 import { WishlistButton } from '@/features/wishlist/components/WishlistButton'
 import { ProductPriceHistoryPanel } from '@/features/analytics/components/ProductPriceHistoryPanel'
@@ -111,6 +112,7 @@ export function ProductDetailPage() {
       <div className="flex flex-wrap items-start gap-2.5">
         <BuyNowButton key={`buy-${product.id}`} product={product} />
         <AddToCartButton key={product.id} product={product} variant="outline" />
+        <MakeOfferButton key={`offer-${product.id}`} product={product} />
         <WishlistButton key={`wishlist-${product.id}`} productId={product.id} />
         {product.storeId && (
           <StoreChatButton

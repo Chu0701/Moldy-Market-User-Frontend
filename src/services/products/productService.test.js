@@ -63,6 +63,7 @@ test('posts a store listing with the seller-set pricing strategy', async () => {
     condition: fields.condition,
     pricingStrategy: 'SELLER_SET',
     imageFileIds: ['file-1'],
+    allowOffer: true,
   })
 })
 
@@ -92,6 +93,7 @@ test('preserves a provided description when posting a store listing', async () =
     condition: fields.condition,
     pricingStrategy: 'SELLER_SET',
     imageFileIds: [],
+    allowOffer: true,
   })
 })
 

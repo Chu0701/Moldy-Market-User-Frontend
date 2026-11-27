@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
+  BadgeDollarSign,
   ChevronDown,
   Heart,
   LogOut,
@@ -124,6 +125,7 @@ export function MainLayout() {
 
   const buyingMenuLinks = [
     { to: '/orders', label: 'orders.title', icon: Package },
+    { to: '/offers', label: 'offers.sentTitle', icon: BadgeDollarSign },
     { to: '/wishlist', label: 'wishlist.title', icon: Heart },
   ]
 

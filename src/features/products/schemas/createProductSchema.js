@@ -26,4 +26,5 @@ export const createProductSchema = z.object({
       z.number().gt(0, 'products.create.priceMin').max(1_000_000_000, 'products.create.priceMax'),
     ),
   condition: z.enum(productConditions, 'products.create.conditionRequired'),
+  allowOffer: z.boolean().optional().default(true),
 })

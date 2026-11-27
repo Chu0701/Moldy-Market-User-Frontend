@@ -39,3 +39,27 @@ export function normalizeSpringPage({ content, number, size, totalElements, tota
     hasNext: !last,
   }
 }
+
+/**
+ * Normalizes Offer PageResponse ({ currentPage, totalPages, pageSize, totalElements, data }).
+ * @template T
+ * @param {{
+ *   currentPage?: number,
+ *   totalPages?: number,
+ *   pageSize?: number,
+ *   totalElements?: number,
+ *   data?: T[]
+ * } | undefined} response
+ */
+export function normalizeOfferPage(response) {
+  const page = response?.currentPage ?? 1
+  const totalPages = response?.totalPages ?? 0
+  return {
+    items: response?.data ?? [],
+    page,
+    size: response?.pageSize ?? 10,
+    totalElements: response?.totalElements ?? 0,
+    totalPages,
+    hasNext: page < totalPages,
+  }
+}

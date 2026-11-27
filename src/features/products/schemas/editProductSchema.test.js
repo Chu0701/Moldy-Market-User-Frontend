@@ -20,6 +20,7 @@ test('prefills editable fields and preserves the product version', () => {
     description: product.description,
     price: '45000.5',
     condition: product.condition,
+    allowOffer: true,
     version: 0,
   })
   expect(editProductSchema.parse(defaults)).toEqual({ ...defaults, price: 45000.5 })

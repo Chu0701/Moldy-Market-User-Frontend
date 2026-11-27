@@ -96,6 +96,7 @@ export async function createStoreProduct({
   description,
   price,
   condition,
+  allowOffer = true,
   imageFileIds = [],
 }) {
   if (!storeId) throw new Error('Creating a product requires a store ID')
@@ -108,6 +109,7 @@ export async function createStoreProduct({
     price,
     condition,
     pricingStrategy: 'SELLER_SET',
+    allowOffer,
     imageFileIds: Array.isArray(imageFileIds) ? imageFileIds.slice(0, 10) : [],
   })
 
