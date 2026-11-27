@@ -1,5 +1,11 @@
 # 14 - Backend Integration Matrix (Ma trận tích hợp Backend)
 
+> **Cập nhật 2026-11-27 (v0.5 — Backend `f3ca06a`, User FE `361ea90`, Admin FE `b285031`):**
+> - **Offer / Price Negotiation (`IMPLEMENTED` — giải quyết Q8):** 10 endpoint `/api/v1/offers/**` (`POST /`, `POST /{id}/counter`, `PATCH /{id}/{accept,reject,cancel}`, `GET /sent`, `GET /received`, `GET /product/{productId}/active`, `GET /{id}`, `GET /{id}/history`), trả `PageResponse { currentPage, totalPages, pageSize, totalElements, data }`, adapter `normalizeOfferPage` trong `src/services/api/pagination.js`. Quy tắc: tối thiểu 75% – dưới 100%, tối đa 3 lượt mua, hạn phản hồi 24h, **hạn đặt hàng sau khi chốt 24h**, không giữ chỗ lúc accept, **chặn cộng dồn voucher (`400 OFF_010`)**. `OfferResponse` trả thêm `note`, `roundNumber`, `checkoutGroupId`, `closeReason`, `productTitle`, `productImage`, `buyerName`.
+> - **Product `allowOffer` (`IMPLEMENTED`):** `CreateProductRequest`/`UpdateProductRequest`/`ProductResponse` đều có `allowOffer` (mặc định `true`).
+> - **Chat Structured Offer Cards (`IMPLEMENTED` — giải quyết Q6):** `MessageResponse` có `attachedProductId` và `offerId`; Backend `OfferChatEventListener` tự đẩy cập nhật qua STOMP `/user/queue/messages`, FE render `ChatOfferCard` + `ChatPinnedOfferBar` + đồng bộ cache `offerKeys.all`.
+> - **Các module khác đã nối trên User FE:** Notifications, Wishlist, Disputes, Wallet & Withdrawals, Store Vouchers, Seller Analytics, Reviews, Transactions, Auto Pricing, File Upload (S3 presigned), Appraiser & Seller Appraisals, Offers.
+
 > Publication checkpoint 22/11/2026: Backend main đã push tại `d530c23`, code/test ref `25be4d4`; User application ref `9cc5a03`, Admin main `72587db`. Các nhãn source snapshot/branch local bên dưới ghi lại thời điểm audit, không phải main remote mới nhất. Xem [SHARED-BASELINE.md](SHARED-BASELINE.md) để lấy baseline hiện hành và giới hạn kiểm thử.
 
 > **Trạng thái tài liệu:** v0.4 (cập nhật 2026-11-22: đối chiếu toàn bộ 32 controller trên Backend `main` `07ef520` + nhánh local `codex/selective-checkout-integration` và trạng thái code thực tế của User Frontend `codex/user-product-detail`).

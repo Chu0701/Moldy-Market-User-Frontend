@@ -52,18 +52,23 @@ Alias `@` = `src`. Dev proxy: `/api` -> `API_PROXY_TARGET` (default http://local
 - Env/build: `12`; order of work: `13-DEVELOPMENT-ROADMAP.md`; PR rules: `15-CONTRIBUTING.md`
 - Backend truth (endpoints, DTO limits, error codes, Bn issues, Qn questions): `14-BACKEND-INTEGRATION-MATRIX.md`
 
-## Project state (2026-11-22)
+## Project state (2026-11-27)
 
 DONE:
-- Tooling & config: Vite, React 19, Tailwind 4 tokens, fonts, shadcn (`button`), ESLint 10, Prettier, Vitest + RTL (`49` test files / `449` passing tests), `index.html` metadata, GitHub Actions CI, PR template, `@stomp/stompjs` + `sockjs-client`, Vite proxy (`/api` and `/chat`).
-- App shell & core API: `AppProviders`, `queryClient`, `MainLayout`, `AuthLayout`, `routes.js` (lazy routes + `RequireAuth` + `GuestOnly` on `/login`), `NotFoundPage`, `RouteErrorPage`, `src/services/api/{client,unwrap,ApiError,pagination,authRefreshInterceptor}.js`, `src/lib/tokenStorage.js`, shared `common/` & `feedback/` components, 514 `vi`/`en` i18n keys (100% parity).
-- Implemented features (`src/features/` + `src/services/`): `auth` (login, register, email OTP verify/resend, logout, HttpOnly cookie refresh), `marketplace` (home, category), `products` (search, detail, my-products, create, edit with `version`, visibility, delete), `stores` (public storefront, open store, store overview/profile/products/staff), `profile` (view/edit profile, change password), `cart` (qty=1), `checkout` (preparation, SePay QR polling, COD, cancel), `orders` (buyer orders, detail, cancel, store orders + owner COD confirm), `chat` (inbox, STOMP/SockJS realtime text, bounded read cursors + `/user/queue/chat-reads`, store chat entry).
-- Note on current layering tech debt: 6 components/pages (`VerifyEmailForm`, `RegisterPage`, `ProductCreateForm`, `ProductDeleteButton`, `ProductVisibilityButton`, `ChangePasswordForm`) still import `@/services/` directly instead of going through feature hooks, and `StoreDashboardLayout`/`RequireRole`/`RequireStoreAccess` are not yet created (all `/store/*` routes render in `MainLayout`).
+- Tooling & config: Vite 8, React 19, Tailwind 4 semantic `@layer components` tokens (`src/index.css`), shadcn (`button`), ESLint 10, Prettier, Vitest + RTL (`85` test files, `564+` passing tests), GitHub Actions CI, `@stomp/stompjs` + `sockjs-client`, Vite proxy (`/api` and `/chat`).
+- App shell & core API: `AppProviders`, `queryClient`, `MainLayout` (fixed-height sticky header without scroll oscillation), `AuthLayout`, `StoreDashboardLayout`, `AppraiserLayout`, `routes.js` (lazy routes + `RequireAuth`, `GuestOnly`, `RequireRole`, `RequireAdminRole`), `src/services/api/{client,unwrap,ApiError,pagination,authRefreshInterceptor}.js` (including `normalizeOfferPage`), `src/lib/tokenStorage.js`, full `vi`/`en` i18n parity.
+- Implemented features (`src/features/` + `src/services/` — 21 modules):
+  - `auth` (login, register, email OTP verify/resend, forgot-password, logout, HttpOnly cookie refresh), `profile` (view/edit/avatar upload, change password).
+  - `marketplace` (home, category), `products` (search + facets, 3-tier `ProductPurchaseBox` + upgraded `MobileBuyBar`, `allowOffer` create/edit toggle, versioned edit, visibility, delete, compare, recently viewed).
+  - `stores` (public storefront, open store, store dashboard overview/profile/products/staff/orders/offers/vouchers/revenue/reviews; staff permissions strictly read via `GET /api/v1/stores/my-store/staff/me` in `getStoreContext`).
+  - `offers` (buyer `/offers` & store `/store/offers` with filter tabs + live `OfferCountdown` + history modal; upgraded `MakeOfferModal` with VND dot-formatting, 75%–<100% bounds, `-5%/-10%/-15%` pills, optional `note`, 24h escrow copy; interactive `ChatOfferCard` + `ChatPinnedOfferBar` inside Chat; accepted-offer pricing & savings in `CartPage`/`CheckoutPage` with voucher stacking disabled `OFF_010`).
+  - `chat` (inbox, STOMP/SockJS realtime text + images + structured Offer cards via `message.offerId`, Messenger-style peer avatars, bounded read cursors + `/user/queue/chat-reads`, clickable URLs, quick Make Offer button in composer).
+  - `cart` (qty=1), `checkout` (SePay QR polling, COD, voucher check, accepted-offer pricing), `orders`, `payments` (`transactions`), `disputes`, `wallet` (balance, withdrawals, balance history), `notifications` (DynamoDB cursor), `wishlist`, `vouchers`, `analytics` (seller revenue + price history), `reviews`, `pricing` (auto-pricing), `appraiser` (appraiser workspace + seller appraisals + admin appraiser pages).
 
-NOT DONE / NEXT:
-- Appraiser workspace (`src/features/appraiser/`, `src/services/appraiser/`): follow `Moldy-Market-User-Frontend/docs/HANDOFF-APPRAISER-FRONTEND.md` and audit Backend `/api/v1/appraisal-*` endpoints before calling APIs (`AppraisalConversationService` still returns a placeholder UUID).
-- Notifications UI (`/api/v1/notifications`, DynamoDB cursor pagination), Wallet/Voucher/Auto-pricing UI (audit Backend permissions/DTOs first — B2 still open on Wallet/Escrow/Withdrawal).
-- Known open Backend items: B13 (`GET /api/v1/orders/me` returns 404 `ORDER_003` when empty — FE falls back to `[]`), B2 (`Wallet`/`Escrow`/`Withdrawal` lack `@PreAuthorize`), CORS `allowCredentials`/`X-Moldy-Auth` for cross-origin deploys, offer/wishlist/follow/review/stats APIs are `NOT_FOUND`.
+NOT DONE / OPEN:
+- Some pre-existing legacy components still import `@/services/` directly instead of feature hooks; keep new code strictly layered (`services -> hooks -> components/pages`).
+- Cross-origin cookie deployment still requires Backend CORS `allowCredentials(true)` + `X-Moldy-Auth` allowed header if deployed on separate origins without reverse proxy.
+- Follow-store API is `NOT_FOUND`. `GET /api/v1/orders/me` still returns `404 ORDER_003` when empty (FE safely falls back to `[]`).
 
 ## Skills
 

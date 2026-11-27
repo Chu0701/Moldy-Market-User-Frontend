@@ -1,7 +1,7 @@
 # 04 - Routing và danh sách trang (User Frontend)
 
-> **Trạng thái tài liệu:** v0.2 (cập nhật 2026-11-22: đối chiếu `src/app/router/routes.js`, layouts và trạng thái triển khai thực tế)
-> **Cập nhật:** 2026-11-22
+> **Trạng thái tài liệu:** v0.3 (cập nhật 2026-11-27: bổ sung `/offers`, `/store/offers`, `/forgot-password`, các route `/appraiser/*` & `/appraisals/*` và khung mua hàng 3 tầng / Chat Offer Cards)
+> **Cập nhật:** 2026-11-27
 > **Áp dụng cho:** `Moldy-Market-User-Frontend`
 > **Mục đích:** Là nguồn duy nhất liệt kê mọi route của User Frontend: đường dẫn, trang, layout, quyền truy cập, phụ thuộc Backend và trạng thái. Các doc khác (05, 10, 13) chỉ trỏ về đây, không lặp lại bảng route.
 
@@ -81,6 +81,7 @@ Ghi chú các cột:
 | `/checkout` | `CheckoutPage` | Form + áp dụng mã voucher (`GET /api/vouchers/{code}`) và `POST /api/v1/checkout-groups` (hỗ trợ `voucherCode`); không tự retry POST; chuyển sang trang thanh toán | `IMPLEMENTED_LOCAL` (có voucher) | `IMPLEMENTED_LOCAL` |
 | `/checkout/:checkoutGroupId` | `CheckoutPaymentPage` | GET /api/v1/checkout-groups/{id} cho reload và polling online 5 giây; hiển thị `discountAmount`/`voucherCode`; COD cập nhật thủ công | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` |
 | `/orders` | `OrderListPage` | `GET /api/v1/orders/me` (sắp xếp `createdAt DESC`); 404 ORDER_LIST_NOT_FOUND là danh sách rỗng | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` |
+| `/offers` | `SentOffersPage` | `GET /api/v1/offers/sent`, `PATCH /{id}/{accept,reject,cancel}`, `POST /{id}/counter`, `GET /{id}/history` (tab lọc, countdown live, mua ngay theo giá chốt, mở Chat) | `IMPLEMENTED` (`f3ca06a`) | `IMPLEMENTED` (`361ea90`) |
 | `/orders/:orderId` | `OrderDetailPage` | Tìm ID trong danh sách `/orders/me`, hiển thị timeline mốc thời gian, giảm giá voucher, nút Hủy đơn (`POST /api/v1/orders/buyer/{id}/cancel`), và khiếu nại (`OrderDisputePanel`) | `IMPLEMENTED_LOCAL` | `IMPLEMENTED_LOCAL` |
 | `/notifications` | `NotificationsPage` | `GET /api/v1/notifications?limit&token` (cursor), `PATCH /{id}/read`, `PATCH /{id}/unread`, `DELETE /{id}`; restore API chưa có UI | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL`, RequireAuth |
 | `/chat` | `ChatPage` | GET conversations và STOMP /chat dùng chung từ MainLayout | IMPLEMENTED_LOCAL; badge unread ở menu/inbox | Có inbox và trạng thái kết nối/reconnect; manual UI chờ Chu |
@@ -122,7 +123,7 @@ Quyền thực tế do Backend quyết định. Frontend chỉ dùng tên role t
 | `/store/staff` | `StoreStaffPage` | Thêm, danh sách, đổi permission, xóa dưới `/api/v1/stores/my-store/staff` (quyền `STORE_STAFF_MANAGE`). **Mời** staff là `PLANNED` (chỉ có thêm trực tiếp bằng email) | `IMPLEMENTED` (thêm trực tiếp); `PLANNED` (mời) | Có danh sách, thêm bằng email, đổi quyền và xóa, chờ kiểm tra với Backend thật |
 | /store/orders | StoreOrdersPage | GET /api/v1/stores/{storeId}/orders; owner hoặc staff cùng store có ORDER_PROCESS xem; POST seller/{orderId}/confirm chỉ owner xác nhận COD | IMPLEMENTED_LOCAL; xem doc 14 §5.7.3 | IMPLEMENTED_LOCAL: menu, phân trang/lọc URL, snapshot món/người nhận, owner confirm; thêm hướng dẫn bước tiếp theo và lịch sử timestamp thật ngày 22/11. Chờ Chu kiểm thử UI |
 | `/store/vouchers` | `StoreVouchersPage` | `POST/GET /api/shop/vouchers`, `GET/PUT/DELETE /api/shop/vouchers/{code}` (`@IsOwner`); `GET /api/vouchers/{code}` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
-| `/store/offers` | `StoreOffersPage` | Không có code offer (Q8) | `NOT_FOUND` | `NOT_STARTED` |
+| `/store/offers` | `ReceivedOffersPage` | `GET /api/v1/offers/received`, `PATCH /{id}/{accept,reject}`, `POST /{id}/counter`, `GET /{id}/history` (Owner hoặc Staff có quyền `OFFER_HANDLE`; tab Cần phản hồi / Đã đồng ý / Đã đóng / Tất cả + countdown + mở Chat) | `IMPLEMENTED` (`f3ca06a`) | `IMPLEMENTED` (`361ea90`) |
 | `/store/revenue` | `StoreRevenuePage` | `GET /api/v1/analytics/seller/overview`, `GET /revenue?from&to`, `GET /top-products?limit` | `IMPLEMENTED` (Backend `e0524c0`) | `IMPLEMENTED_LOCAL` |
 | `/store/reviews` | `StoreReviewsPage` | `GET /api/v1/reviews/stores/{storeId}` | `IMPLEMENTED` | `IMPLEMENTED_LOCAL` |
 | `/store/settings` | `StoreSettingsPage` | Chưa có endpoint riêng ngoài `my-store`; phạm vi cần xác định với team | `REQUIRES_BUSINESS_CLARIFICATION` | `NOT_STARTED` |

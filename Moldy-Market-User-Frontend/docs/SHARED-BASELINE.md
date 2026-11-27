@@ -1,4 +1,14 @@
-# Shared baseline — publication 22/11/2026
+# Shared baseline — latest update 27/11/2026
+
+## Latest published checkpoints (2026-11-27)
+
+- **Backend:** https://github.com/Qt159/Moldy-Market — `main` at `f3ca06a` (includes Offer negotiation RBAC + store delegation + 24h checkout TTL + `OFF_010` voucher lock + enriched `OfferResponse`, `Product.allowOffer` default `true`, and `OfferChatEventListener` + `Message.offerId` STOMP mirroring). Verified targeted unit suites (`OfferServiceTest` 14/14, `CheckoutGroupServiceTest` 15/15, `OfferChatEventListenerTest` 2/2) + full unit regression (`338/338` prior checkpoint).
+- **User Frontend:** https://github.com/Chu0701/Moldy-Market-User-Frontend — `main` at `361ea90` (includes full Offer feature `/offers` & `/store/offers`, `allowOffer` product toggle, interactive `ChatOfferCard` + `ChatPinnedOfferBar` + Messenger peer avatars in Chat, Cart/Checkout accepted-offer pricing & voucher lock, 3-tier `ProductPurchaseBox` + upgraded `MobileBuyBar`, and fixed `MainLayout` sticky header scroll oscillation). Verified Prettier, ESLint (0 errors), Vitest, and Vite production build.
+- **Admin Frontend:** https://github.com/Chu0701/Moldy-Market-Admin-Frontend — `main` at `b285031` (includes API layer with `moldy-market:admin:access-token`, shared feedback/common UI, `@layer components` CSS system, login-free `AdminLayout` shell per Chu's temporary dev instruction, and Group 2 modules: Disputes `/disputes` & `/disputes/:disputeId`, Withdrawals `/withdrawals`, Platform Vouchers `/vouchers`). Verified Prettier, ESLint (0 errors), Vitest 6/6 files (13/13 tests), and Vite build.
+
+---
+
+# Historical baseline — publication 22/11/2026
 
 Status: PUBLISHED. Chu authorized committing and pushing the latest code to main in all three repositories. Backend and both frontend publication refs below were verified against GitHub main. Subsequent documentation-only commits may advance main without changing the tested application checkpoints.
 
